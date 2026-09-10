@@ -1,8 +1,8 @@
 // Platform accounts: the identities that actually own videos. Accounts are
 // created by downloads (every video upserts its uploader; Pornhub also
-// asserts cast members), imported from a person's trusted profile links, or
-// defined manually. People CONNECT to accounts — videos never attach to a
-// person's name directly, so renaming a person can't orphan anything.
+// asserts cast members), imported from a person's profile links, or defined
+// manually. People CONNECT to accounts by hand — never automatically — and
+// a person's uploads are derived from those connections (see people.go).
 package library
 
 import (
@@ -120,72 +120,23 @@ func (db *DB) AccountsForPerson(name string) ([]AccountInfo, error) {
 	return out, nil
 }
 
-// VideosUploadedBy returns videos owned by any of the person's connected
-// accounts — the platform-derived "their uploads" set, independent of the
-// legacy model strings.
-func (db *DB) VideosUploadedBy(person string) ([]Video, error) {
-	accts, err := db.AccountsForPerson(person)
-	if err != nil {
-		return nil, err
-	}
-	own := map[Account]bool{}
-	for _, a := range accts {
-		own[Account{Platform: a.Platform, Handle: a.Handle}] = true
-	}
-	if len(own) == 0 {
-		return []Video{}, nil
-	}
-	vids, err := db.query(`WHERE ` + notHidden + ` ORDER BY added DESC, id`)
-	if err != nil {
-		return nil, err
-	}
-	out := []Video{}
-	for _, v := range vids {
-		if a, ok := videoAccount(v); ok && own[a] {
-			out = append(out, v)
-		}
-	}
-	return out, nil
-}
-
-// VideosSavedBy returns videos manually filed under the person that their
-// accounts do NOT own — deliberate saves (reposts, local imports).
-func (db *DB) VideosSavedBy(person string) ([]Video, error) {
-	assigned, err := db.VideosByModel(person)
-	if err != nil {
-		return nil, err
-	}
-	accts, err := db.AccountsForPerson(person)
-	if err != nil {
-		return nil, err
-	}
-	own := map[Account]bool{}
-	for _, a := range accts {
-		own[Account{Platform: a.Platform, Handle: a.Handle}] = true
-	}
-	out := []Video{}
-	for _, v := range assigned {
-		if a, ok := videoAccount(v); ok && own[a] {
-			continue // that's an upload
-		}
-		out = append(out, v)
-	}
-	return out, nil
-}
-
-// AccountVideoCounts tallies how many videos each account owns.
+// AccountVideoCounts tallies how many videos each account is the source of.
 func (db *DB) AccountVideoCounts() (map[Account]int, error) {
-	vids, err := db.query(`WHERE 1=1`)
+	rows, err := db.sql.Query(`SELECT source_platform, source_handle, COUNT(*) FROM videos
+WHERE COALESCE(source_handle,'')<>'' GROUP BY source_platform, source_handle`)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	counts := map[Account]int{}
-	for _, v := range vids {
-		if a, ok := videoAccount(v); ok {
-			counts[a]++
+	for rows.Next() {
+		var p, h string
+		var n int
+		if rows.Scan(&p, &h, &n) == nil {
+			counts[Account{Platform: p, Handle: h}] = n
 		}
 	}
-	return counts, nil
+	return counts, rows.Err()
 }
 
 // upsertVideoAccounts records the accounts a video asserts: its uploader as
@@ -223,12 +174,12 @@ func (db *DB) upsertVideoAccounts(v Video) {
 	}
 }
 
-// BackfillAccounts builds the accounts table from everything we already have:
-// trusted profile links (arrive pre-connected — the user curated them), the
-// Pornhub sidecars' canonical uploader_id + cast (also copied onto the video
-// rows), X handles from URLs, and RedGifs uploaders. Finally, download-created
-// accounts get "born-linked" to the person that was auto-created from them
-// (exact display-name or slug match, only when unambiguous).
+// BackfillAccounts (re)builds the accounts table from everything we already
+// have: profile links the user saved (arrive connected — they curated them),
+// the Pornhub sidecars' canonical uploader_id + cast (also copied onto the
+// video rows), X handles from URLs, and RedGifs uploaders. Every video's
+// source account is (re)recorded. Nothing is connected by name-matching:
+// people connect accounts themselves.
 func (db *DB) BackfillAccounts(readSidecar func(site, id string) (uploaderID string, cast []string, ok bool)) (map[string]int, error) {
 	stats := map[string]int{}
 
@@ -279,45 +230,15 @@ func (db *DB) BackfillAccounts(readSidecar func(site, id string) (uploaderID str
 				_, _ = db.sql.Exec(`UPDATE videos SET uploader_id=? WHERE site=? AND id=?`, h, v.Site, v.ID)
 			}
 		}
-		before := stats["accounts"]
+		if p, h := deriveSource(v); h != "" && (p != v.SourcePlatform || h != v.SourceHandle) {
+			_, _ = db.sql.Exec(`UPDATE videos SET source_platform=?, source_handle=? WHERE site=? AND id=?`, p, h, v.Site, v.ID)
+			stats["source-recorded"]++
+		}
 		db.upsertVideoAccounts(v)
-		_ = before
 		stats["videos-scanned"]++
-	}
-
-	// 3. Born-linking: connect download accounts to the person auto-created
-	// from them, when there is exactly one unambiguous name match.
-	accounts, err := db.Accounts()
-	if err != nil {
-		return stats, err
-	}
-	people, err := db.Models()
-	if err != nil {
-		return stats, err
-	}
-	for _, a := range accounts {
-		if a.Person != "" {
-			continue
-		}
-		var matches []string
-		for _, p := range people {
-			if p.Name == "" {
-				continue
-			}
-			if strings.EqualFold(p.Name, a.DisplayName) || HandleSlug(p.Name) == a.Handle {
-				matches = append(matches, p.Name)
-			}
-		}
-		if len(matches) == 1 {
-			_ = db.ConnectAccount(a.Platform, a.Handle, matches[0])
-			stats["born-linked"]++
-		} else if len(matches) > 1 {
-			stats["ambiguous"]++
-		}
 	}
 	if all, err := db.Accounts(); err == nil {
 		stats["accounts-total"] = len(all)
 	}
 	return stats, nil
 }
-

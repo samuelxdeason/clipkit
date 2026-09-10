@@ -119,21 +119,13 @@ func (s *Server) routes(ui fs.FS) {
 	post(m, "/api/markwatched", func(b body) (any, error) { s.core.MarkWatched(b.Site, b.ID); return ok, nil })
 	post(m, "/api/position", func(b body) (any, error) { return ok, s.core.SetPosition(b.Site, b.ID, b.Position, b.Duration) })
 	post(m, "/api/setmodels", func(b body) (any, error) { return ok, s.core.SetModels(b.Site, b.ID, b.Models) })
-	post(m, "/api/models/unassign", func(b body) (any, error) { return ok, s.core.RemoveModelFromAll(b.Name) })
+	post(m, "/api/people/create", func(b body) (any, error) { return ok, s.core.CreatePerson(b.Name) })
+	post(m, "/api/people/delete", func(b body) (any, error) { return ok, s.core.DeletePerson(b.Name) })
 	post(m, "/api/settitle", func(b body) (any, error) { return ok, s.core.SetTitle(b.Site, b.ID, b.Title) })
 	post(m, "/api/setfavorite", func(b body) (any, error) { return ok, s.core.SetFavorite(b.Site, b.ID, b.Fav) })
 	post(m, "/api/setlabels", func(b body) (any, error) { return ok, s.core.SetLabels(b.Site, b.ID, b.Labels) })
 	post(m, "/api/savemodelinfo", func(b body) (any, error) { return ok, s.core.SaveModelInfo(b.Name, b.Nickname, b.Bio, b.Links) })
 	post(m, "/api/model/rename", func(b body) (any, error) { return ok, s.core.RenameModel(b.Name, b.NewName) })
-	m.HandleFunc("GET /api/model/accountmatches", j(func(r *http.Request) (any, error) { return s.core.AccountMatches(q(r, "name")) }))
-	post(m, "/api/model/claimaccount", func(b body) (any, error) {
-		n, err := s.core.ClaimAccount(b.Name, b.Platform, b.Handle)
-		return map[string]int{"assigned": n}, err
-	})
-	m.HandleFunc("GET /api/videos/featuring", j(func(r *http.Request) (any, error) { return s.core.VideosFeaturing(q(r, "model")) }))
-	m.HandleFunc("GET /api/model/castsuggestions", j(func(r *http.Request) (any, error) { return s.core.CastSuggestions(q(r, "name")) }))
-	post(m, "/api/setfeatured", func(b body) (any, error) { return ok, s.core.SetFeatured(b.Site, b.ID, b.Featured) })
-	post(m, "/api/model/acceptcast", func(b body) (any, error) { return ok, s.core.AddFeatured(b.Site, b.ID, b.Name) })
 	m.HandleFunc("GET /api/accounts", j(func(r *http.Request) (any, error) {
 		if q(r, "counts") == "1" {
 			return s.core.AccountsWithCounts()
@@ -141,7 +133,8 @@ func (s *Server) routes(ui fs.FS) {
 		return s.core.Accounts()
 	}))
 	m.HandleFunc("GET /api/videos/uploads", j(func(r *http.Request) (any, error) { return s.core.VideosUploadedBy(q(r, "name")) }))
-	m.HandleFunc("GET /api/videos/saved", j(func(r *http.Request) (any, error) { return s.core.VideosSavedBy(q(r, "name")) }))
+	m.HandleFunc("GET /api/videos/appearing", j(func(r *http.Request) (any, error) { return s.core.VideosAppearing(q(r, "name")) }))
+	m.HandleFunc("GET /api/maintenance/people-cleanup", j(func(_ *http.Request) (any, error) { return s.core.PeopleCleanupReport(), nil }))
 	m.HandleFunc("GET /api/accounts/for-person", j(func(r *http.Request) (any, error) { return s.core.AccountsForPerson(q(r, "name")) }))
 	post(m, "/api/accounts/connect", func(b body) (any, error) { return ok, s.core.ConnectAccount(b.Platform, b.Handle, b.Name) })
 	post(m, "/api/accounts/create", func(b body) (any, error) {
@@ -149,12 +142,6 @@ func (s *Server) routes(ui fs.FS) {
 	})
 	post(m, "/api/accounts/adopt", func(b body) (any, error) { return s.core.AdoptAccount(b.Platform, b.Handle, b.Name) })
 	post(m, "/api/maintenance/backfill-accounts", func(_ body) (any, error) { return s.core.BackfillAccounts() })
-	m.HandleFunc("GET /api/maintenance/reinterpret", j(func(_ *http.Request) (any, error) { return s.core.ReinterpretPlan() }))
-	post(m, "/api/maintenance/reinterpret/apply", func(_ body) (any, error) { return s.core.ReinterpretApply() })
-	post(m, "/api/maintenance/reinterpret/keep", func(b body) (any, error) { return ok, s.core.ConfirmSaved(b.Site, b.ID, b.Name) })
-	post(m, "/api/maintenance/reinterpret/tofeatured", func(b body) (any, error) {
-		return ok, s.core.DemoteToFeatured(b.Site, b.ID, b.Name)
-	})
 	post(m, "/api/photos/from-url", func(b body) (any, error) { s.core.ImportPhotosFromURL(b.URL, b.Model, b.Name); return ok, nil })
 
 	// --- ingestion (external fetcher catalogues files it placed in the vault) ---
@@ -184,7 +171,10 @@ func (s *Server) routes(ui fs.FS) {
 	})
 	post(m, "/api/setmodelcover", func(b body) (any, error) { return ok, s.core.SetModelCover(b.Name, b.Cover) })
 	post(m, "/api/avatar/url", func(b body) (any, error) { return ok, s.core.SetAvatarFromURL(b.Name, b.URL) })
-	post(m, "/api/avatar/fetch", func(b body) (any, error) { set, err := s.core.FetchAvatarFor(b.Name); return map[string]bool{"set": set}, err })
+	post(m, "/api/avatar/fetch", func(b body) (any, error) {
+		set, err := s.core.FetchAvatarFor(b.Name)
+		return map[string]bool{"set": set}, err
+	})
 	post(m, "/api/avatars/fetch-all", func(_ body) (any, error) { s.core.FetchAllAvatars(); return ok, nil })
 	post(m, "/api/import", func(b body) (any, error) { s.core.Import(b.Paths, b.Model); return ok, nil })
 	post(m, "/api/rebuild", func(_ body) (any, error) {
@@ -229,31 +219,30 @@ func (s *Server) routes(ui fs.FS) {
 
 // body is the union of every POST payload; each handler reads the fields it needs.
 type body struct {
-	URL     string             `json:"url"`
-	Site    string             `json:"site"`
-	ID      string             `json:"id"`
-	VideoID string             `json:"videoId"`
-	Title   string             `json:"title"`
-	Name    string             `json:"name"`
-	Bio     string             `json:"bio"`
-	Cover   string             `json:"cover"`
-	Model   string             `json:"model"`
-	Fav      bool              `json:"fav"`
-	Position float64           `json:"position"`
-	Duration float64           `json:"duration"`
-	Hidden  bool               `json:"hidden"`
-	Locked  bool               `json:"locked"`
-	ID64    int64               `json:"id64"`
-	Models  []string            `json:"models"`
-	Labels  []string            `json:"labels"`
-	Paths   []string            `json:"paths"`
-	URLs    []string            `json:"urls"`
-	Links   []library.ModelLink `json:"links"`
-	Nickname string             `json:"nickname"`
-	NewName  string             `json:"newName"`
-	Handle   string             `json:"handle"`
-	Platform string             `json:"platform"`
-	Featured []string           `json:"featured"`
+	URL      string              `json:"url"`
+	Site     string              `json:"site"`
+	ID       string              `json:"id"`
+	VideoID  string              `json:"videoId"`
+	Title    string              `json:"title"`
+	Name     string              `json:"name"`
+	Bio      string              `json:"bio"`
+	Cover    string              `json:"cover"`
+	Model    string              `json:"model"`
+	Fav      bool                `json:"fav"`
+	Position float64             `json:"position"`
+	Duration float64             `json:"duration"`
+	Hidden   bool                `json:"hidden"`
+	Locked   bool                `json:"locked"`
+	ID64     int64               `json:"id64"`
+	Models   []string            `json:"models"`
+	Labels   []string            `json:"labels"`
+	Paths    []string            `json:"paths"`
+	URLs     []string            `json:"urls"`
+	Links    []library.ModelLink `json:"links"`
+	Nickname string              `json:"nickname"`
+	NewName  string              `json:"newName"`
+	Handle   string              `json:"handle"`
+	Platform string              `json:"platform"`
 }
 
 var ok = map[string]bool{"ok": true}

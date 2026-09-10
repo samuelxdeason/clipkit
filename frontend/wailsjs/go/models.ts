@@ -264,8 +264,11 @@ export namespace library {
 	    uploader: string;
 	    uploader_id: string;
 	    cast: string[];
+	    source_platform: string;
+	    source_handle: string;
 	    models: string[];
-	    featured: string[];
+	    owner: string;
+	    people: string[];
 	    duration?: number;
 	    width?: number;
 	    height?: number;
@@ -300,8 +303,11 @@ export namespace library {
 	        this.uploader = source["uploader"];
 	        this.uploader_id = source["uploader_id"];
 	        this.cast = source["cast"];
+	        this.source_platform = source["source_platform"];
+	        this.source_handle = source["source_handle"];
 	        this.models = source["models"];
-	        this.featured = source["featured"];
+	        this.owner = source["owner"];
+	        this.people = source["people"];
 	        this.duration = source["duration"];
 	        this.width = source["width"];
 	        this.height = source["height"];

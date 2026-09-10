@@ -58,41 +58,32 @@ func TestAccountsFromIngest(t *testing.T) {
 	}
 }
 
-// TestBornLinking: backfill connects a download-created account to the person
-// that was auto-created from it, and imports trusted links pre-connected.
-func TestBornLinking(t *testing.T) {
+// TestBackfillLinks: backfill imports profile links as connected accounts,
+// records every video's source account, and never connects by name-match.
+func TestBackfillLinks(t *testing.T) {
 	db, err := Open(filepath.Join(t.TempDir(), "test.db"), t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer db.Close()
 
-	// A person with a trusted OnlyFans link, and a video whose uploader
-	// auto-created a person named after the account's display name.
 	_ = db.SaveModelInfo("Nikki Ryder", "", "", []ModelLink{{Label: "OF", URL: "https://onlyfans.com/nikkiiryder"}})
-	_ = db.Upsert(Video{ID: "p1", Site: "PornHub", Uploader: "ArabellaRose",
-		UploaderID: "pornstar/arabella-rose", Models: []string{"Arabella Rose"},
-		WebpageURL: "https://www.pornhub.com/view_video.php?viewkey=p1"})
+	_ = db.CreatePerson("Arabella Rose")
+	_ = db.Upsert(Video{ID: "p1", Site: "PornHub", Uploader: "ArabellaRose", UploaderID: "pornstar/arabella-rose"})
+	_, _ = db.sql.Exec(`UPDATE videos SET source_platform=NULL, source_handle=NULL`)
 
 	stats, err := db.BackfillAccounts(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if stats["from-links"] != 1 {
-		t.Errorf("trusted link not imported: %v", stats)
+	if stats["from-links"] != 1 || stats["source-recorded"] != 1 {
+		t.Errorf("stats: %v", stats)
 	}
-	accts, _ := db.AccountsForPerson("Arabella Rose")
-	found := false
-	for _, a := range accts {
-		if a.Platform == "pornhub" && a.Handle == "arabella-rose" {
-			found = true
-		}
-	}
-	if !found {
-		t.Errorf("born-linking failed: person's accounts = %v (stats %v)", accts, stats)
+	if accts, _ := db.AccountsForPerson("Arabella Rose"); len(accts) != 0 {
+		t.Errorf("backfill must not connect accounts by name: %v", accts)
 	}
 	ofAccts, _ := db.AccountsForPerson("Nikki Ryder")
 	if len(ofAccts) != 1 || ofAccts[0].Platform != "onlyfans" || ofAccts[0].Handle != "nikkiiryder" {
-		t.Errorf("trusted OF link account wrong: %v", ofAccts)
+		t.Errorf("link account wrong: %v", ofAccts)
 	}
 }

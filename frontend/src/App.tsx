@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   Models, VideosByModel, AllVideos, Search, RecentlyDownloaded, RecentlyWatched, ContinueWatching, MarkWatched, SetPosition, SetModels, SetTitle,
-  SetFavorite, SetLabels, AllLabels, Favorites, LabelCounts, VideosByLabel, UnassignModel,
+  SetFavorite, SetLabels, AllLabels, Favorites, LabelCounts, VideosByLabel,
   Enqueue, EnqueueMany, Enumerate, SyncedLists, RemoveSync, Queue, RemoveJob, ClearFinished, Import, ImportFilesDialog, ImportFolderDialog,
   PhotosByModel, ImportPhotosDialog, ImportPhotosFromURL, GetModelInfo, SaveModelInfo, RenameModel, SetModelCover, SetAvatarFromURL, UploadAvatar, FetchAvatar, FetchAllAvatars,
   CookieStatus, ConnectCookies, OpenFolder,
@@ -11,8 +11,9 @@ import {
   DeleteCollection, AddToCollection, RemoveFromCollection, VideosByCollection, CollectionsForVideo,
   EventsOn, BrowserOpenURL,
 } from "./api";
-import { AccountMatches, ClaimAccount, SetFeatured, VideosFeaturing, CastSuggestions, AcceptCast, GetReinterpretPlan, ApplyReinterpret, ReinterpretKeep, ReinterpretToFeatured, AccountsWithCounts, AccountsForPerson, ConnectAccount, CreateAccount, VideosUploadedBy, VideosSavedBy, AllAccounts, AdoptAccount } from "./api";
-import type { SyncSummary, AccountMatch, ReinterpretPlan, ReinterpretAction, AccountInfo, AccountWithCount } from "./api";
+import { AccountsWithCounts, AccountsForPerson, ConnectAccount, CreateAccount, VideosUploadedBy, VideosAppearing, AllAccounts, AdoptAccount, CreatePerson, DeletePerson, PeopleCleanupReport } from "./api";
+import type { CleanupReport } from "./api";
+import type { SyncSummary, AccountInfo, AccountWithCount } from "./api";
 import { library, downloader } from "../wailsjs/go/models";
 
 type Model = library.Model;
@@ -39,25 +40,16 @@ const ACCTS: Record<string, AccountInfo> = {};
 const acctKey = (platform: string, handle: string) => platform + "/" + handle;
 const phSlug = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9 _-]/g, "").replace(/[ _]+/g, "-").replace(/^-+|-+$/g, "");
-// ownerAccountOf derives the platform account a video was downloaded from
-// (mirrors the server's videoAccount).
+// ownerAccountOf is the platform account a video was downloaded from — recorded
+// by the server at ingest, never guessed here. null for Local files.
 function ownerAccountOf(v: Video): { platform: string; handle: string; display: string } | null {
-  if (v.site === "Twitter") {
-    const m = /(?:twitter|x)\.com\/@?([A-Za-z0-9_]{1,15})/i.exec(v.webpage_url || "");
-    return m ? { platform: "x", handle: m[1].toLowerCase(), display: v.uploader || m[1] } : null;
-  }
-  if (v.site === "PornHub") {
-    const raw = (v.uploader_id || "").toLowerCase().replace(/^\/+|\/+$/g, "");
-    const parts = raw.split("/").filter(Boolean);
-    const h = parts.length >= 2 ? parts[1] : parts[0] || phSlug(v.uploader || "");
-    return h ? { platform: "pornhub", handle: h, display: v.uploader || h } : null;
-  }
-  if (v.site === "RedGifs") {
-    const h = phSlug(v.uploader || "");
-    return h ? { platform: "redgifs", handle: h, display: v.uploader || h } : null;
-  }
-  return null;
+  if (!v.source_handle) return null;
+  return { platform: v.source_platform, handle: v.source_handle, display: v.uploader || v.source_handle };
 }
+// peopleOf: everyone attached to a video — the person connected to its source
+// account, the people tagged on it, and cast members whose accounts are
+// connected. Derived server-side; empty = Unsorted.
+const peopleOf = (v: Video): string[] => v.people || [];
 
 // NICK maps a person's canonical name to their chosen nickname; refreshed
 // whenever the model list loads. modelLabel is THE way to render a name.
@@ -939,7 +931,7 @@ function Hero({ v, onPlay, onShuffle }: { v: Video; onPlay: (v: Video) => void; 
           <span className="swirl-chip inline-block text-[10px] uppercase tracking-widest font-extrabold mb-2.5 px-2.5 py-1 rounded-md">Featured</span>
           <h1 className="hero-title text-2xl md:text-4xl font-extrabold leading-tight line-clamp-2 cap text-white">{v.title || v.uploader}</h1>
           <div className="text-sm text-white/80 mt-2 cap">
-            {v.models && v.models.length ? v.models.map(modelLabel).join(", ") : UNASSIGNED}
+            {peopleOf(v).length ? peopleOf(v).map(modelLabel).join(", ") : UNASSIGNED}
             {v.height ? ` · ${v.height}p` : ""}{v.duration ? ` · ${fmtDur(v.duration)}` : ""}
           </div>
           <div className="flex gap-3 mt-5">
@@ -983,7 +975,7 @@ function RowCard({ v, onClick, progress }: { v: Video; onClick: () => void; prog
       <div className="playbtn"><span className="w-12 h-12 grid place-items-center rounded-full glass text-fg text-lg">▶</span></div>
       <div className="absolute bottom-0 left-0 right-0 p-3">
         <div className="text-sm font-semibold line-clamp-1 text-white cap">{v.favorite ? <span className="favorite-mark">♥ </span> : null}{v.title || v.uploader}</div>
-        <div className="text-[11px] text-white/80 mt-0.5 truncate cap">{v.models && v.models.length ? v.models.map(modelLabel).join(", ") : UNASSIGNED}</div>
+        <div className="text-[11px] text-white/80 mt-0.5 truncate cap">{peopleOf(v).length ? peopleOf(v).map(modelLabel).join(", ") : UNASSIGNED}</div>
       </div>
       {progress != null && progress > 0 && <div className="progress"><i style={{ width: `${Math.round(progress * 100)}%` }} /></div>}
     </button>
@@ -1033,32 +1025,50 @@ function ModelGrid({ models, onOpen, onChanged }: { models: Model[]; onOpen: (m:
   const [selectMode, setSelectMode] = useState(false);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
-  if (!models.length) return <Empty icon="◇">No people catalogued yet. Add something to your inbox and they’ll appear here.</Empty>;
+  const [creating, setCreating] = useState(false);
 
   const toggle = (name: string) => setPicked((p) => { const n = new Set(p); n.has(name) ? n.delete(name) : n.add(name); return n; });
   const exit = () => { setSelectMode(false); setPicked(new Set()); };
-  const unassignPicked = async () => {
+  const deletePicked = async () => {
     if (!picked.size) return;
     setBusy(true);
-    for (const name of picked) await UnassignModel(name);
+    for (const name of picked) await DeletePerson(name);
     setBusy(false); exit(); onChanged();
   };
+  const newPerson = creating && <NewPersonModal onClose={() => setCreating(false)}
+    onCreated={(name) => { setCreating(false); onChanged(); onOpen({ name } as Model); }} />;
+
+  if (!models.length) return (
+    <>
+      <Empty icon="◇">
+        No people yet. Downloads only ever create <b>accounts</b> — people are yours to define.
+        <div className="mt-4"><button onClick={() => setCreating(true)} style={{ background: "var(--ac)", color: "var(--ac-ink)" }}
+          className="text-sm font-semibold px-4 py-2 rounded-lg">New person</button></div>
+      </Empty>
+      {newPerson}
+    </>
+  );
 
   return (
     <>
       <div className="video-toolbar flex items-center gap-3 mb-4 text-sm">
         {!selectMode
-          ? <button onClick={() => setSelectMode(true)} className="text-muted hover:text-fg">Select</button>
+          ? <>
+              <button onClick={() => setCreating(true)} style={{ background: "var(--ac)", color: "var(--ac-ink)" }}
+                className="text-xs font-bold px-3.5 py-1.5 rounded-full">+ New person</button>
+              <button onClick={() => setSelectMode(true)} className="text-muted hover:text-fg">Select</button>
+            </>
           : <>
               <span className="text-muted">{picked.size} selected</span>
-              <button onClick={unassignPicked} disabled={!picked.size || busy}
+              <button onClick={deletePicked} disabled={!picked.size || busy}
                 className="font-medium px-3 py-1.5 rounded-lg text-xs bg-panel2 hover:bg-edge text-fg border border-edge disabled:opacity-40">
-                Move videos to Unsorted
+                Remove people
               </button>
               <button onClick={exit} className="text-muted hover:text-fg text-xs">Cancel</button>
             </>}
-        {selectMode && <span className="text-muted text-xs">Pick the people to clear — their videos move to Unsorted and they disappear from this page.</span>}
+        {selectMode && <span className="text-muted text-xs">Pick the people to remove — their profile, account connections, and tags go; the videos stay (as Unsorted, unless someone else is on them).</span>}
       </div>
+      {newPerson}
     <div className="grid gap-x-4 gap-y-6 md:gap-y-7" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(clamp(96px,26vw,150px),1fr))" }}>
       {models.map((m) => {
         const canSelect = selectMode && !!m.name; // can't unassign the Unassigned bucket
@@ -1083,6 +1093,35 @@ function ModelGrid({ models, onOpen, onChanged }: { models: Model[]; onOpen: (m:
       })}
     </div>
     </>
+  );
+}
+
+// NewPersonModal: the ONE way a person comes to exist (besides typing a new
+// name in Organize or adopting an account). Nothing is created by downloads.
+function NewPersonModal({ onClose, onCreated }: { onClose: () => void; onCreated: (name: string) => void }) {
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const create = async () => {
+    const n = name.trim();
+    if (!n || busy) return;
+    setBusy(true);
+    try { await CreatePerson(n); onCreated(n); } finally { setBusy(false); }
+  };
+  return (
+    <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
+      <div className="bg-panel border border-edge rounded-xl p-5 w-[92vw] max-w-[24rem] pop" onClick={(e) => e.stopPropagation()}>
+        <div className="font-semibold mb-1">New person</div>
+        <p className="text-xs text-muted mb-3">Then connect their accounts from their page — everything those accounts posted files itself under them.</p>
+        <input value={name} autoFocus onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") create(); }} placeholder="Name"
+          className="w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-sm outline-none focus:border-accent" />
+        <div className="flex justify-end gap-2 mt-4">
+          <button onClick={onClose} className="text-sm text-muted hover:text-fg px-3 py-2">Cancel</button>
+          <button onClick={create} disabled={busy || !name.trim()} style={{ background: "var(--ac)", color: "var(--ac-ink)" }}
+            className="text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">Create</button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1253,13 +1292,9 @@ function ModelPage({ name, version, modelNames, onPlay, onChanged, onRenamed }:
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [photoURL, setPhotoURL] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [acctMatches, setAcctMatches] = useState<AccountMatch[]>([]);
-  const [claiming, setClaiming] = useState(false);
-  const [featuring, setFeaturing] = useState<Video[]>([]);
-  const [castSugg, setCastSugg] = useState<Video[]>([]);
   const [accounts, setAccounts] = useState<AccountInfo[]>([]);
   const [uploads, setUploads] = useState<Video[]>([]);
-  const [saved, setSaved] = useState<Video[]>([]);
+  const [appears, setAppears] = useState<Video[]>([]);
   const [connecting, setConnecting] = useState(false);
 
   const load = useCallback(() => {
@@ -1268,16 +1303,10 @@ function ModelPage({ name, version, modelNames, onPlay, onChanged, onRenamed }:
     PhotosByModel(name).then((p) => setPhotos(p || []));
     if (name) {
       GetModelInfo(name).then(setInfo);
-      // Verified accounts on the profile: surface any Unsorted videos from
-      // those accounts waiting to be claimed for this person.
-      AccountMatches(name).then((m) => setAcctMatches((m || []).filter((x) => x.unsortedCount > 0))).catch(() => {});
-      // Appears-in: videos they're featured in but didn't upload, plus
-      // metadata-based suggestions awaiting a yes.
-      VideosFeaturing(name).then((v) => setFeaturing(v || [])).catch(() => {});
-      CastSuggestions(name).then((v) => setCastSugg(v || [])).catch(() => {});
       AccountsForPerson(name).then((a) => setAccounts(a || [])).catch(() => {});
+      // Both derived from the connected accounts + tags — nothing stored.
       VideosUploadedBy(name).then((v) => setUploads(v || [])).catch(() => {});
-      VideosSavedBy(name).then((v) => setSaved(v || [])).catch(() => {});
+      VideosAppearing(name).then((v) => setAppears(v || [])).catch(() => {});
     } else setInfo(null);
   }, [name]);
   useEffect(() => { load(); }, [load, version]);
@@ -1347,30 +1376,16 @@ function ModelPage({ name, version, modelNames, onPlay, onChanged, onRenamed }:
         </section>
       )}
 
-      {acctMatches.map((m) => (
-        <div key={m.platform + m.handle} className="flex items-center flex-wrap gap-3 bg-panel border border-accent/40 rounded-xl px-4 py-3 mb-4 rise">
+      {name && accounts.length === 0 && !loading && (
+        <div className="flex items-center flex-wrap gap-3 bg-panel border border-accent/40 rounded-xl px-4 py-3 mb-4 rise">
           <Icon name="spark" className="w-4 h-4 text-accent shrink-0" />
           <span className="text-sm flex-1 min-w-[16rem]">
-            <b>{m.unsortedCount}</b> unsorted video{m.unsortedCount === 1 ? "" : "s"} came from{" "}
-            <b>{m.platform === "x" ? "@" + m.handle + " on X" : m.handle + " on Pornhub"}</b> — {modelLabel(name)}'s verified account. Assign them?
+            No accounts connected yet. Connect {modelLabel(name)}'s Pornhub, X, or other accounts and everything they posted shows up here automatically.
           </span>
-          <button disabled={claiming}
-            onClick={async () => {
-              setClaiming(true);
-              try {
-                await ClaimAccount(name, m.platform, m.handle);
-                setAcctMatches((xs) => xs.filter((x) => !(x.platform === m.platform && x.handle === m.handle)));
-                changed();
-              } finally { setClaiming(false); }
-            }}
-            style={{ background: "var(--ac)", color: "var(--ac-ink)" }}
-            className="text-xs font-bold px-4 py-2 rounded-full disabled:opacity-50">
-            {claiming ? "Assigning…" : `Assign ${m.unsortedCount}`}
-          </button>
-          <button onClick={() => setAcctMatches((xs) => xs.filter((x) => !(x.platform === m.platform && x.handle === m.handle)))}
-            className="text-xs text-muted hover:text-fg">Not now</button>
+          <button onClick={() => setConnecting(true)} style={{ background: "var(--ac)", color: "var(--ac-ink)" }}
+            className="text-xs font-bold px-4 py-2 rounded-full">Connect accounts</button>
         </div>
-      ))}
+      )}
 
       <div className="profile-section-header flex items-center gap-2 mb-3">
         <h2 className="section-title">Photos <span>{photos.length}</span></h2>
@@ -1405,64 +1420,23 @@ function ModelPage({ name, version, modelNames, onPlay, onChanged, onRenamed }:
           <VideoArea videos={uploads} modelNames={modelNames} onPlay={onPlay} onChanged={changed} />
         </>
       )}
-      {saved.length > 0 && (
+      {appears.length > 0 && (
         <>
           <div className="profile-section-header video-section-heading flex items-end gap-3 mt-8">
             <div>
-              <div className="eyebrow">Filed here by you — not from their accounts</div>
-              <h2 className="section-title section-title--large">Saved <span>{saved.length}</span></h2>
+              <div className="eyebrow">Tagged by you, or in the cast — not from their accounts</div>
+              <h2 className="section-title section-title--large">Appears in <span>{appears.length}</span></h2>
             </div>
           </div>
-          <div className="grid gap-3 md:gap-4" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(clamp(150px,44vw,290px),1fr))" }}>
-            {saved.map((v) => <VideoCard key={v.site + "/" + v.id} v={v} onClick={() => onPlay(v, saved)} />)}
-          </div>
+          <VideoArea videos={appears} modelNames={modelNames} onPlay={onPlay} onChanged={changed} />
         </>
       )}
-      {loading && uploads.length === 0 && saved.length === 0 && <CardGridSkeleton />}
-      {!loading && uploads.length === 0 && saved.length === 0 && videos.length > 0 && (
+      {loading && uploads.length === 0 && appears.length === 0 && <CardGridSkeleton />}
+      {!loading && name === "" && videos.length > 0 && (
         <VideoArea videos={videos} modelNames={modelNames} onPlay={onPlay} onChanged={changed} />
       )}
-
-      {castSugg.length > 0 && (
-        <div className="bg-panel border border-accent/40 rounded-xl px-4 py-3 mt-8 rise">
-          <div className="flex items-center flex-wrap gap-2 mb-2.5">
-            <Icon name="spark" className="w-4 h-4 text-accent shrink-0" />
-            <span className="text-sm font-semibold flex-1 min-w-[14rem]">
-              {castSugg.length} video{castSugg.length === 1 ? "" : "s"} list {modelLabel(name)} in the cast — add to Appears in?
-            </span>
-            <button onClick={async () => { for (const v of castSugg) await AcceptCast(v.site, v.id, name); setCastSugg([]); changed(); }}
-              style={{ background: "var(--ac)", color: "var(--ac-ink)" }}
-              className="text-xs font-bold px-4 py-2 rounded-full">Add all</button>
-            <button onClick={() => setCastSugg([])} className="text-xs text-muted hover:text-fg">Not now</button>
-          </div>
-          <div className="chipstrip flex gap-2">
-            {castSugg.slice(0, 16).map((v) => (
-              <div key={v.site + "/" + v.id} className="relative shrink-0 w-40">
-                <img src={mediaURL(v.thumbnail)} loading="lazy" onClick={() => onPlay(v, castSugg)}
-                  className="w-40 aspect-video object-cover rounded-lg cursor-pointer" />
-                <button title="Add to Appears in"
-                  onClick={async () => { await AcceptCast(v.site, v.id, name); setCastSugg((xs) => xs.filter((x) => !(x.site === v.site && x.id === v.id))); changed(); }}
-                  style={{ background: "var(--ac)", color: "var(--ac-ink)" }}
-                  className="absolute top-1.5 right-1.5 w-6 h-6 grid place-items-center rounded-full text-sm font-bold">✓</button>
-                <div className="text-[11px] text-muted truncate mt-1">{v.title || v.uploader}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {featuring.length > 0 && (
-        <>
-          <div className="profile-section-header video-section-heading flex items-end gap-3 mt-8">
-            <div>
-              <div className="eyebrow">Didn't upload these — appears in them</div>
-              <h2 className="section-title section-title--large">Featured in <span>{featuring.length}</span></h2>
-            </div>
-          </div>
-          <div className="grid gap-3 md:gap-4" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(clamp(150px,44vw,290px),1fr))" }}>
-            {featuring.map((v) => <VideoCard key={v.site + "/" + v.id} v={v} onClick={() => onPlay(v, featuring)} />)}
-          </div>
-        </>
+      {!loading && name !== "" && uploads.length === 0 && appears.length === 0 && (
+        <Empty icon="◇">Nothing here yet. Connect an account above, or tag {modelLabel(name)} on a video from its Organize sheet.</Empty>
       )}
       {lightbox !== null && (
         <Lightbox photos={photos} index={lightbox} onIndex={setLightbox} onClose={() => setLightbox(null)}
@@ -1523,7 +1497,7 @@ function ConnectAccountsModal({ person, connected, onClose, onChanged }:
     <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
       <div className="bg-panel border border-edge rounded-xl p-5 w-[92vw] max-w-[30rem] max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="font-semibold mb-1">{modelLabel(person)}&rsquo;s accounts</div>
-        <p className="text-xs text-muted mb-4">Connected accounts define which videos count as their uploads — and new downloads from them file themselves automatically.</p>
+        <p className="text-xs text-muted mb-4">This is the only link between a person and the platforms. Everything a connected account posted — past and future downloads — counts as their uploads; cast credits for the account count as appearances. Disconnecting undoes it all.</p>
 
         {connected.length > 0 && (
           <div className="space-y-2 mb-4">
@@ -1844,8 +1818,8 @@ function VideoCard({ v, onClick, selectMode, selected }:
       <div className="absolute bottom-0 left-0 right-0 p-3">
         <div className="text-sm font-semibold line-clamp-1 leading-snug text-white cap">{v.favorite ? <span className="text-rose-300">❤ </span> : null}{v.title || v.uploader}</div>
         <div className="text-xs text-white/85 mt-1 truncate cap">
-          {v.models && v.models.length
-            ? v.models.map(modelLabel).join(", ")
+          {peopleOf(v).length
+            ? peopleOf(v).map(modelLabel).join(", ")
             : (() => { const oa = ownerAccountOf(v); return oa
                 ? <span className="inline-flex items-center gap-1"><PlatformLogo platform={oa.platform} size="xs" /><span>@{oa.handle}</span></span>
                 : UNASSIGNED; })()}
@@ -1917,7 +1891,6 @@ function OrganizeSheet({ video, models, allLabels, collections, initial, onClose
   { video: Video; models: Model[]; allLabels: string[]; collections: Collection[];
     initial?: "people" | "tags" | "collections"; onClose: () => void; onChanged: () => void }) {
   const [vModels, setVModels] = useState<string[]>(video.models || []);
-  const [vFeatured, setVFeatured] = useState<string[]>(video.featured || []);
   const [vLabels, setVLabels] = useState<string[]>(video.labels || []);
   const [inColls, setInColls] = useState<Set<number>>(new Set());
   const [q, setQ] = useState("");
@@ -1935,7 +1908,6 @@ function OrganizeSheet({ video, models, allLabels, collections, initial, onClose
   }, [models]);
 
   const commitModels = async (next: string[]) => { setVModels(next); video.models = next; await SetModels(video.site, video.id, next); onChanged(); };
-  const commitFeatured = async (next: string[]) => { setVFeatured(next); video.featured = next; await SetFeatured(video.site, video.id, next); onChanged(); };
   const commitLabels = async (next: string[]) => { setVLabels(next); video.labels = next; await SetLabels(video.site, video.id, next); onChanged(); };
   const toggleColl = async (id: number) => {
     const next = new Set(inColls);
@@ -1959,14 +1931,10 @@ function OrganizeSheet({ video, models, allLabels, collections, initial, onClose
     if (!needle) return true;
     return m.name.toLowerCase().includes(needle) || (m.nickname || "").toLowerCase().includes(needle);
   };
-  const peopleSugg = models.filter((m) => m.name && !vModels.includes(m.name) && !vFeatured.includes(m.name) && matches(m)).slice(0, 12);
-  const [fq, setFq] = useState("");
-  const featSugg = models.filter((m) => {
-    const needle = fq.trim().toLowerCase();
-    if (!m.name || vModels.includes(m.name) || vFeatured.includes(m.name)) return false;
-    if (!needle) return false; // featured suggestions only appear while searching — keeps the sheet compact
-    return m.name.toLowerCase().includes(needle) || (m.nickname || "").toLowerCase().includes(needle);
-  }).slice(0, 10);
+  // The owner (from the source account) and cast-connected people are already
+  // on the video — no point offering them as tags.
+  const implied = peopleOf(video).filter((p) => !vModels.includes(p));
+  const peopleSugg = models.filter((m) => m.name && !vModels.includes(m.name) && !implied.includes(m.name) && matches(m)).slice(0, 12);
   const qExact = q.trim() && !models.some((m) => m.name.toLowerCase() === q.trim().toLowerCase());
   const tagSugg = allLabels.filter((l) => !vLabels.includes(l) && (!tagQ.trim() || l.toLowerCase().includes(tagQ.trim().toLowerCase()))).slice(0, 18);
   const tagExact = tagQ.trim() && !allLabels.some((l) => l.toLowerCase() === tagQ.trim().toLowerCase());
@@ -1991,7 +1959,13 @@ function OrganizeSheet({ video, models, allLabels, collections, initial, onClose
         </div>
 
         <div ref={secRefs.people} className="px-5 pt-4 scroll-mt-16">
-          <div className="text-xs font-bold text-muted uppercase tracking-wide mb-2.5">Person</div>
+          <div className="text-xs font-bold text-muted uppercase tracking-wide mb-2.5">People in this video</div>
+          {implied.length > 0 && (
+            <div className="text-xs text-muted mb-2.5">
+              Already here via accounts: <b className="text-fg/80">{implied.map(modelLabel).join(", ")}</b>
+              <span className="text-muted/70"> — {video.owner ? "posted it" : "in the cast"}, so no tag needed.</span>
+            </div>
+          )}
           <div className="flex flex-wrap gap-2">
             {vModels.map((m) => (
               <button key={m} onClick={() => commitModels(vModels.filter((x) => x !== m))} className={chipOn} style={onStyle}>
@@ -2015,31 +1989,7 @@ function OrganizeSheet({ video, models, allLabels, collections, initial, onClose
           </div>
           <input value={q} onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && q.trim()) { const n = peopleSugg[0]?.name || q.trim(); setQ(""); if (!vModels.includes(n)) commitModels([...vModels, n]); } }}
-            placeholder="Search or add a person…"
-            className="mt-2.5 w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-sm outline-none focus:border-accent" />
-        </div>
-
-        <div className="px-5 pt-5 scroll-mt-16">
-          <div className="text-xs font-bold text-muted uppercase tracking-wide mb-2.5">Appears in <span className="normal-case font-medium">(didn't upload it)</span></div>
-          <div className="flex flex-wrap gap-2">
-            {vFeatured.map((m) => (
-              <button key={m} onClick={() => commitFeatured(vFeatured.filter((x) => x !== m))} className={chipOn} style={onStyle}>
-                {avatars.get(m)
-                  ? <img src={mediaURL(avatars.get(m))} className="w-5 h-5 rounded-full object-cover -ml-1" />
-                  : null}
-                {modelLabel(m)} <span className="opacity-70">×</span>
-              </button>
-            ))}
-            {featSugg.map((m) => (
-              <button key={m.name} onClick={() => { setFq(""); commitFeatured([...vFeatured, m.name]); }} className={chipOff}>
-                {m.thumbnail ? <img src={mediaURL(m.thumbnail)} className="w-5 h-5 rounded-full object-cover -ml-1" /> : null}
-                {modelLabel(m.name)}
-              </button>
-            ))}
-          </div>
-          <input value={fq} onChange={(e) => setFq(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && fq.trim()) { const n = featSugg[0]?.name || fq.trim(); setFq(""); if (!vFeatured.includes(n)) commitFeatured([...vFeatured, n]); } }}
-            placeholder="Add someone who appears in this video…"
+            placeholder="Tag someone who appears in it (new name creates them)…"
             className="mt-2.5 w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-sm outline-none focus:border-accent" />
         </div>
 
@@ -2100,14 +2050,15 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
   const [tv, setTv] = useState(video.title || "");
   const [fav, setFav] = useState(!!video.favorite);
   const [labels, setLabels] = useState<string[]>(video.labels || []);
-  const [models, setModelsState] = useState<string[]>(video.models || []);
-  const [featured, setFeatured] = useState<string[]>(video.featured || []);
+  // people = everyone derived server-side (owner via account, tags, cast);
+  // the owner is shown first, as the "channel".
+  const [people, setPeople] = useState<string[]>(peopleOf(video));
   const [organizing, setOrganizing] = useState(false);
   const [acctModal, setAcctModal] = useState<{ platform: string; handle: string; display: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [vidErr, setVidErr] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
-  const primary = models[0] || "";
+  const primary = people[0] || "";
 
   // Lean-back playback: resume point, autoplay-next, and the up-next queue.
   const vidRef = useRef<HTMLVideoElement>(null);
@@ -2163,22 +2114,28 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
   // state when it closes so the page reflects the edits.
   const closeOrganize = () => {
     setOrganizing(false);
-    setModelsState(video.models || []);
-    setFeatured(video.featured || []);
+    // Tags were committed onto video.models. The server recomputes people
+    // (owner + tags + cast-connected) on the next load; merge locally so the
+    // page reflects the edit right away — owner first, then tags, then the
+    // cast-connected names that were already there.
+    const tagged = video.models || [];
+    const castLinked = peopleOf(video).filter((p) => p !== video.owner && !tagged.includes(p));
+    setPeople(Array.from(new Set([video.owner, ...tagged, ...castLinked].filter(Boolean))));
     setLabels(video.labels || []);
-    loadRelated((video.models && video.models[0]) || "");
+    loadRelated(video.owner || (video.models && video.models[0]) || "");
   };
   const avatarOf = (name: string) => allModels.find((m) => m.name === name)?.thumbnail || "";
-  // Cast entries whose accounts have no person parent yet — shown as account
-  // chips so a person can be defined right from the video.
+  const owner = ownerAccountOf(video);
+  // Cast entries whose accounts have no person yet — shown as account chips
+  // so a person can be defined right from the video.
   const castAccounts = (video.cast || []).flatMap((member) => {
     const h = phSlug(member);
-    if (!h) return [];
+    if (!h || h === owner?.handle) return [];
     const acct = ACCTS[acctKey("pornhub", h)];
-    if (acct?.person) return []; // resolved to a person (already in featured or owner)
-    if (models.some((m) => phSlug(m) === h) || featured.some((f) => phSlug(f) === h)) return [];
+    if (acct?.person) return []; // resolved to a person (already in people)
     return [{ handle: h, display: member }];
   });
+  const others = people.filter((p) => p !== video.owner);
   const pill = "action-btn flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold whitespace-nowrap shrink-0 transition active:scale-95";
 
   return (
@@ -2231,34 +2188,36 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
           : <h1 onClick={() => { setTv(video.title || ""); setEditing(true); }}
               className="watch-title cursor-text hover:opacity-90">{video.title || video.uploader} <span className="watch-edit-mark">✎</span></h1>}
 
-        {/* Person row — channel-style: avatar + name, tap through; Edit opens Organize. */}
+        {/* Posted-by row — channel-style. The person connected to the source
+            account, or the bare account chip (click to give it a person). */}
         <div className="watch-people flex items-center flex-wrap gap-x-4 gap-y-2">
-          {models.length === 0
-            ? (() => { const oa = ownerAccountOf(video); return oa
-                ? <span className="inline-flex items-center gap-2.5">
-                    <AccountChip platform={oa.platform} handle={oa.handle} onClick={() => setAcctModal(oa)} />
-                    <button onClick={() => setOrganizing(true)} className="text-xs text-muted hover:text-fg">or add a person</button>
-                  </span>
-                : <button onClick={() => setOrganizing(true)} className="flex items-center gap-2.5 text-muted hover:text-fg">
+          {video.owner
+            ? <button onClick={() => onOpenModel(video.owner)} className="flex items-center gap-2.5 group">
+                {avatarOf(video.owner)
+                  ? <img src={mediaURL(avatarOf(video.owner))} className="w-9 h-9 rounded-full object-cover ring-1 ring-edge" />
+                  : <span className="w-9 h-9 rounded-full bg-panel2 border border-edge grid place-items-center text-sm font-bold text-muted">{modelLabel(video.owner)[0]?.toUpperCase()}</span>}
+                <span className="font-semibold text-[15px] group-hover:text-accent transition">{modelLabel(video.owner)}</span>
+                {owner && <span className="text-xs text-muted">@{owner.handle}</span>}
+              </button>
+            : owner
+              ? <span className="inline-flex items-center gap-2.5">
+                  <AccountChip platform={owner.platform} handle={owner.handle} onClick={() => setAcctModal(owner)} />
+                  <button onClick={() => setOrganizing(true)} className="text-xs text-muted hover:text-fg">or tag a person</button>
+                </span>
+              : others.length === 0
+                ? <button onClick={() => setOrganizing(true)} className="flex items-center gap-2.5 text-muted hover:text-fg">
                     <span className="w-9 h-9 rounded-full bg-panel2 border border-edge grid place-items-center"><Icon name="people" className="w-4.5 h-4.5" /></span>
-                    <span className="text-sm font-medium">Add a person</span>
-                  </button>; })()
-            : models.map((m) => (
-                <button key={m} onClick={() => onOpenModel(m)} className="flex items-center gap-2.5 group">
-                  {avatarOf(m)
-                    ? <img src={mediaURL(avatarOf(m))} className="w-9 h-9 rounded-full object-cover ring-1 ring-edge" />
-                    : <span className="w-9 h-9 rounded-full bg-panel2 border border-edge grid place-items-center text-sm font-bold text-muted">{modelLabel(m)[0]?.toUpperCase()}</span>}
-                  <span className="font-semibold text-[15px] group-hover:text-accent transition">{modelLabel(m)}</span>
-                </button>
-              ))}
+                    <span className="text-sm font-medium">Tag a person</span>
+                  </button>
+                : null}
         </div>
 
-        {/* Appears in — persons first, then cast ACCOUNTS with no person yet
-            (click one to define its person). */}
-        {(featured.length > 0 || castAccounts.length > 0) && (
+        {/* Appears in — tagged / cast-connected people first, then cast
+            ACCOUNTS with no person yet (click one to define its person). */}
+        {(others.length > 0 || castAccounts.length > 0) && (
           <div className="flex items-center flex-wrap gap-2 mt-2.5 text-sm">
-            <span className="text-muted text-xs font-semibold uppercase tracking-wide">Featuring</span>
-            {featured.map((m) => (
+            <span className="text-muted text-xs font-semibold uppercase tracking-wide">{video.owner || owner ? "Featuring" : "People"}</span>
+            {others.map((m) => (
               <button key={m} onClick={() => onOpenModel(m)}
                 className="flex items-center gap-1.5 bg-panel2 border border-edge rounded-full pl-1 pr-3 py-1 hover:border-accent transition">
                 {avatarOf(m)
@@ -2518,19 +2477,8 @@ function SettingsPage() {
     finally { setRebuilding(false); }
   };
   const fetchAvatars = () => { setAvBusy(true); setAvProg(null); FetchAllAvatars(); };
-  const [plan, setPlan] = useState<ReinterpretPlan | null>(null);
-  const [planBusy, setPlanBusy] = useState(false);
-  const [applied, setApplied] = useState<Record<string, number> | null>(null);
-  const scanPlan = async () => { setPlanBusy(true); setApplied(null); try { setPlan(await GetReinterpretPlan()); } finally { setPlanBusy(false); } };
-  const applyPlan = async () => {
-    setPlanBusy(true);
-    try { setApplied(await ApplyReinterpret()); setPlan(await GetReinterpretPlan()); } finally { setPlanBusy(false); }
-  };
-  const resolveReview = async (act: ReinterpretAction, keep: boolean) => {
-    if (keep) await ReinterpretKeep(act.video.site, act.video.id, act.person);
-    else await ReinterpretToFeatured(act.video.site, act.video.id, act.person);
-    setPlan((p) => p && { ...p, review: p.review.filter((x) => !(x.video.site === act.video.site && x.video.id === act.video.id && x.person === act.person)) });
-  };
+  const [cleanup, setCleanup] = useState<CleanupReport | null>(null);
+  useEffect(() => { PeopleCleanupReport().then((r) => setCleanup(r && (r.kept.length || r.deleted.length) ? r : null)).catch(() => {}); }, []);
   const change = async () => { const next = await ChooseMediaRoot(); if (next && next !== root) { setRoot(next); setChanged(true); } };
   const siteColor = (s: string) => (s === "PornHub" ? "#e8964e" : s === "Twitter" ? "#5da4d4" : "var(--ac)");
 
@@ -2583,51 +2531,22 @@ function SettingsPage() {
         <ToggleRow label="Hover preview" hint="Play a muted clip when you hover a video card (desktop only)." on={hoverPrev} onChange={toggleHover} />
       </section>
 
-      <section className="bg-panel border border-edge rounded-xl p-5 mb-6">
-        <div className="text-sm font-semibold mb-1">Reorganize with accounts</div>
-        <p className="text-xs text-muted mb-3 leading-relaxed">
-          Re-reads every person assignment through the platform accounts: people who only <b>appear</b> in
-          a video (per its cast) move to Appears-in automatically, cast-connected people get added, and the
-          few unexplained cases wait below for your call. Deliberate saves are never touched.
-        </p>
-        {plan === null
-          ? <button onClick={scanPlan} disabled={planBusy} className="text-sm font-medium px-4 py-2 rounded-lg bg-panel2 hover:bg-edge text-fg border border-edge disabled:opacity-50">{planBusy ? "Scanning…" : "Scan library"}</button>
-          : (
-            <>
-              {(plan.toFeatured.length > 0 || plan.autoFeatured.length > 0) && (
-                <div className="flex items-center flex-wrap gap-3 mb-3">
-                  <span className="text-sm">
-                    <b>{plan.toFeatured.length}</b> to move to Appears-in · <b>{plan.autoFeatured.length}</b> cast members to add
-                  </span>
-                  <button onClick={applyPlan} disabled={planBusy} style={{ background: "var(--ac)", color: "var(--ac-ink)" }}
-                    className="text-xs font-bold px-4 py-2 rounded-full disabled:opacity-50">{planBusy ? "Applying…" : "Apply automatic fixes"}</button>
-                </div>
-              )}
-              {applied && <div className="text-sm text-emerald-400 mb-3">Applied — {applied["moved-to-featured"] || 0} moved, {applied["auto-featured"] || 0} added ✓</div>}
-              {plan.toFeatured.length === 0 && plan.autoFeatured.length === 0 && plan.review.length === 0 && (
-                <div className="text-sm text-emerald-400">Everything matches the accounts — all clean ✓</div>
-              )}
-              {plan.review.length > 0 && (
-                <>
-                  <div className="text-xs font-bold text-muted uppercase tracking-wide mt-2 mb-2">Needs your call · {plan.review.length}</div>
-                  <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
-                    {plan.review.map((m) => (
-                      <div key={m.video.site + "/" + m.video.id + "/" + m.person} className="flex items-center gap-3 bg-panel2 border border-edge rounded-lg px-3 py-2">
-                        {m.video.thumbnail && <img src={mediaURL(m.video.thumbnail)} className="w-16 aspect-video object-cover rounded shrink-0" />}
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[13px] truncate">{m.video.title || m.video.id}</div>
-                          <div className="text-[11px] text-muted truncate"><b className="text-fg/80">{modelLabel(m.person)}</b> — {m.reason} · uploader: {m.video.uploader || "—"}</div>
-                        </div>
-                        <button onClick={() => resolveReview(m, true)} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-panel hover:bg-edge text-fg border border-edge shrink-0">Keep saved</button>
-                        <button onClick={() => resolveReview(m, false)} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-panel hover:bg-edge text-fg border border-edge shrink-0">Appears in</button>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </>
-          )}
-      </section>
+      {cleanup && (
+        <section className="bg-panel border border-accent/40 rounded-xl p-5 mb-6">
+          <div className="text-sm font-semibold mb-1">People are now manual</div>
+          <p className="text-xs text-muted mb-3 leading-relaxed">
+            On this launch the library moved to manual people: downloads only create <b>accounts</b>, and a person's
+            videos come from the accounts you connect to them. People whose profile you had never touched were removed.
+          </p>
+          <div className="text-sm flex flex-wrap gap-x-5 gap-y-1 mb-2">
+            <span><b>{cleanup.kept.length}</b> people kept</span>
+            <span><b>{cleanup.deleted.length}</b> auto-created removed</span>
+            <span><b>{cleanup.tagsKept}</b> tags kept</span>
+            <span><b>{cleanup.tagsDerived}</b> now derived from accounts</span>
+          </div>
+          {cleanup.backup && <div className="text-xs text-muted">Backup: <code className="bg-panel2 px-1.5 py-0.5 rounded">{cleanup.backup}</code></div>}
+        </section>
+      )}
 
             <section className="bg-panel border border-edge rounded-xl p-5 mb-6">
         <div className="text-sm font-semibold mb-1">Fix videos for mobile</div>
@@ -2949,7 +2868,7 @@ function Feed({ onOpenModel, onClose, collections, allLabels, models, onChanged 
         {videos.map((v, i) => (
           <FeedItem key={v.site + "/" + v.id} v={v} index={i} active={i === current} near={Math.abs(i - current) <= 1}
             preload={i === current ? "auto" : "metadata"}
-            muted={muted} avatar={avatars.get((v.models && v.models[0]) || "")} models={models}
+            muted={muted} avatar={avatars.get(peopleOf(v)[0] || "")} models={models}
             onVisible={onVisible} onOpenModel={onOpenModel}
             collections={collections} allLabels={allLabels} onChanged={onChanged} />
         ))}
@@ -3009,7 +2928,7 @@ function FeedItem({ v, index, active, near, muted, preload, avatar, models, onVi
   const [vidErr, setVidErr] = useState(false);
   const [buffering, setBuffering] = useState(false);
   const [burst, setBurst] = useState<{ x: number; y: number; n: number } | null>(null);
-  const primary = (v.models && v.models[0]) || "";
+  const primary = peopleOf(v)[0] || "";
   // Portrait clips go full-bleed (TikTok-style); landscape ones sit contained
   // over a blurred blow-up of their own poster so the letterbox feels intentional.
   const portrait = !!(v.width && v.height && v.height > v.width);

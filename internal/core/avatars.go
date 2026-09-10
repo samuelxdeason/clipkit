@@ -94,7 +94,7 @@ func (c *Core) FetchAvatarFor(name string) (bool, error) {
 // doesn't already have a custom one, emitting "avatar" progress events.
 func (c *Core) FetchAllAvatars() {
 	go func() {
-		models, err := c.db.Models()
+		models, err := c.db.People()
 		if err != nil {
 			return
 		}

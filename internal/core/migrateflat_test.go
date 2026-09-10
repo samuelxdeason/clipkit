@@ -183,7 +183,7 @@ func TestFlatMigrationPlanApplyRollback(t *testing.T) {
 		t.Fatalf("cover = %q", cov)
 	}
 	// User data survived the path rewrite.
-	models, err := db.Models()
+	models, err := db.People()
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -53,14 +53,15 @@ func TestHiddenCollectionExcludedFromDefaultViews(t *testing.T) {
 		t.Fatalf("Search found hidden video: %v", ids(found))
 	}
 
-	// The model grid must drop Alice (she has only the hidden video).
-	models, err := db.Models()
+	// The people grid must not count the hidden video for Alice (she stays
+	// listed — people are a registry — but with nothing to show).
+	models, err := db.People()
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, m := range models {
-		if m.Name == "Alice" {
-			t.Fatalf("Models() still lists Alice from a hidden collection")
+		if m.Name == "Alice" && m.Count != 0 {
+			t.Fatalf("People() counts a hidden-collection video for Alice: %d", m.Count)
 		}
 	}
 
@@ -109,7 +110,7 @@ func TestCollectionMembershipAndDelete(t *testing.T) {
 	}
 }
 
-func TestRemoveModelFromAll(t *testing.T) {
+func TestDeletePersonStripsTags(t *testing.T) {
 	db := openTestDB(t)
 	seedVideo(t, db, "Local", "v1", "Junk") // only "Junk"
 	// v2 belongs to both Junk and Alice
@@ -118,7 +119,7 @@ func TestRemoveModelFromAll(t *testing.T) {
 	}
 	seedVideo(t, db, "Local", "v3", "Alice") // only Alice — must be untouched
 
-	if err := db.RemoveModelFromAll("Junk"); err != nil {
+	if err := db.DeletePerson("Junk"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -147,7 +148,7 @@ func TestRemoveModelFromAll(t *testing.T) {
 
 func mustModels(t *testing.T, db *DB) []Model {
 	t.Helper()
-	ms, err := db.Models()
+	ms, err := db.People()
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -19,40 +19,52 @@ import (
 // Video is one catalogue entry. JSON tags match the legacy library.json so we
 // can migrate the existing collection straight in.
 type Video struct {
-	ID           string   `json:"id"`
-	Site         string   `json:"site"`
-	Title        string   `json:"title"`
-	Uploader     string   `json:"uploader"`
-	UploaderID   string   `json:"uploader_id"` // platform's canonical account id (e.g. "pornstar/arabella-rose")
-	Cast         []string `json:"cast"`        // platform-asserted cast members (Pornhub)
-	Models       []string `json:"models"` // editable grouping(s); empty = Unassigned
-	Featured     []string `json:"featured"` // people who APPEAR in it but didn't upload it
-	Duration     *int     `json:"duration"`
-	Width        *int     `json:"width"`
-	Height       *int     `json:"height"`
-	Ext          string   `json:"ext"`
-	Filepath     string   `json:"filepath"`
-	Filename     string   `json:"filename"`
-	Thumbnail    string   `json:"thumbnail"`
-	ThumbnailURL string   `json:"thumbnail_url"`
-	WebpageURL   string   `json:"webpage_url"`
-	UploadDate   string   `json:"upload_date"`
-	ViewCount    *int     `json:"view_count"`
-	LikeCount    *int     `json:"like_count"`
-	Tags         []string `json:"tags"`
-	Categories   []string `json:"categories"`
-	Description  string   `json:"description"`
-	Filesize     *int64   `json:"filesize"`
-	Added        string   `json:"added"`
-	WatchedAt    string   `json:"watched_at"`
-	Favorite     bool     `json:"favorite"`
-	Labels       []string `json:"labels"` // user categories/tags
-	Position     *float64 `json:"position"` // resume point in seconds (0/nil = start)
+	ID         string   `json:"id"`
+	Site       string   `json:"site"`
+	Title      string   `json:"title"`
+	Uploader   string   `json:"uploader"`
+	UploaderID string   `json:"uploader_id"` // platform's canonical account id (e.g. "pornstar/arabella-rose")
+	Cast       []string `json:"cast"`        // platform-asserted cast members (Pornhub)
+	// Source account: recorded at ingest, never re-guessed. "" for Local files.
+	SourcePlatform string `json:"source_platform"`
+	SourceHandle   string `json:"source_handle"`
+	// Models = the people the USER tagged on this video (stored; the only manual
+	// person↔video link). Owner and People are derived on read from the
+	// accounts: Owner is the person connected to the source account, People is
+	// owner ∪ tags ∪ cast-connected people.
+	Models []string `json:"models"`
+	Owner  string   `json:"owner"`
+	People []string `json:"people"`
+	// legacyFeatured is the pre-cleanup "appears in" column, read only so the
+	// one-time cleanup can fold it into the tags.
+	legacyFeatured []string
+	Duration       *int     `json:"duration"`
+	Width          *int     `json:"width"`
+	Height         *int     `json:"height"`
+	Ext            string   `json:"ext"`
+	Filepath       string   `json:"filepath"`
+	Filename       string   `json:"filename"`
+	Thumbnail      string   `json:"thumbnail"`
+	ThumbnailURL   string   `json:"thumbnail_url"`
+	WebpageURL     string   `json:"webpage_url"`
+	UploadDate     string   `json:"upload_date"`
+	ViewCount      *int     `json:"view_count"`
+	LikeCount      *int     `json:"like_count"`
+	Tags           []string `json:"tags"`
+	Categories     []string `json:"categories"`
+	Description    string   `json:"description"`
+	Filesize       *int64   `json:"filesize"`
+	Added          string   `json:"added"`
+	WatchedAt      string   `json:"watched_at"`
+	Favorite       bool     `json:"favorite"`
+	Labels         []string `json:"labels"`   // user categories/tags
+	Position       *float64 `json:"position"` // resume point in seconds (0/nil = start)
 }
 
-// Model summarises one (editable) model grouping for the unified library.
+// Model summarises one person (registry row) with tallies derived from the
+// library. Kept under its historical name for the API.
 type Model struct {
-	Name         string `json:"name"`  // "" = Unassigned
+	Name         string `json:"name"`     // "" = Unsorted bucket
 	Nickname     string `json:"nickname"` // optional display name; "" = show Name
 	Count        int    `json:"count"`
 	TotalSeconds int    `json:"totalSeconds"`
@@ -106,6 +118,8 @@ type Stats struct {
 type DB struct {
 	sql  *sql.DB
 	root string
+	// LastCleanup is set when Open ran the one-time people cleanup (nil otherwise).
+	LastCleanup *CleanupReport
 }
 
 const schema = `
@@ -203,20 +217,28 @@ func Open(path, root string) (*DB, error) {
 	_, _ = sqlDB.Exec(`ALTER TABLE videos ADD COLUMN featured TEXT`)
 	_, _ = sqlDB.Exec(`ALTER TABLE videos ADD COLUMN uploader_id TEXT`)
 	_, _ = sqlDB.Exec(`ALTER TABLE videos ADD COLUMN cast TEXT`)
+	_, _ = sqlDB.Exec(`ALTER TABLE videos ADD COLUMN source_platform TEXT`)
+	_, _ = sqlDB.Exec(`ALTER TABLE videos ADD COLUMN source_handle TEXT`)
 	if _, err := sqlDB.Exec(accountsSchema); err != nil {
 		return nil, fmt.Errorf("accounts schema: %w", err)
 	}
-	if _, err := sqlDB.Exec(savedConfirmedSchema); err != nil {
-		return nil, fmt.Errorf("saved_confirmed schema: %w", err)
+	if _, err := sqlDB.Exec(metaSchema); err != nil {
+		return nil, fmt.Errorf("meta schema: %w", err)
 	}
-	// Backfill: existing rows adopt their uploader as the model (one-time; only
-	// touches rows where model is still NULL, i.e. right after the column is added).
-	_, _ = sqlDB.Exec(`UPDATE videos SET model = uploader WHERE model IS NULL`)
 	_, _ = sqlDB.Exec(`CREATE INDEX IF NOT EXISTS idx_videos_modelname ON videos(model)`)
+	_, _ = sqlDB.Exec(`CREATE INDEX IF NOT EXISTS idx_videos_source ON videos(source_platform, source_handle)`)
 	db := &DB{sql: sqlDB, root: root}
 	db.relativize()           // convert any legacy absolute paths to relative (idempotent)
 	db.migrateModelsToArray() // single-value model -> JSON array (idempotent)
 	db.migrateStatePrefix()   // legacy state-dir paths (.keepsake\, .xxx\) -> .trove\ (idempotent)
+	// One-time move to manual people (backs the file up first; no-op afterwards).
+	rep, err := db.cleanupPeople(path)
+	if err != nil {
+		sqlDB.Close()
+		return nil, fmt.Errorf("people cleanup: %w", err)
+	}
+	db.LastCleanup = rep
+	db.backfillSources() // rows ingested by older builds get their source recorded
 	return db, nil
 }
 
@@ -335,31 +357,22 @@ func jsonArr(a []string) string {
 
 // Upsert inserts or replaces a video (keyed by site+id).
 func (db *DB) Upsert(v Video) error {
-	// Verified-account attribution: an unassigned video whose source account
-	// is claimed by a person's profile link belongs to that person, not
-	// Unsorted. (Existing rows keep their model — see ON CONFLICT below.)
-	db.upsertVideoAccounts(v) // record the platform-asserted identities
-	// Cast-connected people are auto-featured — platform-asserted, no prompt.
-	for _, member := range v.Cast {
-		if p, ok := db.accountPerson(Account{Platform: "pornhub", Handle: HandleSlug(member)}); ok &&
-			!containsFold(v.Models, p) && !containsFold(v.Featured, p) {
-			v.Featured = append(v.Featured, p)
-		}
+	// Accounts are automatic: record the source account and cast accounts.
+	// People are not: nothing here assigns a person. Tags passed in (Models)
+	// are the caller's explicit choice — e.g. a Local import filed under
+	// someone — and are registered as people.
+	v.SourcePlatform, v.SourceHandle = deriveSource(v)
+	db.upsertVideoAccounts(v)
+	for _, p := range v.Models {
+		_ = db.EnsurePerson(p)
 	}
-	if len(v.Models) == 0 {
-		if acct, ok := videoAccount(v); ok {
-			if owner, found := db.AccountOwner(acct); found {
-				v.Models = []string{owner}
-			}
-		}
-	}
-	// favorite + labels are user data: set on first insert, never overwritten on
-	// re-download (no entry in the ON CONFLICT SET).
+	// favorite + labels + model are user data: set on first insert, never
+	// overwritten on re-download (no entry in the ON CONFLICT SET).
 	_, err := db.sql.Exec(`
 INSERT INTO videos (id,site,title,uploader,model,duration,width,height,ext,filepath,filename,
   thumbnail,thumbnail_url,webpage_url,upload_date,view_count,like_count,tags,categories,
-  description,filesize,added,favorite,labels,featured,uploader_id,cast)
-VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+  description,filesize,added,favorite,labels,uploader_id,cast,source_platform,source_handle)
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 ON CONFLICT(site,id) DO UPDATE SET
   title=excluded.title, uploader=excluded.uploader, duration=excluded.duration,
   width=excluded.width, height=excluded.height, ext=excluded.ext, filepath=excluded.filepath,
@@ -367,11 +380,13 @@ ON CONFLICT(site,id) DO UPDATE SET
   webpage_url=excluded.webpage_url, upload_date=excluded.upload_date, view_count=excluded.view_count,
   like_count=excluded.like_count, tags=excluded.tags, categories=excluded.categories,
   description=excluded.description, filesize=excluded.filesize, added=excluded.added,
-  uploader_id=excluded.uploader_id, cast=excluded.cast`,
+  uploader_id=excluded.uploader_id, cast=excluded.cast,
+  source_platform=excluded.source_platform, source_handle=excluded.source_handle`,
 		v.ID, v.Site, v.Title, v.Uploader, jsonArr(v.Models), ptr(v.Duration), ptr(v.Width), ptr(v.Height),
 		v.Ext, db.rel(v.Filepath), v.Filename, db.rel(v.Thumbnail), v.ThumbnailURL, v.WebpageURL,
 		v.UploadDate, ptr(v.ViewCount), ptr(v.LikeCount), jsonArr(v.Tags),
-		jsonArr(v.Categories), v.Description, ptr(v.Filesize), v.Added, b2i(v.Favorite), jsonArr(v.Labels), jsonArr(v.Featured), v.UploaderID, jsonArr(v.Cast))
+		jsonArr(v.Categories), v.Description, ptr(v.Filesize), v.Added, b2i(v.Favorite), jsonArr(v.Labels),
+		v.UploaderID, jsonArr(v.Cast), v.SourcePlatform, v.SourceHandle)
 	return err
 }
 
@@ -499,12 +514,23 @@ func (db *DB) GetModelInfo(name string) (ModelInfo, error) {
 }
 
 // SaveModelInfo upserts nickname + bio + links (preserves any existing cover).
+// A link to a platform profile the user pasted is a deliberate claim, so the
+// account is created (if unseen) and connected to the person.
 func (db *DB) SaveModelInfo(name, nickname, bio string, links []ModelLink) error {
 	_, _ = db.sql.Exec(`INSERT OR IGNORE INTO model_info(name) VALUES(?)`, name)
 	b, _ := json.Marshal(links)
 	_, err := db.sql.Exec(`UPDATE model_info SET nickname=?, bio=?, links=?, updated=? WHERE name=?`,
 		strings.TrimSpace(nickname), bio, string(b), time.Now().Format("2006-01-02 15:04:05"), name)
-	return err
+	if err != nil {
+		return err
+	}
+	for _, l := range links {
+		if a, ok := AccountFromURL(l.URL); ok {
+			_ = db.UpsertAccount(AccountInfo{Platform: a.Platform, Handle: a.Handle, URL: l.URL, Source: "link"})
+			_ = db.ConnectAccount(a.Platform, a.Handle, name)
+		}
+	}
+	return nil
 }
 
 // RenameModel renames a person everywhere: every video's model array, their
@@ -555,6 +581,7 @@ func (db *DB) RenameModel(from, to string) error {
 		}
 	}
 	_, _ = db.sql.Exec(`UPDATE photos SET model=? WHERE model=?`, to, from)
+	_, _ = db.sql.Exec(`UPDATE accounts SET person=? WHERE person=?`, to, from)
 	// Move the profile row; if the new name already has one, keep it.
 	if _, err := db.sql.Exec(`UPDATE model_info SET name=? WHERE name=?`, to, from); err != nil {
 		_, _ = db.sql.Exec(`DELETE FROM model_info WHERE name=?`, from)
@@ -570,17 +597,12 @@ func (db *DB) SetModelCover(name, coverAbs string) error {
 	return err
 }
 
-// ---- verified platform accounts -----------------------------------------
+// ---- platform accounts ---------------------------------------------------
 //
-// A profile link to a platform account is treated as a verified claim of
-// ownership: videos downloaded FROM that account belong to that person.
-// Manually assigning a video to a person implies nothing about the account
-// that posted it (reposts are everywhere) — attribution only ever flows from
-// explicitly saved links.
-
-// Account is a platform identity claimed by a profile link.
+// Account is a platform identity key. Videos record the one they came from;
+// people connect to accounts by hand (see people.go).
 type Account struct {
-	Platform string `json:"platform"` // "x" | "pornhub"
+	Platform string `json:"platform"` // "x" | "pornhub" | "redgifs" | "onlyfans" | "fansly"
 	Handle   string `json:"handle"`
 }
 
@@ -617,7 +639,10 @@ func AccountFromURL(u string) (Account, bool) {
 	if m := phAccountRe.FindStringSubmatch(u); m != nil {
 		return Account{Platform: "pornhub", Handle: strings.ToLower(m[1])}, true
 	}
-	for _, p := range []struct{ platform string; re *regexp.Regexp }{
+	for _, p := range []struct {
+		platform string
+		re       *regexp.Regexp
+	}{
 		{"onlyfans", ofAccountRe}, {"fansly", fanslyAccountRe}, {"redgifs", rgAccountRe},
 	} {
 		if m := p.re.FindStringSubmatch(u); m != nil {
@@ -646,176 +671,10 @@ func HandleSlug(name string) string {
 	return strings.Trim(b.String(), "-")
 }
 
-// videoAccount derives the account a video was downloaded from ("", false when
-// the site has no account notion we understand).
-func videoAccount(v Video) (Account, bool) {
-	switch {
-	case strings.EqualFold(v.Site, "Twitter"):
-		if h := XHandleFromURL(v.WebpageURL); h != "" {
-			return Account{Platform: "x", Handle: h}, true
-		}
-	case strings.EqualFold(v.Site, "PornHub"):
-		if _, h := ParsePHUploaderID(v.UploaderID); h != "" {
-			return Account{Platform: "pornhub", Handle: h}, true
-		}
-		if h := HandleSlug(v.Uploader); h != "" {
-			return Account{Platform: "pornhub", Handle: h}, true
-		}
-	}
-	return Account{}, false
-}
-
-// AccountOwner returns the person whose saved profile links claim this account.
-func (db *DB) AccountOwner(a Account) (string, bool) {
-	if a.Handle == "" {
-		return "", false
-	}
-	rows, err := db.sql.Query(`SELECT name, COALESCE(links,'') FROM model_info WHERE links IS NOT NULL AND links<>''`)
-	if err != nil {
-		return "", false
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var name, raw string
-		if rows.Scan(&name, &raw) != nil {
-			continue
-		}
-		var links []ModelLink
-		_ = json.Unmarshal([]byte(raw), &links)
-		for _, l := range links {
-			if got, ok := AccountFromURL(l.URL); ok && got == a {
-				return name, true
-			}
-		}
-	}
-	return "", false
-}
-
-const unsorted = `(model IS NULL OR model='' OR model='[]')`
-
-// UnsortedFromAccount returns Unsorted videos downloaded from the account.
-func (db *DB) UnsortedFromAccount(a Account) ([]Video, error) {
-	if a.Handle == "" {
-		return nil, nil
-	}
-	var cand []Video
-	var err error
-	switch a.Platform {
-	case "x":
-		cand, err = db.query(`WHERE site='Twitter' AND `+unsorted+
-			` AND webpage_url LIKE '%/' || ? || '/status/%' COLLATE NOCASE ORDER BY added DESC LIMIT 2000`, a.Handle)
-	case "pornhub":
-		cand, err = db.query(`WHERE site='PornHub' AND ` + unsorted + ` ORDER BY added DESC LIMIT 2000`)
-	default:
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	out := cand[:0]
-	for _, v := range cand {
-		if got, ok := videoAccount(v); ok && got == a {
-			out = append(out, v)
-		}
-	}
-	return out, nil
-}
-
-// AssignAccount assigns person to every Unsorted video from the account.
-func (db *DB) AssignAccount(a Account, person string) (int, error) {
-	vids, err := db.UnsortedFromAccount(a)
-	if err != nil {
-		return 0, err
-	}
-	n := 0
-	for _, v := range vids {
-		if err := db.SetModels(v.Site, v.ID, []string{person}); err == nil {
-			n++
-		}
-	}
-	return n, nil
-}
-
-// ---- featured (appears-in, separate from uploader/collection) -----------
-
-// SetFeatured replaces the people who appear in (but didn't upload) a video.
-func (db *DB) SetFeatured(site, id string, people []string) error {
-	_, err := db.sql.Exec(`UPDATE videos SET featured=? WHERE site=? AND id=?`, jsonArr(people), site, id)
-	return err
-}
-
-// AddFeatured adds one person to a video's appears-in set (no duplicates).
-func (db *DB) AddFeatured(site, id, person string) error {
-	vids, err := db.query(`WHERE site=? AND id=?`, site, id)
-	if err != nil || len(vids) == 0 {
-		return err
-	}
-	for _, f := range vids[0].Featured {
-		if strings.EqualFold(f, person) {
-			return nil
-		}
-	}
-	return db.SetFeatured(site, id, append(vids[0].Featured, person))
-}
-
-// VideosFeaturing returns videos a person appears in but didn't upload.
-func (db *DB) VideosFeaturing(person string) ([]Video, error) {
-	b, _ := json.Marshal(person)
-	return db.query(`WHERE featured LIKE ? AND `+notHidden+` ORDER BY added DESC, id`, "%"+string(b)+"%")
-}
-
-// SetModels reassigns a video's model set (empty = Unassigned).
-func (db *DB) SetModels(site, id string, models []string) error {
-	_, err := db.sql.Exec(`UPDATE videos SET model=? WHERE site=? AND id=?`, jsonArr(models), site, id)
-	return err
-}
-
 // SetTitle renames a video.
 func (db *DB) SetTitle(site, id, title string) error {
 	_, err := db.sql.Exec(`UPDATE videos SET title=? WHERE site=? AND id=?`, title, site, id)
 	return err
-}
-
-// RemoveModelFromAll strips a model name from every video that lists it; videos
-// left with no models become Unassigned. Used to clean up junk model groupings.
-func (db *DB) RemoveModelFromAll(name string) error {
-	if strings.TrimSpace(name) == "" {
-		return nil
-	}
-	b, _ := json.Marshal(name) // match the quoted token inside the JSON array
-	rows, err := db.sql.Query(`SELECT rowid, model FROM videos WHERE model LIKE ?`, "%"+string(b)+"%")
-	if err != nil {
-		return err
-	}
-	type item struct {
-		rowid int64
-		raw   string
-	}
-	var items []item
-	for rows.Next() {
-		var r int64
-		var m string
-		if rows.Scan(&r, &m) == nil {
-			items = append(items, item{r, m})
-		}
-	}
-	rows.Close()
-	for _, it := range items {
-		ms := parseModels(it.raw)
-		kept := make([]string, 0, len(ms))
-		for _, m := range ms {
-			if m != name {
-				kept = append(kept, m)
-			}
-		}
-		if len(kept) == len(ms) {
-			continue // LIKE false-positive; name not actually present
-		}
-		if _, err := db.sql.Exec(`UPDATE videos SET model=? WHERE rowid=?`, jsonArr(kept), it.rowid); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // AddPhoto inserts/updates a photo (paths stored relative to root).
@@ -886,100 +745,6 @@ func (db *DB) Count() (int, error) {
 	return n, err
 }
 
-// Models returns the unified model list, aggregated across each video's model
-// set (a video can belong to several). Ordered by video count; "" = Unassigned.
-func (db *DB) Models() ([]Model, error) {
-	rows, err := db.sql.Query(`SELECT COALESCE(model,''), site, COALESCE(duration,0), COALESCE(filesize,0), COALESCE(thumbnail,'') FROM videos WHERE ` + notHidden)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	type agg struct {
-		count    int
-		seconds  int
-		bytes    int64
-		sites    map[string]bool
-		thumb    string
-	}
-	acc := map[string]*agg{}
-	order := []string{}
-	bump := func(name, site string, dur int, sz int64, thumb string) {
-		a := acc[name]
-		if a == nil {
-			a = &agg{sites: map[string]bool{}}
-			acc[name] = a
-			order = append(order, name)
-		}
-		a.count++
-		a.seconds += dur
-		a.bytes += sz
-		if site != "" {
-			a.sites[site] = true
-		}
-		if a.thumb == "" && thumb != "" {
-			a.thumb = thumb
-		}
-	}
-	for rows.Next() {
-		var modelRaw, site, thumb string
-		var dur int
-		var sz int64
-		if err := rows.Scan(&modelRaw, &site, &dur, &sz, &thumb); err != nil {
-			return nil, err
-		}
-		ms := parseModels(modelRaw)
-		if len(ms) == 0 {
-			bump("", site, dur, sz, thumb) // Unassigned
-			continue
-		}
-		for _, m := range ms {
-			bump(m, site, dur, sz, thumb)
-		}
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	// cover + nickname overrides
-	covers := map[string]string{}
-	nicks := map[string]string{}
-	if crows, e := db.sql.Query(`SELECT name, COALESCE(cover,''), COALESCE(nickname,'') FROM model_info`); e == nil {
-		for crows.Next() {
-			var n, c, nk string
-			if crows.Scan(&n, &c, &nk) == nil {
-				if c != "" {
-					covers[n] = c
-				}
-				if nk != "" {
-					nicks[n] = nk
-				}
-			}
-		}
-		crows.Close()
-	}
-
-	out := make([]Model, 0, len(order))
-	for _, name := range order {
-		a := acc[name]
-		sites := make([]string, 0, len(a.sites))
-		for s := range a.sites {
-			sites = append(sites, s)
-		}
-		sort.Strings(sites)
-		thumb := a.thumb
-		if c, ok := covers[name]; ok {
-			thumb = c
-		}
-		out = append(out, Model{
-			Name: name, Nickname: nicks[name], Count: a.count, TotalSeconds: a.seconds, Bytes: a.bytes,
-			Sites: strings.Join(sites, ","), Thumbnail: db.abs(thumb),
-		})
-	}
-	sort.SliceStable(out, func(i, j int) bool { return out[i].Count > out[j].Count })
-	return out, nil
-}
-
 // Stats returns the overall storage breakdown.
 func (db *DB) Stats() (Stats, error) {
 	var s Stats
@@ -989,7 +754,7 @@ func (db *DB) Stats() (Stats, error) {
 	if err != nil {
 		return s, err
 	}
-	if ms, mErr := db.Models(); mErr == nil {
+	if ms, mErr := db.People(); mErr == nil {
 		s.ModelCount = len(ms)
 	}
 	rows, err := db.sql.Query(
@@ -1014,7 +779,8 @@ const cols = `videos.id,videos.site,videos.title,videos.uploader,videos.model,vi
 	`videos.width,videos.height,videos.ext,videos.filepath,videos.filename,videos.thumbnail,` +
 	`videos.thumbnail_url,videos.webpage_url,videos.upload_date,videos.view_count,videos.like_count,` +
 	`videos.tags,videos.categories,videos.description,videos.filesize,videos.added,videos.watched_at,` +
-	`videos.favorite,videos.labels,videos.position,videos.featured,videos.uploader_id,videos.cast`
+	`videos.favorite,videos.labels,videos.position,videos.featured,videos.uploader_id,videos.cast,` +
+	`videos.source_platform,videos.source_handle`
 
 // notHidden is true for a video that is NOT a member of any hidden collection.
 // Default views AND this in so hidden content (e.g. an adult collection) stays
@@ -1037,18 +803,20 @@ func scanVideo(rows *sql.Rows) (Video, error) {
 	var dur, w, h, vc, lc, fs sql.NullInt64
 	var tags, cats string
 	var watched sql.NullString
-	var model, labels, featured, uploaderID, cast sql.NullString
+	var model, labels, featured, uploaderID, cast, srcPlat, srcHandle sql.NullString
 	var fav sql.NullInt64
 	var pos sql.NullFloat64
 	if err := rows.Scan(&v.ID, &v.Site, &v.Title, &v.Uploader, &model, &dur, &w, &h, &v.Ext,
 		&v.Filepath, &v.Filename, &v.Thumbnail, &v.ThumbnailURL, &v.WebpageURL,
-		&v.UploadDate, &vc, &lc, &tags, &cats, &v.Description, &fs, &v.Added, &watched, &fav, &labels, &pos, &featured, &uploaderID, &cast); err != nil {
+		&v.UploadDate, &vc, &lc, &tags, &cats, &v.Description, &fs, &v.Added, &watched, &fav, &labels, &pos,
+		&featured, &uploaderID, &cast, &srcPlat, &srcHandle); err != nil {
 		return v, err
 	}
 	v.Models = parseModels(model.String)
-	v.Featured = parseModels(featured.String)
+	v.legacyFeatured = parseModels(featured.String)
 	v.UploaderID = uploaderID.String
 	v.Cast = parseModels(cast.String)
+	v.SourcePlatform, v.SourceHandle = srcPlat.String, srcHandle.String
 	v.Favorite = fav.Int64 == 1
 	if pos.Valid {
 		v.Position = &pos.Float64
@@ -1082,18 +850,30 @@ func (db *DB) query(where string, args ...any) ([]Video, error) {
 		v.Thumbnail = db.abs(v.Thumbnail) // to absolute for the UI
 		out = append(out, v)
 	}
-	return out, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	rows.Close() // release the single connection before the accounts query
+	// Derive owner / people from the connected accounts (one small query).
+	acct, err := db.accountPersonMap()
+	if err != nil {
+		return nil, err
+	}
+	for i := range out {
+		resolvePeople(&out[i], acct)
+	}
+	return out, nil
 }
 
-// VideosByModel returns every video that includes a model ("" = Unassigned).
-// Hidden-collection items are excluded so an adult collection's videos don't
-// resurface on a model page in the normal library.
+// VideosByModel returns a person's videos ("" = Unsorted): uploads from their
+// connected accounts plus everything they appear in. Hidden-collection items
+// are excluded so an adult collection's videos don't resurface on a person's
+// page in the normal library.
 func (db *DB) VideosByModel(name string) ([]Video, error) {
 	if name == "" {
-		return db.query(`WHERE (model IS NULL OR model='' OR model='[]') AND ` + notHidden + ` ORDER BY added DESC, id`)
+		return db.Unsorted()
 	}
-	b, _ := json.Marshal(name) // match the quoted token in the JSON array
-	return db.query(`WHERE model LIKE ? AND `+notHidden+` ORDER BY added DESC, id`, "%"+string(b)+"%")
+	return db.VideosOf(name)
 }
 
 // VideosBySite returns every video for one source, newest first (the flat feed).

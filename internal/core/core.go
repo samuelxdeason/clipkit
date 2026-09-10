@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -56,6 +57,10 @@ func New(mediaRoot string, emit func(event string, data any)) (*Core, error) {
 	}
 
 	c := &Core{db: db, mediaRoot: mediaRoot, stateDir: sdir, emit: emit, ogCache: map[string]string{}}
+	if rep := db.LastCleanup; rep != nil && (len(rep.Kept) > 0 || len(rep.Deleted) > 0) {
+		log.Printf("people cleanup: kept %d people, removed %d auto-created; tags kept %d, derived %d, dropped %d; backup %s",
+			len(rep.Kept), len(rep.Deleted), rep.TagsKept, rep.TagsDerived, rep.TagsDropped, rep.Backup)
+	}
 
 	// First run: import a legacy library.json — but ONLY on a truly fresh install
 	// (no catalogue at either location). Importing it over a fresh-but-not-first
@@ -92,7 +97,7 @@ func (c *Core) MediaRoot() string { return c.mediaRoot }
 
 // ---- catalogue (read) --------------------------------------------------
 
-func (c *Core) Models() ([]library.Model, error)                    { return c.db.Models() }
+func (c *Core) Models() ([]library.Model, error)                    { return c.db.People() }
 func (c *Core) VideosByModel(model string) ([]library.Video, error) { return c.db.VideosByModel(model) }
 func (c *Core) VideosBySite(site string) ([]library.Video, error)   { return c.db.VideosBySite(site) }
 func (c *Core) Search(q string) ([]library.Video, error)            { return c.db.Search(q) }
@@ -112,12 +117,18 @@ func (c *Core) GetModelInfo(name string) (library.ModelInfo, error) { return c.d
 
 // ---- catalogue (write) -------------------------------------------------
 
-func (c *Core) SetModels(site, id string, models []string) error { return c.db.SetModels(site, id, models) }
-func (c *Core) RemoveModelFromAll(name string) error             { return c.db.RemoveModelFromAll(name) }
-func (c *Core) SetTitle(site, id, title string) error            { return c.db.SetTitle(site, id, title) }
-func (c *Core) SetFavorite(site, id string, fav bool) error      { return c.db.SetFavorite(site, id, fav) }
-func (c *Core) SetLabels(site, id string, labels []string) error { return c.db.SetLabels(site, id, labels) }
-func (c *Core) SetModelCover(name, cover string) error           { return c.db.SetModelCover(name, cover) }
+// SetModels replaces the people tagged on a video (manual "appears in").
+func (c *Core) SetModels(site, id string, models []string) error {
+	return c.db.SetTags(site, id, models)
+}
+func (c *Core) CreatePerson(name string) error              { return c.db.CreatePerson(name) }
+func (c *Core) DeletePerson(name string) error              { return c.db.DeletePerson(name) }
+func (c *Core) SetTitle(site, id, title string) error       { return c.db.SetTitle(site, id, title) }
+func (c *Core) SetFavorite(site, id string, fav bool) error { return c.db.SetFavorite(site, id, fav) }
+func (c *Core) SetLabels(site, id string, labels []string) error {
+	return c.db.SetLabels(site, id, labels)
+}
+func (c *Core) SetModelCover(name, cover string) error { return c.db.SetModelCover(name, cover) }
 
 func (c *Core) SaveModelInfo(name, nickname, bio string, links []library.ModelLink) error {
 	return c.db.SaveModelInfo(name, nickname, bio, links)
@@ -125,53 +136,6 @@ func (c *Core) SaveModelInfo(name, nickname, bio string, links []library.ModelLi
 
 // RenameModel renames a person across videos, photos, and their profile.
 func (c *Core) RenameModel(from, to string) error { return c.db.RenameModel(from, to) }
-
-// AccountMatch is one verified platform account on a person's profile, with
-// how many Unsorted videos from that account are waiting to be claimed.
-type AccountMatch struct {
-	Platform      string `json:"platform"`
-	Handle        string `json:"handle"`
-	UnsortedCount int    `json:"unsortedCount"`
-}
-
-// AccountMatches scans a person's profile links for platform accounts and
-// counts the Unsorted videos downloaded from each.
-func (c *Core) AccountMatches(name string) ([]AccountMatch, error) {
-	info, err := c.db.GetModelInfo(name)
-	if err != nil {
-		return nil, err
-	}
-	seen := map[library.Account]bool{}
-	out := []AccountMatch{}
-	for _, l := range info.Links {
-		a, ok := library.AccountFromURL(l.URL)
-		if !ok || seen[a] {
-			continue
-		}
-		seen[a] = true
-		vids, err := c.db.UnsortedFromAccount(a)
-		if err != nil {
-			continue
-		}
-		out = append(out, AccountMatch{Platform: a.Platform, Handle: a.Handle, UnsortedCount: len(vids)})
-	}
-	return out, nil
-}
-
-// ClaimAccount assigns person to every Unsorted video from the account.
-func (c *Core) ClaimAccount(name, platform, handle string) (int, error) {
-	return c.db.AssignAccount(library.Account{Platform: platform, Handle: handle}, name)
-}
-
-// ---- appears-in (featured) ---------------------------------------------
-
-func (c *Core) SetFeatured(site, id string, people []string) error {
-	return c.db.SetFeatured(site, id, people)
-}
-func (c *Core) VideosFeaturing(name string) ([]library.Video, error) {
-	return c.db.VideosFeaturing(name)
-}
-func (c *Core) AddFeatured(site, id, person string) error { return c.db.AddFeatured(site, id, person) }
 
 // ---- platform accounts --------------------------------------------------
 
@@ -207,12 +171,18 @@ func (c *Core) AccountsWithCounts() ([]AccountWithCount, error) {
 	return out, nil
 }
 
-// VideosUploadedBy / VideosSavedBy split a person's videos into what their
-// connected accounts own vs what was deliberately saved to them.
+// VideosUploadedBy / VideosAppearing split a person's page: what their
+// connected accounts posted vs what they were tagged in or cast in.
 func (c *Core) VideosUploadedBy(name string) ([]library.Video, error) {
 	return c.db.VideosUploadedBy(name)
 }
-func (c *Core) VideosSavedBy(name string) ([]library.Video, error) { return c.db.VideosSavedBy(name) }
+func (c *Core) VideosAppearing(name string) ([]library.Video, error) {
+	return c.db.VideosAppearing(name)
+}
+
+// PeopleCleanupReport is what the one-time move to manual people did on this
+// launch (nil once it has already run).
+func (c *Core) PeopleCleanupReport() *library.CleanupReport { return c.db.LastCleanup }
 
 // CreateAccount defines an account by hand (no downloads needed) and
 // optionally connects it to a person. A profile URL alone is enough — the
@@ -233,9 +203,10 @@ func (c *Core) CreateAccount(a library.AccountInfo) error {
 	return nil
 }
 
-// AdoptAccount gives an account a person parent in one step: connect it,
-// make sure the person exists (even with no media yet), claim the Unsorted
-// videos the account owns, and re-run cast resolution so appears-in fills in.
+// AdoptAccount gives an account a person in one step: the person is created
+// if new and the account connected to them. Everything the account posted,
+// and every video it is cast in, files under the person from that moment —
+// derived from the connection, nothing written onto the videos.
 func (c *Core) AdoptAccount(platform, handle, person string) (map[string]int, error) {
 	person = strings.TrimSpace(person)
 	handle = strings.ToLower(strings.TrimSpace(handle))
@@ -243,18 +214,14 @@ func (c *Core) AdoptAccount(platform, handle, person string) (map[string]int, er
 		return nil, fmt.Errorf("platform, handle and person are all required")
 	}
 	_ = c.db.UpsertAccount(library.AccountInfo{Platform: platform, Handle: handle, Source: "manual"})
+	if err := c.db.CreatePerson(person); err != nil {
+		return nil, err
+	}
 	if err := c.db.ConnectAccount(platform, handle, person); err != nil {
 		return nil, err
 	}
-	info, _ := c.db.GetModelInfo(person)
-	_ = c.db.SaveModelInfo(person, info.Nickname, info.Bio, info.Links) // person exists even with zero media
-	claimed, _ := c.db.AssignAccount(library.Account{Platform: platform, Handle: handle}, person)
-	stats, err := c.db.ApplyReinterpretPlan()
-	if err != nil {
-		stats = map[string]int{}
-	}
-	stats["claimed"] = claimed
-	return stats, nil
+	uploads, _ := c.db.VideosUploadedBy(person)
+	return map[string]int{"uploads": len(uploads)}, nil
 }
 
 // BackfillAccounts rebuilds the accounts table from trusted links, sidecar
@@ -276,65 +243,6 @@ func (c *Core) BackfillAccounts() (map[string]int, error) {
 	})
 }
 
-// Reinterpretation: propose/apply the accounts-based re-read of every manual
-// person assignment (see library.BuildReinterpretPlan for the rules).
-func (c *Core) ReinterpretPlan() (library.ReinterpretPlan, error) { return c.db.BuildReinterpretPlan() }
-func (c *Core) ReinterpretApply() (map[string]int, error)         { return c.db.ApplyReinterpretPlan() }
-func (c *Core) ConfirmSaved(site, id, person string) error        { return c.db.ConfirmSaved(site, id, person) }
-func (c *Core) DemoteToFeatured(site, id, person string) error    { return c.db.DemoteToFeatured(site, id, person) }
-
-// CastSuggestions finds videos whose downloaded metadata (the .info.json
-// sidecars) lists the person in the cast, but which aren't yet linked to them
-// — candidates for their "Appears in" section. Suggestion only; nothing is
-// written until the user accepts.
-func (c *Core) CastSuggestions(name string) ([]library.Video, error) {
-	info, _ := c.db.GetModelInfo(name)
-	aliases := map[string]bool{strings.ToLower(strings.TrimSpace(name)): true}
-	if n := strings.ToLower(strings.TrimSpace(info.Nickname)); n != "" {
-		aliases[n] = true
-	}
-	vids, err := c.db.AllVideos(50000, 0, "newest", "", false, 0)
-	if err != nil {
-		return nil, err
-	}
-	var out []library.Video
-	for _, v := range vids {
-		if hasPersonFold(v.Models, name) || hasPersonFold(v.Featured, name) {
-			continue
-		}
-		metaPath := filepath.Join(c.stateDir, library.MetaDirName, library.FlatBase(v.Site, v.ID)+".info.json")
-		data, err := os.ReadFile(metaPath)
-		if err != nil {
-			continue
-		}
-		var meta struct {
-			Cast []string `json:"cast"`
-		}
-		if json.Unmarshal(data, &meta) != nil {
-			continue
-		}
-		for _, member := range meta.Cast {
-			if aliases[strings.ToLower(strings.TrimSpace(member))] {
-				out = append(out, v)
-				break
-			}
-		}
-		if len(out) >= 200 {
-			break
-		}
-	}
-	return out, nil
-}
-
-func hasPersonFold(list []string, name string) bool {
-	for _, x := range list {
-		if strings.EqualFold(x, name) {
-			return true
-		}
-	}
-	return false
-}
-
 func (c *Core) MarkWatched(site, id string) {
 	_ = c.db.MarkWatched(site, id, time.Now().Format("2006-01-02 15:04:05"))
 }
@@ -346,16 +254,22 @@ func (c *Core) ContinueWatching() ([]library.Video, error) { return c.db.Continu
 
 // ---- collections -------------------------------------------------------
 
-func (c *Core) Collections() ([]library.Collection, error)        { return c.db.Collections() }
-func (c *Core) RenameCollection(id int64, name string) error      { return c.db.RenameCollection(id, name) }
-func (c *Core) DeleteCollection(id int64) error                   { return c.db.DeleteCollection(id) }
-func (c *Core) VideosByCollection(id int64) ([]library.Video, error) { return c.db.VideosByCollection(id) }
+func (c *Core) Collections() ([]library.Collection, error)   { return c.db.Collections() }
+func (c *Core) RenameCollection(id int64, name string) error { return c.db.RenameCollection(id, name) }
+func (c *Core) DeleteCollection(id int64) error              { return c.db.DeleteCollection(id) }
+func (c *Core) VideosByCollection(id int64) ([]library.Video, error) {
+	return c.db.VideosByCollection(id)
+}
 
 func (c *Core) CreateCollection(name string, hidden bool) (int64, error) {
 	return c.db.CreateCollection(name, hidden)
 }
-func (c *Core) SetCollectionHidden(id int64, hidden bool) error { return c.db.SetCollectionHidden(id, hidden) }
-func (c *Core) SetCollectionLocked(id int64, locked bool) error { return c.db.SetCollectionLocked(id, locked) }
+func (c *Core) SetCollectionHidden(id int64, hidden bool) error {
+	return c.db.SetCollectionHidden(id, hidden)
+}
+func (c *Core) SetCollectionLocked(id int64, locked bool) error {
+	return c.db.SetCollectionLocked(id, locked)
+}
 func (c *Core) AddToCollection(id int64, site, videoID string) error {
 	return c.db.AddToCollection(id, site, videoID)
 }
@@ -368,18 +282,18 @@ func (c *Core) CollectionsForVideo(site, videoID string) ([]int64, error) {
 
 // ---- downloads ---------------------------------------------------------
 
-func (c *Core) Enqueue(url string) string        { return c.dl.Enqueue(url) }
-func (c *Core) EnqueueMany(urls []string) int    { return c.dl.EnqueueMany(urls) }
-func (c *Core) SyncedURLs() []string             { return c.dl.SyncedURLs() }
+func (c *Core) Enqueue(url string) string             { return c.dl.Enqueue(url) }
+func (c *Core) EnqueueMany(urls []string) int         { return c.dl.EnqueueMany(urls) }
+func (c *Core) SyncedURLs() []string                  { return c.dl.SyncedURLs() }
 func (c *Core) SyncedLists() []downloader.SyncSummary { return c.dl.SyncedLists() }
-func (c *Core) RemoveSync(url string)            { c.dl.RemoveSync(url) }
+func (c *Core) RemoveSync(url string)                 { c.dl.RemoveSync(url) }
 func (c *Core) Enumerate(url string, refresh bool) ([]downloader.RemoteItem, error) {
 	return c.dl.Enumerate(url, refresh)
 }
-func (c *Core) Queue() []downloader.Job                              { return c.dl.Snapshot() }
-func (c *Core) RemoveJob(id string)                                  { c.dl.RemoveJob(id) }
-func (c *Core) ClearFinished()                                       { c.dl.ClearFinished() }
-func (c *Core) SetCookieSpec(spec string)                            { c.dl.SetCookieSpec(spec) }
+func (c *Core) Queue() []downloader.Job   { return c.dl.Snapshot() }
+func (c *Core) RemoveJob(id string)       { c.dl.RemoveJob(id) }
+func (c *Core) ClearFinished()            { c.dl.ClearFinished() }
+func (c *Core) SetCookieSpec(spec string) { c.dl.SetCookieSpec(spec) }
 
 // Import copies local files/folders into the library under model.
 func (c *Core) Import(paths []string, model string) { c.dl.Import(paths, model) }

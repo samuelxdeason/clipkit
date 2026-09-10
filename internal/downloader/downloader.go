@@ -819,12 +819,10 @@ func (d *Downloader) ingestFrom(filepathStr, sidecar string) (library.Video, boo
 	}
 
 	uploader := firstNonEmpty(info.Uploader, info.UploaderID, info.Channel)
-	// Pornhub's uploader is reliably the performer, so default the model to it.
-	// X/Twitter is a repost firehose, so leave it Unassigned for manual sorting.
+	// People are manual: a download never creates or assigns a person. The
+	// source ACCOUNT is recorded by the catalogue; the user connects accounts
+	// to people, and the video files itself under them through that link.
 	var models []string
-	if info.ExtractorKey != "Twitter" && uploader != "" {
-		models = []string{uploader}
-	}
 	var thumb string
 	if d.inMediaDir(filepathStr) {
 		filepathStr, thumb = d.canonicalizeFlat(filepathStr, sidecar, info)
