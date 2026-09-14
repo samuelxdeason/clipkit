@@ -155,7 +155,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 // One consistent hand-rolled icon set for the archive UI.
-function Icon({ name, className = "w-[18px] h-[18px]" }: { name: string; className?: string }) {
+export function Icon({ name, className = "w-[18px] h-[18px]" }: { name: string; className?: string }) {
   const p: Record<string, JSX.Element> = {
     photo: <><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 5-5 4 4 4-6 5 7"/></>,
     film: <><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></>,
@@ -2410,7 +2410,7 @@ function SyncCard({ l, onOpen, onRefresh, onRemove }:
 
 /* ---------------- Settings ---------------- */
 
-function SettingsPage() {
+export function SettingsPage() {
   const [root, setRoot] = useState("");
   const [changed, setChanged] = useState(false);
   const [stats, setStats] = useState<library.Stats | null>(null);
@@ -2644,7 +2644,7 @@ function ToggleRow({ label, hint, on, onChange }: { label: string; hint: string;
   );
 }
 
-function Downloads({ queue }: { queue: Job[] }) {
+export function Downloads({ queue }: { queue: Job[] }) {
   const [url, setUrl] = useState("");
   const add = () => { const u = url.trim(); if (!u) return; Enqueue(u); setUrl(""); };
 

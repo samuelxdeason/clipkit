@@ -241,6 +241,7 @@ function pickFile(accept: string, multiple: boolean): Promise<File[]> {
     input.accept = accept;
     input.multiple = multiple;
     input.onchange = () => resolve(input.files ? Array.from(input.files) : []);
+    input.addEventListener("cancel", () => resolve([]), { once: true });
     input.click();
   });
 }
@@ -253,6 +254,7 @@ async function uploadFiles(model: string, accept: string): Promise<void> {
     const form = new FormData();
     form.append("model", model);
     form.append("file", f, f.name);
-    await fetch(b + "/api/upload", { method: "POST", body: form });
+    const response = await fetch(b + "/api/upload", { method: "POST", body: form });
+    if (!response.ok) throw new Error(await response.text() || "File upload failed");
   }
 }
