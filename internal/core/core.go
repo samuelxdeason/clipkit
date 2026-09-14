@@ -287,6 +287,19 @@ func (c *Core) CollectionsForVideo(site, videoID string) ([]int64, error) {
 
 func (c *Core) Enqueue(url string) string             { return c.dl.Enqueue(url) }
 func (c *Core) EnqueueMany(urls []string) int         { return c.dl.EnqueueMany(urls) }
+
+// Redownload re-fetches a catalogued video at the best quality now available,
+// replacing its file once the new copy is complete.
+func (c *Core) Redownload(site, id string) (string, error) {
+	v, found, err := c.db.VideoByKey(site, id)
+	if err != nil {
+		return "", err
+	}
+	if !found {
+		return "", fmt.Errorf("video not found in the library")
+	}
+	return c.dl.Redownload(v)
+}
 func (c *Core) SyncedURLs() []string                  { return c.dl.SyncedURLs() }
 func (c *Core) SyncedLists() []downloader.SyncSummary { return c.dl.SyncedLists() }
 func (c *Core) RemoveSync(url string)                 { c.dl.RemoveSync(url) }

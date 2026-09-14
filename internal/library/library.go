@@ -892,6 +892,15 @@ func (db *DB) query(where string, args ...any) ([]Video, error) {
 	return out, nil
 }
 
+// VideoByKey returns one catalogued video, or ok=false when it isn't there.
+func (db *DB) VideoByKey(site, id string) (Video, bool, error) {
+	vs, err := db.query(`WHERE site=? AND id=?`, site, id)
+	if err != nil || len(vs) == 0 {
+		return Video{}, false, err
+	}
+	return vs[0], true, nil
+}
+
 // VideosByModel returns a person's videos ("" = Unsorted): uploads from their
 // connected accounts plus everything they appear in. Hidden-collection items
 // are excluded so an adult collection's videos don't resurface on a person's

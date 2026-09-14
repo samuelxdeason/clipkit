@@ -138,6 +138,9 @@ export const UploadAvatar = async (name: string, file: File) => {
 /* ---------------- downloads ---------------- */
 export const Enqueue = (url: string) => postJSON<string>("/api/enqueue", { url });
 export const EnqueueMany = (urls: string[]) => postJSON<{ added: number }>("/api/enqueue/many", { urls });
+// Redownload fetches a library video again at the best available quality and
+// replaces its file once the new copy finishes (favorites, tags etc. are kept).
+export const Redownload = (site: string, id: string) => postJSON<string>("/api/redownload", { site, id });
 export const RemoveJob = (id: string) => postJSON("/api/job/remove", { id });
 export const ClearFinished = () => postJSON("/api/clearfinished");
 

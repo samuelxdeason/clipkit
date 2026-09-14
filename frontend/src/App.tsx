@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import {
   Models, VideosByModel, AllVideos, Search, RecentlyDownloaded, RecentlyWatched, ContinueWatching, MarkWatched, SetPosition, SetModels, SetTitle,
   SetFavorite, SetLabels, AllLabels, Favorites, LabelCounts, VideosByLabel,
-  Enqueue, EnqueueMany, Enumerate, SyncedLists, RemoveSync, Queue, RemoveJob, ClearFinished, Import, ImportFilesDialog, ImportFolderDialog,
+  Enqueue, EnqueueMany, Redownload, Enumerate, SyncedLists, RemoveSync, Queue, RemoveJob, ClearFinished, Import, ImportFilesDialog, ImportFolderDialog,
   AllPhotos, PhotosByModel, ImportPhotosDialog, ImportPhotosFromURL, GetModelInfo, SaveModelInfo, RenameModel, SetModelCover, SetAvatarFromURL, UploadAvatar, FetchAvatar, FetchAllAvatars,
   CookieStatus, ConnectCookies, OpenFolder, CopyText,
   MediaRootPath, ChooseMediaRoot, RestartApp, Stats, MediaBase, RebuildLibrary, BackupCatalogue, OptimizeStreaming, isDesktopApp,
@@ -2069,6 +2069,8 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
   const [copyError, setCopyError] = useState("");
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [vidErr, setVidErr] = useState(false);
+  const [redl, setRedl] = useState<"idle" | "confirm" | "queued" | "error">("idle");
+  const [redlError, setRedlError] = useState("");
   const topRef = useRef<HTMLDivElement>(null);
   const primary = people[0] || "";
 
@@ -2133,6 +2135,17 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
       setCopyError("Couldn’t copy. Select the text in Details and copy it manually.");
     }
   };
+  const redownload = async () => {
+    try {
+      await Redownload(video.site, video.id);
+      setRedl("queued");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      try { setRedlError(JSON.parse(msg).error || msg); } catch { setRedlError(msg); }
+      setRedl("error");
+    }
+  };
+  useEffect(() => { setRedl("idle"); setRedlError(""); }, [video.site, video.id]);
   useEffect(() => {
     if (!copied) return;
     const timer = window.setTimeout(() => setCopied(null), 2200);
@@ -2215,7 +2228,14 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
               <div className="watch-detail-toolbar"><button onClick={() => { setTv(video.title || ""); setEditing(true); }}>Rename video</button>{isDesktopApp && video.filepath && <button onClick={() => OpenFolder(video.filepath)}>Open folder ↗</button>}</div>
               {video.filepath && <label>File path<input aria-label="File path" readOnly value={video.filepath} onFocus={e => e.currentTarget.select()} /></label>}
               <dl><div><dt>Source</dt><dd>{label(video.site) || "Local"}</dd></div>{video.upload_date && <div><dt>Date</dt><dd>{fmtDate(video.upload_date)}</dd></div>}</dl>
-              {video.webpage_url && <><label>Source URL<input aria-label="Source URL" readOnly value={video.webpage_url} onFocus={e => e.currentTarget.select()} /></label><div className="watch-detail-toolbar"><button onClick={() => copy("link")}>{copied === "link" ? "Link copied ✓" : "Copy source link"}</button><button onClick={() => BrowserOpenURL(video.webpage_url)}>Open source ↗</button></div></>}
+              {video.webpage_url && <><label>Source URL<input aria-label="Source URL" readOnly value={video.webpage_url} onFocus={e => e.currentTarget.select()} /></label><div className="watch-detail-toolbar"><button onClick={() => copy("link")}>{copied === "link" ? "Link copied ✓" : "Copy source link"}</button><button onClick={() => BrowserOpenURL(video.webpage_url)}>Open source ↗</button></div>
+                <div className="watch-detail-toolbar">
+                  {redl === "confirm"
+                    ? <><span>Download again at the best quality available and replace this file{video.height ? ` (${video.height}p)` : ""}? Favorites, tags and collections are kept.</span><button onClick={redownload}>Replace file</button><button onClick={() => setRedl("idle")}>Cancel</button></>
+                    : <button onClick={() => setRedl("confirm")} disabled={redl === "queued"}>{redl === "queued" ? "Re-download queued ✓" : "Re-download in best quality"}</button>}
+                </div>
+                {redl === "queued" && <p>Added to Downloads. This copy stays until the new one finishes, then it's replaced.</p>}
+                {redl === "error" && <p className="text-rose-400">{redlError || "Couldn't queue the re-download."}</p>}</>}
             </div>
           </details>
         </section>
@@ -2687,7 +2707,9 @@ function QueueItem({ j }: { j: Job }) {
       )}
       <div className="text-[11px] text-muted mt-1.5">
         {j.status === "downloading" && `${(j.percent || 0).toFixed(0)}%${j.speed ? ` · ${j.speed}` : ""}${j.eta ? ` · ETA ${j.eta}` : ""}`}
-        {j.status === "done" && `✓ ${j.count} file${j.count === 1 ? "" : "s"} saved`}
+        {j.status === "done" && (j.replace ? "✓ Replaced with the new download" : `✓ ${j.count} file${j.count === 1 ? "" : "s"} saved`)}
+        {j.status === "done" && j.error && <span className="block text-amber-400">{j.error}</span>}
+        {j.replace && j.status === "queued" && "Re-download — replaces the current file when done"}
         {j.status === "duplicate" && "Already in your library — skipped"}
         {j.status === "error" && <span className="text-rose-400">{j.error}</span>}
       </div>

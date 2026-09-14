@@ -29,6 +29,7 @@ export namespace downloader {
 	    eta: string;
 	    count: number;
 	    error: string;
+	    replace: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new Job(source);
@@ -45,6 +46,7 @@ export namespace downloader {
 	        this.eta = source["eta"];
 	        this.count = source["count"];
 	        this.error = source["error"];
+	        this.replace = source["replace"];
 	    }
 	}
 	export class RemoteItem {

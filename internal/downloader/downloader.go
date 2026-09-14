@@ -5,6 +5,7 @@ package downloader
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"hash/fnv"
 	"io"
 	"io/fs"
@@ -34,6 +35,15 @@ type Job struct {
 	ETA     string  `json:"eta"`
 	Count   int     `json:"count"`
 	Error   string  `json:"error"`
+	Replace bool    `json:"replace"` // re-download of a catalogued video
+
+	replace *replaceTarget
+}
+
+// replaceTarget is the catalogued copy a re-download job supersedes.
+type replaceTarget struct {
+	site, id string
+	oldFile  string // absolute path of the existing media file
 }
 
 // Config holds the tool paths and destination for downloads.
@@ -472,6 +482,73 @@ func (d *Downloader) EnqueueMany(urls []string) int {
 	return added
 }
 
+// Redownload queues a fresh fetch of a catalogued video (e.g. after adding
+// login cookies that unlock a higher quality). The existing file stays in place
+// until the new download completes, then is replaced; favourites, labels, people
+// and collections survive because the catalogue row is keyed by site+id.
+func (d *Downloader) Redownload(v library.Video) (string, error) {
+	u := strings.TrimSpace(v.WebpageURL)
+	if u == "" {
+		return "", fmt.Errorf("this video has no source link to download again")
+	}
+	d.mu.Lock()
+	for _, jid := range d.order {
+		if j := d.jobs[jid]; j != nil && j.URL == u && (j.Status == "queued" || j.Status == "downloading") {
+			d.mu.Unlock()
+			return jid, nil
+		}
+	}
+	id := d.nextID()
+	d.jobs[id] = &Job{ID: id, URL: u, Title: firstNonEmpty(v.Title, u), Status: "queued", Replace: true,
+		replace: &replaceTarget{site: v.Site, id: v.ID, oldFile: v.Filepath}}
+	d.order = append(d.order, id)
+	d.mu.Unlock()
+	d.notify()
+	d.emitQueue()
+	return id, nil
+}
+
+// archiveKey is the line yt-dlp records in --download-archive for a video.
+func archiveKey(site, id string) string { return strings.ToLower(site) + " " + id }
+
+// setArchived adds or removes one archive line. The worker runs one yt-dlp at a
+// time, and this is only called between runs, so nothing else is writing it.
+func (d *Downloader) setArchived(key string, present bool) {
+	data, err := os.ReadFile(d.cfg.Archive)
+	if err != nil && !os.IsNotExist(err) {
+		return
+	}
+	var kept []string
+	found := false
+	for _, l := range strings.Split(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n") {
+		t := strings.TrimSpace(l)
+		if t == "" {
+			continue
+		}
+		if t == key {
+			found = true
+			if !present {
+				continue
+			}
+		}
+		kept = append(kept, t)
+	}
+	if found == present {
+		return
+	}
+	if present {
+		kept = append(kept, key)
+	}
+	out := strings.Join(kept, "\n")
+	if len(kept) > 0 {
+		out += "\n"
+	}
+	tmp := d.cfg.Archive + ".tmp"
+	if os.WriteFile(tmp, []byte(out), 0o644) == nil {
+		_ = os.Rename(tmp, d.cfg.Archive)
+	}
+}
+
 func (d *Downloader) RemoveJob(id string) {
 	d.mu.Lock()
 	if j, ok := d.jobs[id]; ok && j.Status == "queued" {
@@ -544,6 +621,14 @@ func (d *Downloader) run(j *Job) {
 	// the download finishes.
 	outtmpl := filepath.Join(cfg.MediaRoot, library.MediaDirName,
 		"%(extractor_key)s-%(id)s.%(ext)s")
+	if j.replace != nil {
+		// A re-download stages under its own name so the current copy stays
+		// playable until the new file is complete, and yt-dlp neither skips it
+		// as archived nor as "already downloaded".
+		outtmpl = filepath.Join(cfg.MediaRoot, library.MediaDirName,
+			"%(extractor_key)s-%(id)s.redownload-"+strconv.FormatInt(time.Now().UnixNano(), 36)+".%(ext)s")
+		d.setArchived(archiveKey(j.replace.site, j.replace.id), false)
+	}
 
 	// Split audio/video formats require a working merger. yt-dlp can otherwise
 	// report an intended final path even though only the separate tracks exist.
@@ -717,6 +802,10 @@ func (d *Downloader) applyProgress(j *Job, payload string) {
 }
 
 func (d *Downloader) finish(j *Job, saved []string, runErr error, lastErr string) {
+	var leftover string
+	if r := j.replace; r != nil {
+		leftover = d.retireOld(r, saved)
+	}
 	count := 0
 	var firstTitle string
 	for _, fp := range saved {
@@ -742,8 +831,60 @@ func (d *Downloader) finish(j *Job, saved []string, runErr error, lastErr string
 	default:
 		j.Status, j.Error = "error", cleanErr(lastErr)
 	}
+	if j.replace != nil {
+		switch {
+		case j.Status == "duplicate":
+			j.Status, j.Error = "error", "yt-dlp skipped the download, so the existing copy was kept."
+		case j.Status == "done" && leftover != "":
+			j.Error = "The old copy was in use and couldn't be deleted; it's still at " + leftover
+		}
+	}
+	failedReplace := j.replace != nil && j.Status != "done"
 	d.mu.Unlock()
+	if failedReplace {
+		// The old copy is still catalogued; mark it owned again so syncs don't
+		// offer it as new.
+		d.setArchived(archiveKey(j.replace.site, j.replace.id), true)
+	}
 	d.emitQueue()
+}
+
+// retireOld clears the way for a completed re-download: once a new, non-empty
+// file for the same video exists, it deletes the superseded media file and the
+// parked .info.json (so the fresh sidecar, with the new resolution, is kept).
+// Nothing is touched unless the replacement is really there. Returns the old
+// file's path if it could not be deleted (e.g. still open in the player).
+func (d *Downloader) retireOld(r *replaceTarget, saved []string) string {
+	ready := false
+	for _, fp := range saved {
+		st, err := os.Stat(fp)
+		if err != nil || st.IsDir() || st.Size() == 0 {
+			continue
+		}
+		info := ytInfo{}
+		if data, err := os.ReadFile(strings.TrimSuffix(fp, filepath.Ext(fp)) + ".info.json"); err == nil {
+			_ = json.Unmarshal(data, &info)
+		}
+		if info.ID == r.id && strings.EqualFold(info.ExtractorKey, r.site) {
+			ready = true
+			break
+		}
+	}
+	if !ready {
+		return ""
+	}
+	_ = os.Remove(filepath.Join(d.metaDir(), library.FlatBase(r.site, r.id)+".info.json"))
+	if r.oldFile == "" || !fileExists(r.oldFile) {
+		return ""
+	}
+	// The player may still be streaming the old file; give it a moment to let go.
+	for i := 0; i < 10; i++ {
+		if err := os.Remove(r.oldFile); err == nil || os.IsNotExist(err) {
+			return ""
+		}
+		time.Sleep(time.Second)
+	}
+	return r.oldFile
 }
 
 // cleanErr turns a raw yt-dlp "ERROR: …" line into something readable.

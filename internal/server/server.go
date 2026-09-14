@@ -193,6 +193,7 @@ func (s *Server) routes(ui fs.FS) {
 	// --- downloads ---
 	post(m, "/api/enqueue", func(b body) (any, error) { return s.core.Enqueue(b.URL), nil })
 	post(m, "/api/enqueue/many", func(b body) (any, error) { return map[string]int{"added": s.core.EnqueueMany(b.URLs)}, nil })
+	post(m, "/api/redownload", func(b body) (any, error) { return s.core.Redownload(b.Site, b.ID) })
 	post(m, "/api/job/remove", func(b body) (any, error) { s.core.RemoveJob(b.ID); return ok, nil })
 	post(m, "/api/clearfinished", func(_ body) (any, error) { s.core.ClearFinished(); return ok, nil })
 	post(m, "/api/synced/remove", func(b body) (any, error) { s.core.RemoveSync(b.URL); return ok, nil })
