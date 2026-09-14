@@ -1156,7 +1156,7 @@
 
 /* Downloads and Settings share the desktop's grouped controls and materials. */
 .utility-page { width: 100%; max-width: 1050px; padding-bottom: 36px; }
-.settings-page { max-width: 850px; }
+.settings-page { max-width: none; }
 .utility-tabs { display: flex; align-items: center; gap: 4px; padding: 4px; width: fit-content; background: #14141680; border: 1px solid #ffffff08; border-radius: 9px; margin-bottom: 30px; }
 .utility-tabs button { color: #94949f; font-size: 12px; font-weight: 500; padding: 7px 18px; display: flex; align-items: center; gap: 7px; }
 .utility-tabs button.active { background: #3a3a3e; color: #f5f5f7; box-shadow: 0 1px 3px #0004, inset 0 1px 0 #ffffff0b; }
@@ -1563,7 +1563,7 @@
 .picker-options button[aria-selected="true"] { background: #0a84ff25; color: #80bdff; }
 
 /* Focused utility pages. */
-.settings-page { max-width: 1160px; display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 34px; align-items: start; }
+.settings-page { max-width: none; display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 34px; align-items: start; }
 .settings-navigation { display: flex; flex-direction: column; gap: 5px; position: sticky; top: 0; padding: 4px 0; }
 .settings-navigation button { display: flex; align-items: center; gap: 10px; padding: 11px 13px; text-align: left; color: #9898a2; border-radius: 8px; font-size: 12px; }
 .settings-navigation button svg { width: 17px; height: 17px; }
@@ -1584,7 +1584,7 @@
 .settings-page .storage-legend b { color: #aaaab4; }
 .connection-import { margin-bottom: 18px; }
 .settings-page .utility-footnote { margin-top: 16px; }
-.downloads-page { max-width: 1160px; }
+.downloads-page { max-width: none; }
 .downloads-page .download-add-card { padding: 20px; background: #242427; box-shadow: none; margin-bottom: 30px; }
 .downloads-page .download-add-content h2 { font-size: 12px; color: #aaaab5; margin-bottom: 12px; }
 .downloads-page .download-add-content input { padding: 12px 14px; background: #1c1c1f; }
