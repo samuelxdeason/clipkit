@@ -76,3 +76,52 @@ maintenance into separate sections using the same dark workspace design.
 Downloads provides queue search, status filters, active jobs first, and retry for
 failed standard downloads. Settings groups storage, connections, maintenance, and
 advanced tools into focused sections with location-aware breadcrumbs.
+
+The compact workspace keeps library controls in the top toolbar, with search and
+filters in its expandable row. Video views use unframed thumbnails, restrained
+selection accents, and compact subview controls. Organizer dialogs use Cancel/Save
+actions and floating suggestions.
+
+Person profiles keep a stable identity summary above Videos, Photos, and Accounts.
+Favorites filters their Videos tab; video controls sit beneath the profile tabs.
+Profile edits open separately without shifting the content.
+
+### Shared interface styling
+
+The current workspace imports `frontend/src/design-system.css` after its layout
+styles. Use its shared color, border, and radius variables for new UI. Ordinary
+buttons are neutral; blue marks primary actions and selection. Directory headings
+use the same compact scale, media grids use unframed tiles, and editing dialogs
+place Cancel before Save. Keep controls next to the content they affect and retain
+visible keyboard focus and reduced-motion support. Legacy tools remain separate.
+
+Video tabs preserve search, filter visibility and values, sorting, and grid/list
+layout. Shared controls sit beneath the tabs, with period and organization options
+in a consistent results row. Switching views clears selection and resets pagination.
+
+Video views use a distinct segmented control within the Videos location; the
+breadcrumb stays Videos. The expandable filter shelf groups search with labeled
+metadata fields and highlights active filters without changing navigation sizing.
+
+Videos uses a compact search row with an anchored Filters popover. Filter changes
+apply instantly and appear as removable chips. The popover closes with Done,
+Escape, or an outside click without shifting the results. Reset preserves search.
+
+Person video views reuse the same search and filter popover, with removable chips
+and tags/sources drawn from that person’s videos. The redundant Person filter is omitted.
+
+Tag and People filters support searchable multi-selection. Videos must match every
+selected tag and at least one selected person. Each selection can be removed
+individually from the applied-filter chips. People search includes account names
+and nicknames, and person profiles keep their tag options scoped to their videos.
+
+Tags and People use a focused picker inside the filter popover, with automatic
+search focus, full-row checkbox targets, selected-name previews, and a stable
+scrolling results area. Back, Done, and Escape return to the filter overview.
+
+Videos and person profiles share one action row: Favorites on the left, selection,
+sorting, and grid/list controls on the right. The library Favorites tab is now a
+toggle that combines with the current video view. Add videos lives in the header.
+
+Person and Videos tabs share segmented-control styling at every screen size.
+Person breadcrumbs show People / person name, independent of the active tab.
