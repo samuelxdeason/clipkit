@@ -226,3 +226,13 @@
   .finder-shell .video-actions>.chrome-tools { flex: 1 1 auto; width: auto; }
   .finder-shell .video-actions .toolbar-right { justify-content: flex-end; }
 }
+
+.finder-shell .video-card-people { display: flex; align-items: center; gap: 6px; height: 20px; min-height: 20px; margin-top: 5px; color: var(--ui-secondary); font-size: 12px; }
+.video-card-people>svg { width: 14px; height: 14px; flex-shrink: 0; }
+.video-card-people>span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.finder-shell .video-card-people.is-unassigned { color: var(--ui-muted); }
+
+/* Suggestions float outside the dialog's scroll container, below its input. */
+.picker-options.organize-floating-options { position: fixed; z-index: 160; height: auto; margin: 0; overflow-y: auto; overscroll-behavior: contain; background: #303034; color: #ededf2; border-color: #ffffff20; box-shadow: 0 12px 32px #0006; scrollbar-gutter: auto; }
+.organize-floating-options button { color: inherit; overflow-wrap: anywhere; }
+.organize-floating-options>p:only-child { height: auto; padding: 12px; }
