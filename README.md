@@ -1,9 +1,14 @@
-# Trove
+# ClipKit
 
 Self-hosted library for media you save from anywhere. A headless Go server
-(`troved`) owns the catalogue and serves the HTTP API, SSE events, media, and
+(`clipkitd`) owns the catalogue and serves the HTTP API, SSE events, media, and
 the web UI (installable as a PWA); the Wails desktop app is a thin client over
 the same engine.
+
+ClipKit was previously called Trove. Existing library folders, configuration,
+`TROVE_ROOT`, and saved view preferences remain compatible. The old
+`start-trove.cmd` launcher forwards to `start-clipkit.cmd`. Internal Go module
+and server source paths retain their existing names.
 
 ## Running
 
@@ -11,11 +16,11 @@ Downloads require FFmpeg to merge separate video and audio tracks. Put
 `ffmpeg.exe` and `ffprobe.exe` in `resources/ffmpeg/` (a local, ignored tools
 directory), beside the application executable, or on PATH. Windows builds are
 linked from [FFmpeg's download page](https://ffmpeg.org/download.html).
-Restart Trove after adding the tools.
+Restart ClipKit after adding the tools.
 
 - **Build the UI:** run `npm ci` and `npm run build` in `frontend/`.
-- **Server:** `go build -o build/bin/troved.exe ./cmd/troved`, then `build/bin/troved.exe -addr 0.0.0.0:8899 -ui frontend/dist`
-  (or use `start-trove.cmd`, which prints your LAN URL for phones).
+- **Server:** `go build -o build/bin/clipkitd.exe ./cmd/troved`, then `build/bin/clipkitd.exe -addr 0.0.0.0:8899 -ui frontend/dist`
+  (or use `start-clipkit.cmd`, which prints your LAN URL for phones).
 - **Desktop app:** `wails dev` for live development, `wails build` for a
   redistributable build (see `wails.json`).
 

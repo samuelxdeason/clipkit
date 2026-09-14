@@ -639,7 +639,7 @@ func (d *Downloader) run(j *Job) {
 	check := exec.Command(ffmpeg, "-version")
 	check.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	if err := check.Run(); err != nil {
-		d.finish(j, nil, err, "ERROR: FFmpeg could not start. Install FFmpeg in resources/ffmpeg or on PATH, then restart Trove. It is needed to combine video and audio.")
+		d.finish(j, nil, err, "ERROR: FFmpeg could not start. Install FFmpeg in resources/ffmpeg or on PATH, then restart ClipKit. It is needed to combine video and audio.")
 		return
 	}
 

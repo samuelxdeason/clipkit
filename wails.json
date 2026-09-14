@@ -1,7 +1,7 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "Trove",
-  "outputfilename": "trove",
+  "name": "ClipKit",
+  "outputfilename": "clipkit",
   "frontend:install": "pnpm install",
   "frontend:build": "pnpm run build",
   "frontend:dev:watcher": "pnpm run dev",
@@ -9,5 +9,8 @@
   "author": {
     "name": "Samuel Deason",
     "email": "samxdev@pm.me"
+  },
+  "info": {
+    "productName": "ClipKit"
   }
 }

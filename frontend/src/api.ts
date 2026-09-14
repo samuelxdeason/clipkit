@@ -1,4 +1,4 @@
-// api.ts is the single data path for the UI. It talks to the Trove server
+// api.ts is the single data path for the UI. It talks to the ClipKit server
 // over HTTP (+ Server-Sent Events for live updates), and exports the same names
 // App.tsx used to import from the Wails bindings, so component code is unchanged.
 //

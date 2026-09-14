@@ -68,7 +68,7 @@ func (a *App) APIBase() string { return a.apiBase }
 
 // ChooseMediaRoot opens a folder picker and saves the choice (next-launch).
 func (a *App) ChooseMediaRoot() string {
-	dir, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{Title: "Choose your Trove folder"})
+	dir, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{Title: "Choose your ClipKit folder"})
 	if err != nil || strings.TrimSpace(dir) == "" {
 		return a.mediaRot
 	}

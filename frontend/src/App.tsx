@@ -201,7 +201,7 @@ function ViewportOverlay({ children }: { children: ReactNode }) {
 }
 
 // Two continuous forms, held together.
-function TroveMark({ className = "w-6 h-6" }: { className?: string }) {
+function ClipKitMark({ className = "w-6 h-6" }: { className?: string }) {
   return <svg viewBox="0 0 32 32" className={className} fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden><path d="M17 5C7 1 2 12 7 21c3 6 10 9 15 4s4-12-1-16C16 5 10 8 11 15c1 5 7 9 12 7" strokeLinecap="round"/></svg>;
 }
 
@@ -367,7 +367,7 @@ export default function App() {
 
   useEffect(() => {
     const accent = savedAccent();
-    localStorage.accent = accent; // also migrates the previous flavor palette to Trove's mineral palette
+    localStorage.accent = accent; // also migrates the previous flavor palette to ClipKit's mineral palette
     applyAccent(accent);
     Queue().then((q) => setQueue(q || []));
     MediaBase().then((b) => { MEDIA_BASE = b; reload(); }); // re-render so media URLs pick up the base
@@ -433,8 +433,8 @@ export default function App() {
       <nav className={`trove-sidebar fixed md:static inset-y-0 left-0 z-50 w-72 md:w-60 shrink-0 bg-panel md:bg-panel/90 border-r border-edge flex flex-col overflow-y-auto transition-transform duration-200 rounded-r-3xl md:rounded-none shadow-2xl shadow-black/50 md:shadow-none ${navOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
         style={{ paddingTop: "env(safe-area-inset-top)" }}>
         <div className="brand-lockup px-5 py-6 flex items-center gap-3">
-          <TroveMark className="w-8 h-8 shrink-0" />
-          <span className="min-w-0"><span className="brand-word block text-[20px] leading-none text-fg">trove</span><span className="brand-sub block mt-1">A personal archive</span></span>
+          <ClipKitMark className="w-8 h-8 shrink-0" />
+          <span className="min-w-0"><span className="brand-word block text-[20px] leading-none text-fg">ClipKit</span><span className="brand-sub block mt-1">A personal archive</span></span>
         </div>
 
         <SideItem icon="home" active={route.kind === "home"} onClick={() => go({ kind: "home" })}>Your archive</SideItem>
@@ -617,7 +617,7 @@ function TopBar({ search, onSearch, onMenu, onAdd }: { search: string; onSearch:
       <div className="flex items-center gap-2 px-3 md:px-6 py-2.5">
         <button onClick={onMenu} aria-label="Open menu"
           className="md:hidden w-10 h-10 shrink-0 grid place-items-center rounded-full text-fg text-2xl leading-none active:bg-panel2">≡</button>
-        <TroveMark className="md:hidden w-7 h-7 shrink-0" />
+        <ClipKitMark className="md:hidden w-7 h-7 shrink-0" />
         <div className="relative flex-1 max-w-xl ml-auto">
           <Icon name="search" className="w-[18px] h-[18px] absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
           <input ref={input} aria-label="Search your archive" value={search} onChange={(e) => onSearch(e.target.value)} enterKeyHint="search"
@@ -886,7 +886,7 @@ function Home({ onPlay, onOpenModel, onGo, version }:
   }, [recent, photos, filter]);
   return <div className="archive-home">
     <header className="archive-page-heading archive-home-heading"><h1>Your archive</h1><button className="secondary-btn px-4 py-2.5 text-sm" onClick={() => onGo({kind: "downloads"})}>＋ Add media</button></header>
-    {error ? <Empty action={{label: "Try again", onClick: () => setRetry(r => r + 1)}}>Your archive couldn’t be loaded. Check that the Trove server is running.</Empty> : loading ? <CardGridSkeleton count={6} ratio="aspect-[4/3]" /> : <div className="archive-columns"><div className="archive-main-column">
+    {error ? <Empty action={{label: "Try again", onClick: () => setRetry(r => r + 1)}}>Your archive couldn’t be loaded. Check that the ClipKit server is running.</Empty> : loading ? <CardGridSkeleton count={6} ratio="aspect-[4/3]" /> : <div className="archive-columns"><div className="archive-main-column">
       <div className="archive-section-heading"><h2>Recently added</h2><div className="segmented" aria-label="Media type">{["all", "photos", "videos"].map(f => <button key={f} aria-pressed={filter === f} className={filter === f ? "selected" : ""} onClick={() => setFilter(f)}>{f === "all" ? "Everything" : f === "photos" ? "Photos" : "Videos"}</button>)}</div></div>
       {items.length ? <div className="archive-masonry">{items.map(item => <ArchiveMedia key={item.photo ? `p-${item.photo.id}` : `v-${item.video!.site}-${item.video!.id}`} {...item} onClick={() => item.photo ? setLightbox(photos.indexOf(item.photo)) : onPlay(item.video!, recent)} />)}</div> : <div className="archive-empty"><Icon name="photo" className="w-9 h-9" /><h2>No media yet</h2><p>Add photos or videos to your archive.</p><button className="glow-btn px-5 py-3" onClick={() => onGo({kind: filter === "photos" ? "photos" : "downloads"})}>Add to your archive <span>＋</span></button></div>}
       {!!items.length && <button className="archive-view-all" onClick={() => onGo({kind: filter === "photos" ? "photos" : "videos"})}>Explore {filter === "photos" ? "all photographs" : "all videos"} <span>→</span></button>}
@@ -2329,7 +2329,7 @@ function BrowseSync({ onEnqueued }: { onEnqueued: () => void }) {
       {/* Saved syncs */}
       {!showList && (
         lists.length === 0
-          ? <Empty icon="♥" action={{ label: "+ Follow someone", onClick: () => setAdding(true) }}>You’re not following anyone yet. Add a person, channel, or favorites list and Trove will keep watch.</Empty>
+          ? <Empty icon="♥" action={{ label: "+ Follow someone", onClick: () => setAdding(true) }}>You’re not following anyone yet. Add a person, channel, or favorites list and ClipKit will keep watch.</Empty>
           : (
             <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))" }}>
               {lists.map((l) => (
@@ -2686,7 +2686,7 @@ export function Downloads({ queue }: { queue: Job[] }) {
         <h2 className="font-semibold">Queue {queue.length > 0 && <span className="text-muted font-normal text-sm">· {queue.length}</span>}</h2>
         {finished > 0 && <button onClick={() => ClearFinished()} className="text-xs text-muted hover:text-fg">Clear finished ({finished})</button>}
       </div>
-      {queue.length === 0 ? <Empty icon="♥">Nothing downloading yet. Paste a URL above, or open Following to add more to your Trove.</Empty>
+      {queue.length === 0 ? <Empty icon="♥">Nothing downloading yet. Paste a URL above, or open Following to add more to your ClipKit.</Empty>
         : <div className="space-y-2">{queue.map((j) => <QueueItem key={j.id} j={j} />)}</div>}
     </div>
   );

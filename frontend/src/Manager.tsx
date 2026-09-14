@@ -240,7 +240,7 @@ export default function Manager() {
   if (legacyTools) return <><LegacyApp /><button className="return-manager" onClick={() => { setLegacyTools(false); reload(); }}>← Back to file manager</button></>;
   return <div className="manager finder-shell">
     <aside className={`manager-sidebar ${nav ? "is-open" : ""}`}>
-      <button className="manager-brand" onClick={() => go("all")}><span className="brand-symbol"><Icon name="folder" /></span>trove</button>
+      <button className="manager-brand" onClick={() => go("all")}><span className="brand-symbol"><Icon name="folder" /></span>ClipKit</button>
       <div className="nav-label">Library</div>
       <button className={`manager-nav ${videoLibrary ? "active" : ""}`} data-section="videos" aria-current={videoLibrary ? "page" : undefined} onClick={() => go("all")}><Icon name="film" />Videos</button>
       <button className={`manager-nav ${view === "photos" ? "active" : ""}`} data-section="photos" aria-current={view === "photos" ? "page" : undefined} onClick={() => go("photos")}><Icon name="photo" />Photos</button>

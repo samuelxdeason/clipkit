@@ -1,4 +1,4 @@
-// Command troved is the headless Trove server: it runs the core
+// Command clipkitd is the headless ClipKit server: it runs the core
 // engine and exposes the HTTP API, SSE events, range-served media, and the web
 // UI on one port — suitable for running on a NAS or any always-on machine.
 package main
@@ -62,7 +62,7 @@ func main() {
 	}
 
 	srv := server.New(c, hub, ui)
-	log.Printf("trove daemon listening on %s  (vault: %s)", *addr, resolved)
+	log.Printf("ClipKit server listening on %s  (vault: %s)", *addr, resolved)
 	if err := http.ListenAndServe(*addr, srv.Handler()); err != nil {
 		log.Fatal(err)
 	}

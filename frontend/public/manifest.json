@@ -1,6 +1,6 @@
 {
-  "name": "Trove",
-  "short_name": "Trove",
+  "name": "ClipKit",
+  "short_name": "ClipKit",
   "description": "A personal archive of photographs, videos, and the people who connect them.",
   "start_url": "/",
   "scope": "/",
