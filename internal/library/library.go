@@ -689,6 +689,33 @@ ON CONFLICT(id) DO UPDATE SET model=excluded.model, album=excluded.album,
 
 // PhotosByModel returns a model's photos, album-grouped then newest first
 // (paths absolute).
+func (db *DB) AllPhotos(limit, offset int, query string) ([]Photo, error) {
+	if limit <= 0 || limit > 500 {
+		limit = 120
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	pattern := "%" + query + "%"
+	rows, err := db.sql.Query(`SELECT id,COALESCE(model,''),COALESCE(album,''),filepath,filename,added FROM photos
+		WHERE COALESCE(model,'') LIKE ? OR COALESCE(album,'') LIKE ? OR filename LIKE ?
+		ORDER BY added DESC, id DESC LIMIT ? OFFSET ?`, pattern, pattern, pattern, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []Photo{}
+	for rows.Next() {
+		var p Photo
+		if err := rows.Scan(&p.ID, &p.Model, &p.Album, &p.Filepath, &p.Filename, &p.Added); err != nil {
+			return nil, err
+		}
+		p.Filepath = db.abs(p.Filepath)
+		out = append(out, p)
+	}
+	return out, rows.Err()
+}
+
 func (db *DB) PhotosByModel(model string) ([]Photo, error) {
 	rows, err := db.sql.Query(
 		`SELECT id,model,COALESCE(album,''),filepath,filename,added FROM photos

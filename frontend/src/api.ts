@@ -8,7 +8,7 @@
 //   - browser (headless daemon): same origin (base ""), and native actions fall
 //     back to web equivalents (file upload, window.open).
 import * as wails from "../wailsjs/go/main/App";
-import { BrowserOpenURL as wailsOpenURL } from "../wailsjs/runtime/runtime";
+import { BrowserOpenURL as wailsOpenURL, ClipboardSetText } from "../wailsjs/runtime/runtime";
 import { library, downloader } from "../wailsjs/go/models";
 
 type Video = library.Video;
@@ -62,6 +62,7 @@ export const VideosByLabel = (label: string) => getJSON<Video[]>("/api/videos/by
 export const VideosByCollection = (id: number) => getJSON<Video[]>("/api/videos/by-collection" + qs({ id }));
 export const Search = (q: string) => getJSON<Video[]>("/api/search" + qs({ q }));
 export const PhotosByModel = (model: string) => getJSON<library.Photo[]>("/api/photos" + qs({ model }));
+export const AllPhotos = (limit = 120, offset = 0, q = "") => getJSON<library.Photo[]>("/api/photos/all" + qs({ limit, offset, q }));
 export const GetModelInfo = (name: string) => getJSON<library.ModelInfo>("/api/modelinfo" + qs({ name }));
 export const Enumerate = (url: string, refresh = false) =>
   getJSON<downloader.RemoteItem[]>("/api/enumerate" + qs({ url, refresh: refresh ? 1 : 0 }));
@@ -190,6 +191,15 @@ export function EventsOn(event: string, cb: (data: any) => void): () => void {
 export const isDesktopApp = isWails;
 export const BrowserOpenURL = (url: string) => (isWails ? wailsOpenURL(url) : void window.open(url, "_blank"));
 export const OpenFolder = (path: string) => (isWails ? wails.OpenFolder(path) : undefined);
+
+export async function CopyText(text: string): Promise<void> {
+  if (isWails) {
+    if (!await ClipboardSetText(text)) throw new Error("Clipboard write failed");
+  } else {
+    if (!navigator.clipboard?.writeText) throw new Error("Clipboard is unavailable");
+    await navigator.clipboard.writeText(text);
+  }
+}
 export const ChooseMediaRoot = () => (isWails ? wails.ChooseMediaRoot() : Promise.resolve(""));
 export const RestartApp = () => (isWails ? wails.RestartApp() : void location.reload());
 

@@ -109,6 +109,9 @@ func (s *Server) routes(ui fs.FS) {
 	m.HandleFunc("GET /api/videos/by-collection", j(func(r *http.Request) (any, error) { return s.core.VideosByCollection(qInt(r, "id")) }))
 	m.HandleFunc("GET /api/search", j(func(r *http.Request) (any, error) { return s.core.Search(q(r, "q")) }))
 	m.HandleFunc("GET /api/photos", j(func(r *http.Request) (any, error) { return s.core.PhotosByModel(q(r, "model")) }))
+	m.HandleFunc("GET /api/photos/all", j(func(r *http.Request) (any, error) {
+		return s.core.AllPhotos(int(qInt(r, "limit")), int(qInt(r, "offset")), q(r, "q"))
+	}))
 	m.HandleFunc("GET /api/modelinfo", j(func(r *http.Request) (any, error) { return s.core.GetModelInfo(q(r, "name")) }))
 	m.HandleFunc("GET /api/enumerate", j(func(r *http.Request) (any, error) { return s.core.Enumerate(q(r, "url"), q(r, "refresh") == "1") }))
 	m.HandleFunc("GET /api/synced", j(func(_ *http.Request) (any, error) { return s.core.SyncedURLs(), nil }))

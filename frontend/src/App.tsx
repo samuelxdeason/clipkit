@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
   Models, VideosByModel, AllVideos, Search, RecentlyDownloaded, RecentlyWatched, ContinueWatching, MarkWatched, SetPosition, SetModels, SetTitle,
   SetFavorite, SetLabels, AllLabels, Favorites, LabelCounts, VideosByLabel,
   Enqueue, EnqueueMany, Enumerate, SyncedLists, RemoveSync, Queue, RemoveJob, ClearFinished, Import, ImportFilesDialog, ImportFolderDialog,
-  PhotosByModel, ImportPhotosDialog, ImportPhotosFromURL, GetModelInfo, SaveModelInfo, RenameModel, SetModelCover, SetAvatarFromURL, UploadAvatar, FetchAvatar, FetchAllAvatars,
-  CookieStatus, ConnectCookies, OpenFolder,
+  AllPhotos, PhotosByModel, ImportPhotosDialog, ImportPhotosFromURL, GetModelInfo, SaveModelInfo, RenameModel, SetModelCover, SetAvatarFromURL, UploadAvatar, FetchAvatar, FetchAllAvatars,
+  CookieStatus, ConnectCookies, OpenFolder, CopyText,
   MediaRootPath, ChooseMediaRoot, RestartApp, Stats, MediaBase, RebuildLibrary, BackupCatalogue, OptimizeStreaming, isDesktopApp,
   Collections, CreateCollection, RenameCollection, SetCollectionHidden, SetCollectionLocked,
   DeleteCollection, AddToCollection, RemoveFromCollection, VideosByCollection, CollectionsForVideo,
@@ -62,13 +63,12 @@ const fmtDate = (d?: string) => {
   return isNaN(t) ? "" : new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 };
 
-// Bright mood colors give the private collection a modern, playful identity.
+// Low-chroma accents keep the collection in focus.
 const ACCENTS: { name: string; rgb: string }[] = [
-  { name: "Hot Pink", rgb: "255 79 129" },
-  { name: "Cherry", rgb: "245 64 92" },
-  { name: "Tangerine", rgb: "255 115 84" },
-  { name: "Electric Purple", rgb: "157 92 255" },
-  { name: "Ocean", rgb: "45 168 205" },
+  { name: "Pearl", rgb: "221 214 205" },
+  { name: "Stone", rgb: "190 185 178" },
+  { name: "Clay", rgb: "204 180 170" },
+  { name: "Silver", rgb: "189 197 204" },
 ];
 const savedAccent = () => {
   const saved = localStorage.accent;
@@ -76,7 +76,7 @@ const savedAccent = () => {
 };
 const applyAccent = (rgb: string) => document.documentElement.style.setProperty("--ac-rgb", rgb);
 
-const COLL_TINTS = ["#FF4F81", "#FF7354", "#9D5CFF", "#2DA8CD", "#F5405C"];
+const COLL_TINTS = ["#bbb2a8", "#aaaeb5", "#bba9a3", "#a9b1aa", "#b2abb7"];
 const collTint = (i: number) => COLL_TINTS[i % COLL_TINTS.length];
 
 // Hover previews only make sense where a real pointer can hover — on touch
@@ -88,6 +88,8 @@ const CAN_HOVER = window.matchMedia?.("(hover: hover) and (pointer: fine)").matc
 type Route =
   | { kind: "home" }
   | { kind: "videos" }
+  | { kind: "photos" }
+  | { kind: "connections" }
   | { kind: "library" }
   | { kind: "feed" }
   | { kind: "model"; name: string }
@@ -155,6 +157,10 @@ const STATUS_COLORS: Record<string, string> = {
 // One consistent hand-rolled icon set for the archive UI.
 function Icon({ name, className = "w-[18px] h-[18px]" }: { name: string; className?: string }) {
   const p: Record<string, JSX.Element> = {
+    photo: <><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 5-5 4 4 4-6 5 7"/></>,
+    film: <><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></>,
+    connections: <><circle cx="12" cy="12" r="3"/><circle cx="5" cy="5" r="2"/><circle cx="20" cy="7" r="2"/><circle cx="6" cy="20" r="2"/><path d="m6.5 6.5 3.3 3.3m5-0.3 3.4-1.4M10 14.5l-2.8 3.8"/></>,
+    expand: <path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/>,
     home: <><path d="M3.5 10.8 12 3.5l8.5 7.3" /><path d="M5.5 9.5V20a.8.8 0 0 0 .8.8H10v-5.6h4v5.6h3.7a.8.8 0 0 0 .8-.8V9.5" /></>,
     feed: <><circle cx="12" cy="12" r="8.8" /><path d="M10.2 8.9v6.2L15.3 12z" fill="currentColor" stroke="none" /></>,
     people: <><circle cx="9" cy="8.2" r="3.4" /><path d="M3.6 19.8c.5-3.4 2.7-5.3 5.4-5.3s4.9 1.9 5.4 5.3" /><path d="M15.3 5.5a3.4 3.4 0 0 1 0 5.4M17.6 14.9c1.5.9 2.5 2.6 2.8 4.9" /></>,
@@ -188,18 +194,15 @@ function Icon({ name, className = "w-[18px] h-[18px]" }: { name: string; classNa
   );
 }
 
-// Trove's faceted seal: a gem-like container with a small keyhole at its heart.
+// Escape page animations, scrolling containers, and their stacking contexts.
+// Keep React ownership so existing close handlers and dialog state still work.
+function ViewportOverlay({ children }: { children: ReactNode }) {
+  return createPortal(children, document.body);
+}
+
+// Two continuous forms, held together.
 function TroveMark({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" className={className} aria-hidden>
-      <rect x="1" y="1" width="30" height="30" rx="8" fill="url(#trove-mark-fill)" />
-      <path d="M6.4 15.4c2.4-4 5.6-6 9.6-6s7.2 2 9.6 6c-2.4 4-5.6 6-9.6 6s-7.2-2-9.6-6Z"
-        fill="none" stroke="rgba(255,255,255,.88)" strokeWidth="1.8" />
-      <circle cx="16" cy="14.6" r="2.55" fill="var(--milk)" />
-      <path d="M14.8 16.5h2.4l1.15 5.2h-4.7z" fill="var(--milk)" />
-      <defs><linearGradient id="trove-mark-fill" x1="4" y1="3" x2="28" y2="29" gradientUnits="userSpaceOnUse"><stop stopColor="var(--ac-soft)"/><stop offset="1" stopColor="var(--ac)"/></linearGradient></defs>
-    </svg>
-  );
+  return <svg viewBox="0 0 32 32" className={className} fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden><path d="M17 5C7 1 2 12 7 21c3 6 10 9 15 4s4-12-1-16C16 5 10 8 11 15c1 5 7 9 12 7" strokeLinecap="round"/></svg>;
 }
 
 function XLogo({ className = "" }: { className?: string }) {
@@ -260,7 +263,7 @@ function AccountActionModal({ platform, handle, display, modelNames, onClose, on
     try { await AdoptAccount(platform, handle, n); onChanged(); onClose(); } finally { setBusy(false); }
   };
   return (
-    <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-[80] grid place-items-center p-4" onClick={onClose}>
+    <ViewportOverlay><div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-[80] grid place-items-center p-4" onClick={onClose}>
       <div className="bg-panel border border-edge rounded-xl p-5 w-[92vw] max-w-[24rem] pop" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2 mb-1">
           <PlatformLogo platform={platform} />
@@ -283,7 +286,7 @@ function AccountActionModal({ platform, handle, display, modelNames, onClose, on
             className="text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">{busy ? "Connecting…" : "Connect"}</button>
         </div>
       </div>
-    </div>
+    </div></ViewportOverlay>
   );
 }
 
@@ -401,8 +404,13 @@ export default function App() {
   const [newColl, setNewColl] = useState(false);
   const [gate, setGate] = useState<Collection | null>(null); // locked collection awaiting confirm
   const [navOpen, setNavOpen] = useState(false); // mobile drawer
+  const mainScroll = useRef<HTMLElement>(null);
+  const scrollPositions = useRef<Record<string, number>>({});
 
-  const go = (r: Route) => { setRoute(r); setSearch(""); setNavOpen(false); setPlaying(null); };
+  const go = (r: Route) => {
+    scrollPositions.current[routeKey] = mainScroll.current?.scrollTop || 0;
+    setRoute(r); setSearch(""); setNavOpen(false); setPlaying(null);
+  };
   const play = (v: Video, list?: Video[]) => {
     setPlaying(v);
     setPlayQueue(list && list.length ? list : [v]);
@@ -417,6 +425,7 @@ export default function App() {
   const totalVideos = videoTotal;
   // Re-keys the main content so each route change replays the entrance animation.
   const routeKey = route.kind + ("name" in route ? route.name : "") + ("id" in route ? String(route.id) : "") + ("label" in route ? route.label : ""); // distinct videos (a video tagged to 2 models isn't counted twice)
+  useLayoutEffect(() => { if (mainScroll.current) mainScroll.current.scrollTop = scrollPositions.current[routeKey] || 0; }, [routeKey]);
 
   return (
     <div className="trove-app flex h-full">
@@ -425,14 +434,16 @@ export default function App() {
         style={{ paddingTop: "env(safe-area-inset-top)" }}>
         <div className="brand-lockup px-5 py-6 flex items-center gap-3">
           <TroveMark className="w-8 h-8 shrink-0" />
-          <span className="min-w-0"><span className="brand-word block text-[20px] leading-none text-fg">TROVE</span><span className="brand-sub block mt-1">private vault</span></span>
+          <span className="min-w-0"><span className="brand-word block text-[20px] leading-none text-fg">trove</span><span className="brand-sub block mt-1">A personal archive</span></span>
         </div>
 
-        <SideItem icon="home" active={route.kind === "home"} onClick={() => go({ kind: "home" })}>Home</SideItem>
-        <SideItem icon="grid" active={["videos", "recent", "watched", "favorites", "categories", "category"].includes(route.kind)}
+        <SideItem icon="home" active={route.kind === "home"} onClick={() => go({ kind: "home" })}>Your archive</SideItem>
+        <SideItem icon="film" active={["videos", "recent", "watched", "categories", "category"].includes(route.kind)}
           onClick={() => go({ kind: "videos" })}>Videos</SideItem>
+        <SideItem icon="photo" active={route.kind === "photos"} onClick={() => go({ kind: "photos" })}>Photographs</SideItem>
         <SideItem icon="people" active={route.kind === "library" || route.kind === "model"} onClick={() => go({ kind: "library" })}>People</SideItem>
-        <SideItem icon="feed" active={route.kind === "feed"} onClick={() => go({ kind: "feed" })}>Feed</SideItem>
+        <SideItem icon="connections" active={route.kind === "connections"} onClick={() => go({ kind: "connections" })}>Connections</SideItem>
+        <SideItem icon="heart" active={route.kind === "favorites"} onClick={() => go({ kind: "favorites" })}>Favorites</SideItem>
 
         <div className="flex items-center justify-between px-5 pt-4 pb-1">
           <span className="text-[11px] uppercase tracking-wider text-muted/70">Collections</span>
@@ -451,27 +462,30 @@ export default function App() {
           </SideItem>
         ))}
 
-        <SideLabel>More</SideLabel>
+        <SideLabel>Your workspace</SideLabel>
         <SideItem icon="spark" active={route.kind === "browse"} onClick={() => go({ kind: "browse" })}>Following</SideItem>
         <SideItem icon="download" active={route.kind === "downloads"} onClick={() => go({ kind: "downloads" })}>
-          <span>Downloads {activeDownloads > 0 && <span style={{ color: "var(--ac)" }}>({activeDownloads})</span>}</span>
+          <span>Imports {activeDownloads > 0 && <span style={{ color: "var(--ac)" }}>({activeDownloads})</span>}</span>
         </SideItem>
         <SideItem icon="gear" active={route.kind === "settings"} onClick={() => go({ kind: "settings" })}>Settings</SideItem>
 
         <div className="archive-count mt-auto px-5 py-4 text-xs text-muted"><span>{totalVideos}</span> videos <i /> <span>{models.length}</span> people</div>
       </nav>
 
-      <main className="flex-1 min-w-0 overflow-y-auto pb-24 md:pb-0">
-        {route.kind !== "feed" && <TopBar search={search} onSearch={setSearch} onMenu={() => setNavOpen(true)} />}
+      <main ref={mainScroll} id="archive-content" className="flex-1 min-w-0 overflow-y-auto pb-24 md:pb-0">
+        {route.kind !== "feed" && <TopBar search={search} onSearch={setSearch} onMenu={() => setNavOpen(true)} onAdd={() => go({ kind: "downloads" })} />}
         <div key={search.trim() ? "search" : routeKey} className="rise">
         {search.trim() ? (
           <div className="p-4 md:p-6">
+            <PhotosPage key={search.trim()} version={version} query={search.trim()} />
             <SearchResultsPage q={search.trim()} results={searchResults} models={models} allLabels={allLabels}
               collections={collections} modelNames={modelNames} onPlay={play}
               onOpenModel={(name) => go({ kind: "model", name })} onOpenTag={(label) => go({ kind: "category", label })}
               onOpenCollection={openCollection} onChanged={reload} />
           </div>
         ) : route.kind === "home" ? <Home onPlay={play} onOpenModel={(name) => go({ kind: "model", name })} onGo={go} version={version} />
+          : route.kind === "photos" ? <PhotosPage version={version} />
+          : route.kind === "connections" ? <ConnectionsPage models={models} onOpenModel={(name) => go({kind: "model", name})} onPlay={play} />
           : route.kind === "videos" ? <VideosPage version={version} modelNames={modelNames} collections={collections} onPlay={play} onChanged={reload} onOpenTags={() => go({ kind: "categories" })} />
           : route.kind === "feed" ? <Feed onOpenModel={(name) => go({ kind: "model", name })} onClose={() => go({ kind: "home" })} collections={collections} allLabels={allLabels} models={models} onChanged={reload} />
           : route.kind === "downloads" ? <Downloads queue={queue} />
@@ -487,7 +501,7 @@ export default function App() {
                 )}
                 {route.kind === "library"
                   ? <div>
-                      <div className="eyebrow">People in your trove</div>
+
                       <h1 className="page-title">People</h1>
                     </div>
                   : <h1 className="text-xl font-bold flex items-center gap-2">
@@ -551,7 +565,7 @@ export default function App() {
       )}
 
       {gate && (
-        <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={() => setGate(null)}>
+        <ViewportOverlay><div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={() => setGate(null)}>
           <div className="bg-panel border border-edge rounded-xl p-6 w-[92vw] max-w-[22rem] text-center pop" onClick={(e) => e.stopPropagation()}>
             <div className="text-3xl mb-2">🔒</div>
             <div className="font-semibold mb-1">{gate.name} is locked</div>
@@ -562,7 +576,7 @@ export default function App() {
                 style={{ background: "var(--ac)", color: "var(--ac-ink)" }} className="text-sm font-semibold px-4 py-2 rounded-lg">Open</button>
             </div>
           </div>
-        </div>
+        </div></ViewportOverlay>
       )}
     </div>
   );
@@ -595,23 +609,26 @@ function FilterBtn({ on, onClick, children }: any) {
 
 /* ---------------- Top bar (search from anywhere) ---------------- */
 
-function TopBar({ search, onSearch, onMenu }: { search: string; onSearch: (q: string) => void; onMenu: () => void }) {
+function TopBar({ search, onSearch, onMenu, onAdd }: { search: string; onSearch: (q: string) => void; onMenu: () => void; onAdd: () => void }) {
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => { const handler = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key === "k") { e.preventDefault(); input.current?.focus(); } }; window.addEventListener("keydown", handler); return () => window.removeEventListener("keydown", handler); }, []);
   return (
     <div className="trove-topbar sticky top-0 z-20 glass border-b border-edge/70" style={{ paddingTop: "env(safe-area-inset-top)" }}>
       <div className="flex items-center gap-2 px-3 md:px-6 py-2.5">
         <button onClick={onMenu} aria-label="Open menu"
           className="md:hidden w-10 h-10 shrink-0 grid place-items-center rounded-full text-fg text-2xl leading-none active:bg-panel2">≡</button>
         <TroveMark className="md:hidden w-7 h-7 shrink-0" />
-        <div className="relative flex-1 max-w-2xl mx-auto">
+        <div className="relative flex-1 max-w-xl ml-auto">
           <Icon name="search" className="w-[18px] h-[18px] absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
-          <input value={search} onChange={(e) => onSearch(e.target.value)} enterKeyHint="search"
-            placeholder="Search videos, people, collections…"
+          <input ref={input} aria-label="Search your archive" value={search} onChange={(e) => onSearch(e.target.value)} enterKeyHint="search"
+            placeholder="Search your archive…"
             className="w-full bg-panel border border-edge rounded-full pl-10 pr-10 py-2.5 text-sm outline-none focus:border-accent" />
           {search && (
             <button onClick={() => onSearch("")} aria-label="Clear search"
               className="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center rounded-full text-muted hover:text-fg hover:bg-panel2">✕</button>
           )}
         </div>
+        <button onClick={onAdd} className="topbar-add" aria-label="Add to archive"><Icon name="plus" /><span className="hidden sm:inline">Add to archive</span></button>
       </div>
     </div>
   );
@@ -629,7 +646,7 @@ function SearchResultsPage({ q, results, models, allLabels, collections, modelNa
   const colls = collections.filter((c) => c.name.toLowerCase().includes(ql));
   const empty = results !== null && !results.length && !people.length && !tags.length && !colls.length;
 
-  if (empty) return <Empty icon="🔍">Nothing matches “{q}” — try a person's name, a tag, or a word from the title.</Empty>;
+  if (empty) return <p className="text-sm text-muted py-6">No matching videos, people, tags, or collections.</p>;
   return (
     <>
       <h1 className="text-xl font-bold mb-5">Results for “{q}”</h1>
@@ -766,7 +783,7 @@ function VideosPage({ version, modelNames, collections, onPlay, onChanged, onOpe
     <div className="page-shell p-4 md:p-6">
       <div className="page-heading flex items-end gap-3 mb-4">
         <div>
-          <div className="eyebrow">Your private collection</div>
+
           <h1 className="page-title">Videos</h1>
         </div>
         <select value={sort} onChange={(e) => pickSort(e.target.value)} aria-label="Sort"
@@ -819,130 +836,113 @@ function VideosPage({ version, modelNames, collections, onPlay, onChanged, onOpe
 
 /* ---------------- Home (discovery wall) ---------------- */
 
+function ArchiveMedia({ video, photo, onClick }: { video?: Video; photo?: Photo; onClick: () => void }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  useEffect(() => setImageFailed(false), [photo?.filepath, video?.thumbnail]);
+  const title = photo ? photo.album || photo.filename || "Untitled photograph" : video?.title || video?.uploader || "Untitled film";
+  return <button className={`archive-media ${photo ? "is-photo" : "is-film"}`} onClick={onClick}>
+    <div className="archive-media-image">
+      {!imageFailed && (photo?.filepath || video?.thumbnail) ? <img onError={() => setImageFailed(true)} src={mediaURL(photo?.filepath || video?.thumbnail)} alt={title} loading="lazy" decoding="async" /> : <div className="media-placeholder"><Icon name={photo ? "photo" : "film"} className="w-9 h-9" /></div>}
+      <span className="media-kind"><Icon name={photo ? "photo" : "film"} className="w-3 h-3" />{photo ? "Photo" : fmtDur(video?.duration) || "Video"}</span>
+      <span className="media-open"><Icon name={photo ? "expand" : "play-fill"} className="w-5 h-5" /></span>
+    </div>
+    <div className="archive-media-caption"><strong>{title}</strong><span>{photo ? (photo.model ? modelLabel(photo.model) : "Your archive") : (peopleOf(video!).map(modelLabel).join(", ") || "Your archive")}</span></div>
+  </button>;
+}
+
 function Home({ onPlay, onOpenModel, onGo, version }:
   { onPlay: (v: Video, list?: Video[]) => void; onOpenModel: (name: string) => void; onGo: (r: Route) => void; version: number }) {
   const [recent, setRecent] = useState<Video[]>([]);
   const [cont, setCont] = useState<Video[]>([]);
   const [favs, setFavs] = useState<Video[]>([]);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [people, setPeople] = useState<Model[]>([]);
-  const [hero, setHero] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
-
+  const [error, setError] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const [lightbox, setLightbox] = useState<number | null>(null);
+  const [filter, setFilter] = useState("all");
   useEffect(() => {
     let alive = true;
-    setLoading(true);
-    Promise.all([RecentlyDownloaded(), ContinueWatching(), Favorites(), Models()]).then(([r, c, f, m]) => {
+    setError(false);
+    Promise.all([RecentlyDownloaded(), ContinueWatching(), Favorites(), Models(), AllPhotos(18)]).then(([r, c, f, m, p]) => {
       if (!alive) return;
-      setRecent(r || []); setCont(c || []); setFavs(f || []); setPeople(m || []);
-      setLoading(false);
-    });
+      setRecent(r || []); setCont(c || []); setFavs(f || []); setPeople(m || []); setPhotos(p || []);
+    }).catch(() => { if (alive) setError(true); }).finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [version]);
-
-  // De-duped pool across favorites/in-progress/recent for the hero + shuffle.
-  const pool = useMemo(() => {
-    const seen = new Set<string>(); const out: Video[] = [];
-    for (const v of [...favs, ...cont, ...recent]) {
-      const k = v.site + "/" + v.id;
-      if (!seen.has(k)) { seen.add(k); out.push(v); }
+  }, [version, retry]);
+  const familiar = useMemo(() => {
+    const scores = new Map<string, number>();
+    [...favs, ...cont].forEach(v => peopleOf(v).forEach(n => scores.set(n, (scores.get(n) || 0) + 1)));
+    return people.filter(p => p.name).sort((a, b) => (scores.get(b.name) || 0) - (scores.get(a.name) || 0)).slice(0, 5);
+  }, [people, favs, cont]);
+  const items = useMemo(() => {
+    const out: { video?: Video; photo?: Photo }[] = [];
+    for (let i = 0; i < Math.max(recent.length, photos.length); i++) {
+      if (photos[i] && filter !== "videos") out.push({ photo: photos[i] });
+      if (recent[i] && filter !== "photos") out.push({ video: recent[i] });
     }
-    return out;
-  }, [favs, cont, recent]);
+    return out.slice(0, 12);
+  }, [recent, photos, filter]);
+  return <div className="archive-home">
+    <header className="archive-page-heading archive-home-heading"><h1>Your archive</h1><button className="secondary-btn px-4 py-2.5 text-sm" onClick={() => onGo({kind: "downloads"})}>＋ Add media</button></header>
+    {error ? <Empty action={{label: "Try again", onClick: () => setRetry(r => r + 1)}}>Your archive couldn’t be loaded. Check that the Trove server is running.</Empty> : loading ? <CardGridSkeleton count={6} ratio="aspect-[4/3]" /> : <div className="archive-columns"><div className="archive-main-column">
+      <div className="archive-section-heading"><h2>Recently added</h2><div className="segmented" aria-label="Media type">{["all", "photos", "videos"].map(f => <button key={f} aria-pressed={filter === f} className={filter === f ? "selected" : ""} onClick={() => setFilter(f)}>{f === "all" ? "Everything" : f === "photos" ? "Photos" : "Videos"}</button>)}</div></div>
+      {items.length ? <div className="archive-masonry">{items.map(item => <ArchiveMedia key={item.photo ? `p-${item.photo.id}` : `v-${item.video!.site}-${item.video!.id}`} {...item} onClick={() => item.photo ? setLightbox(photos.indexOf(item.photo)) : onPlay(item.video!, recent)} />)}</div> : <div className="archive-empty"><Icon name="photo" className="w-9 h-9" /><h2>No media yet</h2><p>Add photos or videos to your archive.</p><button className="glow-btn px-5 py-3" onClick={() => onGo({kind: filter === "photos" ? "photos" : "downloads"})}>Add to your archive <span>＋</span></button></div>}
+      {!!items.length && <button className="archive-view-all" onClick={() => onGo({kind: filter === "photos" ? "photos" : "videos"})}>Explore {filter === "photos" ? "all photographs" : "all videos"} <span>→</span></button>}
+    </div><aside className="archive-aside">
+      <div className="aside-heading"><Icon name="people" /><span>{favs.length || cont.length ? "Familiar faces" : "People in your archive"}</span></div>
+      {familiar.length ? familiar.map(p => <button className="familiar-person" key={p.name} onClick={() => onOpenModel(p.name)}>{p.thumbnail ? <img src={mediaURL(p.thumbnail)} alt="" /> : <span className="person-initial">{modelLabel(p.name)[0]}</span>}<span><strong>{modelLabel(p.name)}</strong><small>{p.count} saved videos</small></span><span className="person-arrow">↗</span></button>) : <p className="aside-note">People and their connected media will find a home here as your collection grows.</p>}
+      <button className="text-link" onClick={() => onGo({kind: "library"})}>Explore people <span>→</span></button>
+      <div className="connection-note"><Icon name="connections" className="w-5 h-5" /><h3>Connections</h3><p>People who appear together in your videos.</p><button className="text-link" onClick={() => onGo({kind: "connections"})}>Explore <span>↗</span></button></div>
+      {!!cont.length && <div className="resume-section"><div className="aside-heading"><Icon name="clock" /><span>Pick up where you left off</span></div>{cont.slice(0, 2).map(v => <button className="resume-item" key={v.site + v.id} onClick={() => onPlay(v, cont)}>{v.thumbnail && <img src={mediaURL(v.thumbnail)} alt="" />}<span><strong>{v.title || "Continue watching"}</strong><small>{fmtDur(v.position)} of {fmtDur(v.duration)}</small><i><b style={{width: `${Math.min(100, (v.position || 0) / (v.duration || 1) * 100)}%`}} /></i></span></button>)}</div>}
+    </aside></div>}
 
-  // Pick a hero once data arrives (a favorite if any, else a recent), keep it stable.
+    {lightbox !== null && <Lightbox photos={photos} index={lightbox} onIndex={setLightbox} onClose={() => setLightbox(null)} />}
+  </div>;
+}
+
+function PhotosPage({ version, query = "" }: { version: number; query?: string }) {
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [lightbox, setLightbox] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [more, setMore] = useState(false);
+  const [urlOpen, setUrlOpen] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const [layout, setLayout] = useState("gallery");
   useEffect(() => {
-    if (hero || pool.length === 0) return;
-    const top = favs.length ? favs : recent;
-    if (top.length) setHero(top[Math.floor(Math.random() * top.length)]);
-  }, [pool, favs, recent, hero]);
-
-  const shuffle = () => { if (pool.length) onPlay(pool[Math.floor(Math.random() * pool.length)], pool); };
-
-  if (loading) return <HomeSkeleton />;
-  if (!pool.length && !people.length)
-    return (
-      <div className="empty-trove p-6">
-        <Empty icon="♥">Your private collection is waiting. Follow someone or add a video to start filling your Trove.</Empty>
-      </div>
-    );
-
-  const topPeople = people.filter((p) => p.name).slice(0, 18);
-
-  return (
-    <div className="pb-10">
-      <div className="trove-welcome px-4 md:px-9 pt-5 md:pt-8">
-        <div className="eyebrow">Private vault <i /> your eyes only</div>
-        <h1>{greeting()}</h1>
-        <p>What do you want to watch?</p>
-      </div>
-      {hero && <Hero v={hero} onPlay={(v) => onPlay(v, pool)} onShuffle={shuffle} />}
-      <div className="mt-6 space-y-8">
-        {cont.length > 0 && (
-          <Row title="Continue watching" onSeeAll={() => onGo({ kind: "watched" })}>
-            {cont.slice(0, 18).map((v) => (
-              <RowCard key={v.site + v.id} v={v}
-                progress={v.position && v.duration ? Math.min(1, v.position / v.duration) : 0}
-                onClick={() => onPlay(v, cont)} />
-            ))}
-          </Row>
-        )}
-        {topPeople.length > 0 && (
-          <section>
-            <RowHeader title="Popular people" onSeeAll={() => onGo({ kind: "library" })} />
-            <div className="row flex gap-4 overflow-x-auto px-4 md:px-8 pt-2 pb-3">
-              {topPeople.map((p) => (
-                <button key={p.name} onClick={() => onOpenModel(p.name)} className="shrink-0 w-[104px] text-center">
-                  <div className="avatar w-[96px] h-[96px] mx-auto">
-                    {p.thumbnail
-                      ? <img src={mediaURL(p.thumbnail)} loading="lazy" className="w-full h-full object-cover" />
-                      : <div className="w-full h-full grid place-items-center text-2xl text-muted">{(p.name[0] || "?").toUpperCase()}</div>}
-                  </div>
-                  <div className="text-xs font-semibold mt-2 truncate">{p.name}</div>
-                  <div className="text-[11px] text-muted">{p.count} video{p.count === 1 ? "" : "s"}</div>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-        {recent.length > 0 && (
-          <Row title="Recently added" onSeeAll={() => onGo({ kind: "recent" })}>
-            {recent.slice(0, 18).map((v) => <RowCard key={v.site + v.id} v={v} onClick={() => onPlay(v, recent)} />)}
-          </Row>
-        )}
-        {favs.length > 0 && (
-          <Row title="Your favorites" onSeeAll={() => onGo({ kind: "favorites" })}>
-            {favs.slice(0, 18).map((v) => <RowCard key={v.site + v.id} v={v} onClick={() => onPlay(v, favs)} />)}
-          </Row>
-        )}
-      </div>
-    </div>
-  );
+    let alive = true; setLoading(true); setError(false); setLightbox(null);
+    AllPhotos(120, 0, query).then(p => { if (alive) { setPhotos(p || []); setMore(p?.length === 120); } }).catch(() => { if (alive) setError(true); }).finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [version, query, retry]);
+  const loadMore = async () => { setLoading(true); setError(false); try { const p = await AllPhotos(120, photos.length, query); setPhotos(cur => [...cur, ...(p || [])]); setMore(p?.length === 120); } catch { setError(true); } finally { setLoading(false); } };
+  const albums = useMemo(() => Array.from(new Set(photos.map(p => p.album || "Individual photographs"))), [photos]);
+  return <div className="archive-home photo-page"><header className="archive-page-heading"><div><h1>{query ? "Matching photographs" : "Photographs"}</h1></div><div className="flex gap-2"><button className="secondary-btn px-4 py-2.5 text-sm" onClick={() => setUrlOpen(true)}>From a link</button><button className="glow-btn px-4 py-2.5 text-sm" onClick={() => ImportPhotosDialog("").catch(() => setError(true))}>＋ Add photos</button></div></header>
+    <div className="archive-section-heading"><span className="text-sm text-muted">{photos.length}{more ? "+" : ""} photographs</span><div className="segmented">{["gallery", "albums"].map(l => <button key={l} className={layout === l ? "selected" : ""} aria-pressed={layout === l} onClick={() => setLayout(l)}>{l === "gallery" ? "Gallery" : "By album"}</button>)}</div></div>
+    {error && <div role="alert" className="archive-error">Unable to load or import photographs. <button onClick={() => setRetry(r => r + 1)}>Try again</button></div>}
+    {loading && !photos.length ? <CardGridSkeleton ratio="aspect-[3/4]" /> : !photos.length && !error ? <div className="archive-empty"><Icon name="photo" className="w-7 h-7" /><h2>No photographs yet</h2><p>Add photos from your device or a gallery link.</p><button className="glow-btn px-5 py-3" onClick={() => ImportPhotosDialog("").catch(() => setError(true))}>Add your first photographs</button></div> : (layout === "gallery" ? [""] : albums).map(album => <section key={album}>{album && <h2 className="album-heading">{album}</h2>}<div className="photo-masonry">{photos.map((p, i) => (!album || (p.album || "Individual photographs") === album) && <ArchiveMedia key={p.id} photo={p} onClick={() => setLightbox(i)} />)}</div></section>)}
+    {more && <button className="archive-view-all" disabled={loading} onClick={loadMore}>{loading ? "Loading…" : "More photographs"} ↓</button>}
+    {lightbox !== null && <Lightbox photos={photos} index={lightbox} onIndex={setLightbox} onClose={() => setLightbox(null)} />}
+    {urlOpen && <PhotosFromURLModal model="" onClose={() => setUrlOpen(false)} />}
+  </div>;
 }
 
-function Hero({ v, onPlay, onShuffle }: { v: Video; onPlay: (v: Video) => void; onShuffle: () => void }) {
-  return (
-    <div className="px-3 md:px-8 pt-3 md:pt-4">
-      <div className="trove-hero relative h-[40vh] min-h-[280px] md:h-[52vh] w-full overflow-hidden rounded-blob shadow-xl shadow-black/45">
-        {v.thumbnail
-          ? <img src={mediaURL(v.thumbnail)} className="absolute inset-0 w-full h-full object-cover" />
-          : <div className="absolute inset-0 bg-panel2" />}
-        <div className="hero-scrim" />
-        <div className="absolute bottom-0 left-0 right-0 p-5 md:p-10 max-w-3xl">
-          <span className="swirl-chip inline-block text-[10px] uppercase tracking-widest font-extrabold mb-2.5 px-2.5 py-1 rounded-md">Featured</span>
-          <h1 className="hero-title text-2xl md:text-4xl font-extrabold leading-tight line-clamp-2 cap text-white">{v.title || v.uploader}</h1>
-          <div className="text-sm text-white/80 mt-2 cap">
-            {peopleOf(v).length ? peopleOf(v).map(modelLabel).join(", ") : UNASSIGNED}
-            {v.height ? ` · ${v.height}p` : ""}{v.duration ? ` · ${fmtDur(v.duration)}` : ""}
-          </div>
-          <div className="flex gap-3 mt-5">
-            <button onClick={() => onPlay(v)} className="glow-btn px-6 py-2.5 text-sm flex items-center gap-2">▶ Play</button>
-            <button onClick={onShuffle} className="secondary-btn px-5 py-2.5 text-sm font-semibold text-fg flex items-center gap-2">⤮ Shuffle</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+function ConnectionsPage({ models, onOpenModel, onPlay }: { models: Model[]; onOpenModel: (name: string) => void; onPlay: (v: Video, list?: Video[]) => void }) {
+  const people = models.filter(p => p.name);
+  const [selected, setSelected] = useState("");
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const name = selected || people[0]?.name || "";
+  useEffect(() => { let alive = true; setVideos([]); setError(false); if (!name) return; setLoading(true); VideosByModel(name).then(v => { if (alive) setVideos(v || []); }).catch(() => { if (alive) setError(true); }).finally(() => { if (alive) setLoading(false); }); return () => { alive = false; }; }, [name, models]);
+  const links = useMemo(() => { const counts = new Map<string, number>(); videos.forEach(v => new Set(peopleOf(v)).forEach(n => { if (n !== name) counts.set(n, (counts.get(n) || 0) + 1); })); return [...counts.entries()].sort((a, b) => b[1] - a[1]); }, [videos, name]);
+  const person = people.find(p => p.name === name);
+  return <div className="archive-home"><header className="archive-page-heading"><div><h1>Connections</h1><p>Shared appearances in your saved videos.</p></div>{people.length > 0 && <select className="control-select" aria-label="Explore connections for a person" value={name} onChange={e => setSelected(e.target.value)}>{people.map(p => <option key={p.name} value={p.name}>{modelLabel(p.name)}</option>)}</select>}</header>
+    {!name ? <Empty>Connections grow from the people linked to your saved media. Add people from the People page to begin.</Empty> : <><section className="constellation"><div className="constellation-center"><span className="eyebrow">Selected person</span><button onClick={() => onOpenModel(name)}>{person?.thumbnail ? <img src={mediaURL(person.thumbnail)} alt="" /> : <span className="orbit-initial">{modelLabel(name)[0]}</span>}<strong>{modelLabel(name)}</strong><small>Explore their collection ↗</small></button></div><div className="constellation-links">{loading ? <p>Loading connections…</p> : error ? <p role="alert">Connections couldn’t be loaded. Choose another person to try again.</p> : links.length ? links.map(([n, count]) => <button key={n} onClick={() => setSelected(n)}><span className="orbit-dot" /><span><strong>{modelLabel(n)}</strong><small>{count} shared {count === 1 ? "video" : "videos"}</small></span><span>↗</span></button>) : <p>No shared appearances yet. Connections appear here when saved videos include more than one linked person.</p>}</div></section><p className="connection-caption">Drawn from the people already linked to your videos. Select a connection to follow it.</p>{videos.length > 0 && <><div className="archive-section-heading"><h2>Videos with {modelLabel(name)}</h2><span className="text-sm text-muted">{videos.length} videos</span></div><div className="connections-media">{videos.slice(0, 12).map(v => <ArchiveMedia key={v.site + v.id} video={v} onClick={() => onPlay(v, videos)} />)}</div></>}</>}
+  </div>;
 }
+
 
 function RowHeader({ title, onSeeAll }: { title: string; onSeeAll?: () => void }) {
   return (
@@ -1108,7 +1108,7 @@ function NewPersonModal({ onClose, onCreated }: { onClose: () => void; onCreated
     try { await CreatePerson(n); onCreated(n); } finally { setBusy(false); }
   };
   return (
-    <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
+    <ViewportOverlay><div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
       <div className="bg-panel border border-edge rounded-xl p-5 w-[92vw] max-w-[24rem] pop" onClick={(e) => e.stopPropagation()}>
         <div className="font-semibold mb-1">New person</div>
         <p className="text-xs text-muted mb-3">Then connect their accounts from their page — everything those accounts posted files itself under them.</p>
@@ -1121,7 +1121,7 @@ function NewPersonModal({ onClose, onCreated }: { onClose: () => void; onCreated
             className="text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">Create</button>
         </div>
       </div>
-    </div>
+    </div></ViewportOverlay>
   );
 }
 
@@ -1158,7 +1158,7 @@ function NewCollectionModal({ onClose, onCreated }: { onClose: () => void; onCre
     onCreated(id, n);
   };
   return (
-    <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
+    <ViewportOverlay><div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
       <div className="bg-panel border border-edge rounded-xl p-5 w-[92vw] max-w-[24rem]" onClick={(e) => e.stopPropagation()}>
         <div className="font-semibold mb-3">New collection</div>
         <input value={name} autoFocus onChange={(e) => setName(e.target.value)}
@@ -1174,7 +1174,7 @@ function NewCollectionModal({ onClose, onCreated }: { onClose: () => void; onCre
             className="text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">Create</button>
         </div>
       </div>
-    </div>
+    </div></ViewportOverlay>
   );
 }
 
@@ -1204,7 +1204,7 @@ function AddToCollectionModal({ refs, collections, onClose, onChanged }:
   };
 
   return (
-    <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
+    <ViewportOverlay><div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
       <div className="bg-panel border border-edge rounded-xl p-5 w-[92vw] max-w-[24rem]" onClick={(e) => e.stopPropagation()}>
         <div className="font-semibold mb-1">{single ? "Add to collections" : `Add ${refs.length} videos to…`}</div>
         <p className="text-xs text-muted mb-3">{single ? "Tick the collections this video belongs to." : "Ticked collections get these videos added."}</p>
@@ -1231,7 +1231,7 @@ function AddToCollectionModal({ refs, collections, onClose, onChanged }:
             className="text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">Done</button>
         </div>
       </div>
-    </div>
+    </div></ViewportOverlay>
   );
 }
 
@@ -1346,11 +1346,11 @@ function ModelPage({ name, version, modelNames, onPlay, onChanged, onRenamed }:
               <span className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 grid place-items-center text-white text-xs font-semibold transition">✎ Edit</span>
             </button>
             <div className="flex-1 min-w-0 text-center md:text-left">
-              <div className="eyebrow mb-2">Private profile</div>
+              <div className="eyebrow mb-2">In your collection</div>
               <h1 className="model-name text-3xl md:text-4xl font-black tracking-tight">{modelLabel(name)}</h1>
               {NICK[name] && <div className="text-sm text-muted mt-0.5">{name}</div>}
               <div className="text-sm text-muted mt-1.5 flex flex-wrap gap-x-2 gap-y-1 justify-center md:justify-start items-center">
-                <span>{videos.length} video{videos.length === 1 ? "" : "s"}</span>
+                <span>{photos.length} photos · {videos.length} video{videos.length === 1 ? "" : "s"}</span>
                 {totalSecs ? <><span>·</span><span>{fmtTotal(totalSecs)}</span></> : null}
                 {totalBytes ? <><span>·</span><span>{fmtSize(totalBytes)}</span></> : null}
                 {accounts.length > 0 && <><span>·</span><span className="inline-flex gap-2 items-center">{accounts.map((ac) => <AccountBadge key={ac.platform + ac.handle} account={ac} />)}</span></>}
@@ -1494,7 +1494,7 @@ function ConnectAccountsModal({ person, connected, onClose, onChanged }:
   const platLabel = (p: string) => (p === "x" ? "X" : p.charAt(0).toUpperCase() + p.slice(1));
 
   return (
-    <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
+    <ViewportOverlay><div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
       <div className="bg-panel border border-edge rounded-xl p-5 w-[92vw] max-w-[30rem] max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="font-semibold mb-1">{modelLabel(person)}&rsquo;s accounts</div>
         <p className="text-xs text-muted mb-4">This is the only link between a person and the platforms. Everything a connected account posted — past and future downloads — counts as their uploads; cast credits for the account count as appearances. Disconnecting undoes it all.</p>
@@ -1536,7 +1536,7 @@ function ConnectAccountsModal({ person, connected, onClose, onChanged }:
         </div>
         <div className="flex justify-end mt-4"><button onClick={onClose} className="text-sm text-muted hover:text-fg px-3 py-2">Done</button></div>
       </div>
-    </div>
+    </div></ViewportOverlay>
   );
 }
 
@@ -1552,7 +1552,7 @@ function PhotosFromURLModal({ model, onClose }: { model: string; onClose: () => 
     onClose();
   };
   return (
-    <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
+    <ViewportOverlay><div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
       <div className="bg-panel border border-edge rounded-xl p-5 w-[92vw] max-w-[26rem] pop" onClick={(e) => e.stopPropagation()}>
         <div className="font-semibold mb-1">Add photos from a URL</div>
         <p className="text-xs text-muted mb-3">
@@ -1572,7 +1572,7 @@ function PhotosFromURLModal({ model, onClose }: { model: string; onClose: () => 
             className="text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">Download</button>
         </div>
       </div>
-    </div>
+    </div></ViewportOverlay>
   );
 }
 
@@ -1593,7 +1593,7 @@ function AvatarEditor({ name, videos, onClose, onSaved }:
   const withThumb = videos.filter((v) => v.thumbnail);
 
   return (
-    <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
+    <ViewportOverlay><div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
       <div className="bg-panel border border-edge rounded-xl p-5 w-[92vw] max-w-[34rem] max-h-[85vh] overflow-y-auto pop" onClick={(e) => e.stopPropagation()}>
         <div className="font-semibold mb-3">Set {name}'s avatar</div>
         <button onClick={fromPornhub} disabled={busy} style={{ background: "var(--ac)", color: "var(--ac-ink)" }}
@@ -1627,7 +1627,7 @@ function AvatarEditor({ name, videos, onClose, onSaved }:
           <button onClick={onClose} className="text-sm text-muted hover:text-fg px-3 py-2">Close</button>
         </div>
       </div>
-    </div>
+    </div></ViewportOverlay>
   );
 }
 
@@ -1650,7 +1650,7 @@ function ProfileEditor({ info, onClose, onSaved, onRenamed }:
     if (renamed && onRenamed) onRenamed(finalName); else onSaved();
   };
   return (
-    <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
+    <ViewportOverlay><div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
       <div className="bg-panel border border-edge rounded-xl p-5 w-[92vw] max-w-[28rem] max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="font-semibold mb-3">Edit {modelLabel(info.name)}</div>
         <div className="flex gap-3 mb-4">
@@ -1686,27 +1686,42 @@ function ProfileEditor({ info, onClose, onSaved, onRenamed }:
           <button onClick={save} disabled={busy} style={{ background: "var(--ac)", color: "var(--ac-ink)" }} className="text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">Save</button>
         </div>
       </div>
-    </div>
+    </div></ViewportOverlay>
   );
 }
 
 function Lightbox({ photos, index, onIndex, onClose, onSetCover }:
   { photos: Photo[]; index: number; onIndex: (i: number) => void; onClose: () => void; onSetCover?: (p: Photo) => void }) {
   const n = photos.length;
+  const dialog = useRef<HTMLDivElement>(null);
+  const touchStart = useRef<number | null>(null);
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    dialog.current?.focus({ preventScroll: true });
+    return () => previous?.focus({ preventScroll: true });
+  }, []);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (["Escape", "ArrowRight", "ArrowLeft", "Tab"].includes(e.key)) e.preventDefault();
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowRight") onIndex((index + 1) % n);
       if (e.key === "ArrowLeft") onIndex((index - 1 + n) % n);
+      if (e.key === "Tab") {
+        const buttons = Array.from(dialog.current?.querySelectorAll<HTMLButtonElement>("button") || []);
+        const active = buttons.indexOf(document.activeElement as HTMLButtonElement);
+        buttons[(active + (e.shiftKey ? -1 : 1) + buttons.length) % buttons.length]?.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [index, n, onIndex, onClose]);
   return (
-    <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center" onClick={onClose}>
-      <button onClick={(e) => { e.stopPropagation(); onIndex((index - 1 + n) % n); }} className="absolute left-4 text-white/60 hover:text-white text-4xl px-2">‹</button>
-      <img src={mediaURL(photos[index].filepath)} onClick={(e) => e.stopPropagation()} className="max-h-[92vh] max-w-[92vw] object-contain" />
-      <button onClick={(e) => { e.stopPropagation(); onIndex((index + 1) % n); }} className="absolute right-4 text-white/60 hover:text-white text-4xl px-2">›</button>
+    <ViewportOverlay><div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Photo viewer" className="photo-viewer fixed inset-0 bg-black/95 z-50 flex items-center justify-center" onClick={onClose}
+      onTouchStart={e => { touchStart.current = e.touches[0].clientX; }}
+      onTouchEnd={e => { if (touchStart.current === null) return; const delta = e.changedTouches[0].clientX - touchStart.current; touchStart.current = null; if (Math.abs(delta) > 60) { e.preventDefault(); onIndex((index + (delta < 0 ? 1 : -1) + n) % n); } }}>
+      <button onClick={(e) => { e.stopPropagation(); onIndex((index - 1 + n) % n); }} aria-label="Previous photo" className="absolute left-4 text-white/60 hover:text-white text-4xl px-2">‹</button>
+      <img alt={photos[index].album || photos[index].filename || "Photograph"} src={mediaURL(photos[index].filepath)} onClick={(e) => e.stopPropagation()} className="max-h-[92vh] max-w-[92vw] object-contain" />
+      <button onClick={(e) => { e.stopPropagation(); onIndex((index + 1) % n); }} aria-label="Next photo" className="absolute right-4 text-white/60 hover:text-white text-4xl px-2">›</button>
       <button onClick={onClose} className="absolute top-4 right-4 text-white/70 hover:text-white text-sm">✕ Close</button>
       {onSetCover && (
         <button onClick={(e) => { e.stopPropagation(); onSetCover(photos[index]); }}
@@ -1714,8 +1729,8 @@ function Lightbox({ photos, index, onIndex, onClose, onSetCover }:
           Set as cover
         </button>
       )}
-      <div className="absolute bottom-4 text-muted text-xs">{index + 1} / {n}</div>
-    </div>
+      <div className="absolute bottom-4 text-white/70 text-xs">{photos[index].album || photos[index].filename} · {index + 1} / {n}</div>
+    </div></ViewportOverlay>
   );
 }
 
@@ -1780,7 +1795,7 @@ function VideoArea({ videos, groups, modelNames, collections, collectionId, onPl
               )}
             </h3>
           )}
-          <div className="video-grid grid gap-3 md:gap-4" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(clamp(150px,44vw,290px),1fr))" }}>
+          <div className="video-masonry">
             {g.videos.map((v) => (
               <VideoCard key={key(v)} v={v} selectMode={selectMode} selected={picked.has(key(v))}
                 onClick={() => (selectMode ? toggle(v) : onPlay(v, videos))} />
@@ -1802,37 +1817,12 @@ function VideoArea({ videos, groups, modelNames, collections, collectionId, onPl
 
 function VideoCard({ v, onClick, selectMode, selected }:
   { v: Video; onClick: () => void; selectMode?: boolean; selected?: boolean }) {
-  return (
-    <div onClick={onClick} className="tile group"
-      style={selected ? { boxShadow: "0 0 0 2px var(--ac), 0 14px 44px rgba(0,0,0,.65)" } : undefined}>
-      <PreviewMedia v={v} ratio="aspect-video" />
-      <div className="overlay" />
-      <div className="absolute top-2 left-2">
-        <span className="bg-black/45 text-white backdrop-blur-sm rounded-md px-1.5 py-0.5"><SourceBadge site={v.site} size="xs" /></span>
-      </div>
-      {selectMode && (
-        <span className={`absolute top-2 right-2 w-6 h-6 grid place-items-center rounded-full text-sm font-bold ${selected ? "" : "border-2 border-white/70 bg-black/30"}`}
-          style={selected ? { background: "var(--ac)", color: "var(--ac-ink)" } : undefined}>{selected ? "✓" : ""}</span>
-      )}
-      {!selectMode && v.duration ? <span className="absolute top-2 right-2 bg-black/75 text-white text-[11px] px-1.5 py-0.5 rounded">{fmtDur(v.duration)}</span> : null}
-      <div className="absolute bottom-0 left-0 right-0 p-3">
-        <div className="text-sm font-semibold line-clamp-1 leading-snug text-white cap">{v.favorite ? <span className="text-rose-300">❤ </span> : null}{v.title || v.uploader}</div>
-        <div className="text-xs text-white/85 mt-1 truncate cap">
-          {peopleOf(v).length
-            ? peopleOf(v).map(modelLabel).join(", ")
-            : (() => { const oa = ownerAccountOf(v); return oa
-                ? <span className="inline-flex items-center gap-1"><PlatformLogo platform={oa.platform} size="xs" /><span>@{oa.handle}</span></span>
-                : UNASSIGNED; })()}
-        </div>
-      </div>
-      {v.position && v.duration && v.position < v.duration * 0.95
-        ? <div className="progress"><i style={{ width: `${Math.round((v.position / v.duration) * 100)}%` }} /></div>
-        : null}
-    </div>
-  );
+  return <div className="archive-video-card" style={selected ? {outline: "2px solid var(--ac)", outlineOffset: 4, borderRadius: 7} : undefined}>
+    <ArchiveMedia video={v} onClick={onClick} />
+    {selectMode && <span className="selection-indicator" aria-hidden>{selected ? "✓" : "○"}</span>}
+    {!!v.position && !!v.duration && v.position < v.duration * .95 && <div className="archive-video-progress"><i style={{width: `${Math.round(v.position / v.duration * 100)}%`}} /></div>}
+  </div>;
 }
-
-/* ---------------- Models editor (assign one or more models) ---------------- */
 
 function ModelsEditor({ refs, modelNames, initial, onClose, onDone }:
   { refs: { site: string; id: string }[]; modelNames: string[]; initial?: string[]; onClose: () => void; onDone: (models: string[]) => void }) {
@@ -1850,7 +1840,7 @@ function ModelsEditor({ refs, modelNames, initial, onClose, onDone }:
   };
 
   return (
-    <div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
+    <ViewportOverlay><div className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 grid place-items-center p-4" onClick={onClose}>
       <div className="bg-panel border border-edge rounded-xl p-5 w-[92vw] max-w-[26rem] pop" onClick={(e) => e.stopPropagation()}>
         <div className="font-semibold mb-1">{bulk ? `Set people for ${refs.length} videos` : "People"}</div>
         <p className="text-xs text-muted mb-3">Add one or more people. Type a new name to create it. No one = Unsorted.</p>
@@ -1878,7 +1868,7 @@ function ModelsEditor({ refs, modelNames, initial, onClose, onDone }:
             className="text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">Save</button>
         </div>
       </div>
-    </div>
+    </div></ViewportOverlay>
   );
 }
 
@@ -2043,6 +2033,27 @@ function OrganizeSheet({ video, models, allLabels, collections, initial, onClose
 
 /* ---------------- Watch page (YouTube-style) ---------------- */
 
+function PlaybackError({ src, code, onRetry }: { src: string; code?: number; onRetry: () => void }) {
+  const [status, setStatus] = useState<number | null>(null);
+  const [checked, setChecked] = useState(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(src, { method: "HEAD", signal: controller.signal, cache: "no-store" })
+      .then(r => { setStatus(r.status); setChecked(true); })
+      .catch(() => { if (!controller.signal.aborted) { setStatus(0); setChecked(true); } });
+    return () => controller.abort();
+  }, [src]);
+  const missing = status === 404;
+  const inaccessible = status === 403;
+  const network = status === 0 || (status !== null && status >= 500) || code === 2;
+  const title = !checked ? "Checking the video file…" : missing ? "The video file is missing" : inaccessible ? "The video file can’t be accessed" : network ? "The video couldn’t be loaded" : "This video couldn’t be decoded";
+  const hint = !checked ? "Checking whether the library can serve this file." : missing ? "The catalogue has this video, but its MP4 isn’t available. The download may not have finished combining its video and audio tracks, or the file may have moved." : inaccessible ? "Check the library folder and its file permissions." : network ? "The connection to the library was interrupted. Try loading the video again." : "The file is available, but its format may not be supported or the download may be damaged.";
+  return <div role="alert" className="absolute inset-0 grid place-items-center bg-black/85 text-center p-6"><div>
+    <div className="text-white font-semibold mb-2">{title}</div><p className="text-white/70 text-xs max-w-sm mx-auto leading-relaxed">{hint}</p>
+    <button onClick={onRetry} className="mt-4 rounded-lg bg-white/15 hover:bg-white/25 text-white px-4 py-2 text-xs">Try again</button>
+  </div></div>;
+}
+
 function WatchPage({ video, queue, allLabels, models: allModels, collections, onClose, onPlay, onOpenModel, onChanged }:
   { video: Video; queue: Video[]; allLabels: string[]; models: Model[]; collections: Collection[]; onClose: () => void; onPlay: (v: Video, list?: Video[]) => void; onOpenModel: (name: string) => void; onChanged: () => void }) {
   const [related, setRelated] = useState<Video[]>([]);
@@ -2050,12 +2061,13 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
   const [tv, setTv] = useState(video.title || "");
   const [fav, setFav] = useState(!!video.favorite);
   const [labels, setLabels] = useState<string[]>(video.labels || []);
-  // people = everyone derived server-side (owner via account, tags, cast);
-  // the owner is shown first, as the "channel".
+  // Show every linked person equally, regardless of the source account.
   const [people, setPeople] = useState<string[]>(peopleOf(video));
   const [organizing, setOrganizing] = useState(false);
   const [acctModal, setAcctModal] = useState<{ platform: string; handle: string; display: string } | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"path" | "link" | null>(null);
+  const [copyError, setCopyError] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [vidErr, setVidErr] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
   const primary = people[0] || "";
@@ -2077,6 +2089,7 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
     }
   };
   const onLoaded = () => {
+    setVidErr(false);
     const el = vidRef.current;
     const p = video.position || 0;
     if (el && p > 15 && el.duration && p < el.duration - 10) el.currentTime = p;
@@ -2097,19 +2110,35 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
     VideosByModel(m).then((v) => setRelated((v || []).filter((x) => !(x.site === video.site && x.id === video.id))));
 
   useEffect(() => {
-    topRef.current?.scrollTo({ top: 0 });
     loadRelated(primary);
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !editing && !organizing) onClose(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose, editing, organizing, primary, video.site, video.id]);
 
+  useEffect(() => { topRef.current?.scrollTo({ top: 0 }); }, [video.site, video.id]);
+
   const saveTitle = async () => {
     const t = tv.trim(); setEditing(false);
     if (t && t !== video.title) { await SetTitle(video.site, video.id, t); video.title = t; onChanged(); }
   };
   const toggleFav = async () => { const nf = !fav; setFav(nf); video.favorite = nf; await SetFavorite(video.site, video.id, nf); onChanged(); };
-  const copy = () => { try { navigator.clipboard?.writeText(video.webpage_url); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {} };
+  const copy = async (kind: "path" | "link") => {
+    setCopyError(""); setCopied(null);
+    try {
+      await CopyText(kind === "path" ? video.filepath : video.webpage_url);
+      setCopied(kind);
+    } catch {
+      setDetailsOpen(true);
+      setCopyError("Couldn’t copy. Select the text in Details and copy it manually.");
+    }
+  };
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(null), 2200);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+
   // The Organize sheet commits straight onto the video object; re-sync local
   // state when it closes so the page reflects the edits.
   const closeOrganize = () => {
@@ -2135,8 +2164,6 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
     if (acct?.person) return []; // resolved to a person (already in people)
     return [{ handle: h, display: member }];
   });
-  const others = people.filter((p) => p !== video.owner);
-  const pill = "action-btn flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold whitespace-nowrap shrink-0 transition active:scale-95";
 
   return (
     <div ref={topRef} className="watch-page fixed inset-0 z-30 md:left-60 bg-ink overflow-y-auto rise">
@@ -2152,128 +2179,52 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
             onLoadedMetadata={onLoaded} onTimeUpdate={() => savePos()} onPause={() => savePos(true)} onEnded={onEnded}
             onError={() => setVidErr(true)}
             className="w-full max-h-[68vh] min-h-[220px] object-contain bg-black" />
-          {vidErr && (
-            <div className="absolute inset-0 grid place-items-center bg-black/85 text-center p-6 pointer-events-none">
-              <div>
-                <div className="text-3xl mb-2">🫠</div>
-                <div className="text-white font-semibold mb-1">This video couldn't be played here</div>
-                <p className="text-white/60 text-xs max-w-xs mx-auto">
-                  The device may not support this file. Try "Fix videos for mobile" in Settings, or play it on the desktop app.
-                </p>
-              </div>
+          {vidErr && <PlaybackError src={videoURL(video.filepath)} code={vidRef.current?.error?.code}
+            onRetry={() => { setVidErr(false); vidRef.current?.load(); vidRef.current?.play().catch(() => {}); }} />}
+        </div>
+
+        <section className="watch-record" aria-label="Video information">
+          <div className="watch-record-heading">
+            <div className="watch-record-title">
+              {editing ? <form onSubmit={e => { e.preventDefault(); saveTitle(); }} className="watch-rename">
+                <input aria-label="Video title" value={tv} autoFocus onChange={e => setTv(e.target.value)} onKeyDown={e => { if (e.key === "Escape") { e.stopPropagation(); setEditing(false); } }} />
+                <button type="submit" className="secondary-btn px-3 py-2">Save</button><button type="button" onClick={() => setEditing(false)}>Cancel</button>
+              </form> : <h1>{video.title || video.uploader || "Untitled video"}</h1>}
+              <p>{[fmtDur(video.duration), video.height ? video.height + "p" : "", fmtSize(video.filesize)].filter(Boolean).join(" · ")}</p>
             </div>
-          )}
-        </div>
-
-        <section className="watch-info-panel">
-        {queue.length > 1 && (
-          <div className="watch-queue flex items-center gap-3 text-sm">
-            <label className="watch-autoplay flex items-center gap-2 cursor-pointer select-none">
-              <input type="checkbox" checked={autoplay} className="w-4 h-4 accent-[color:var(--ac)]"
-                onChange={(e) => { setAutoplay(e.target.checked); localStorage.setItem("autoplayNext", e.target.checked ? "1" : "0"); }} />
-              <span>Autoplay next</span>
-            </label>
-            {next && (
-              <button onClick={() => onPlay(next, queue)} className="watch-next ml-auto truncate max-w-[68%]">
-                <span>Next</span> {next.title || next.uploader} <b>▶</b>
-              </button>
-            )}
+            <div className="watch-record-actions">
+              <button onClick={toggleFav} aria-pressed={fav} aria-label={fav ? "Remove from favorites" : "Add to favorites"} className={fav ? "is-active" : ""}><Icon name={fav ? "heart-fill" : "heart"} className="w-4 h-4" /><span>{fav ? "Saved" : "Favorite"}</span></button>
+              <button onClick={() => setOrganizing(true)}><Icon name="tag" className="w-4 h-4" />Organize</button>
+              {video.filepath && <button onClick={() => copy("path")}>{copied === "path" ? "Path copied ✓" : "Copy file path"}</button>}
+            </div>
           </div>
-        )}
-
-        {editing
-          ? <input value={tv} autoFocus onChange={(e) => setTv(e.target.value)} onBlur={saveTitle}
-              onKeyDown={(e) => { if (e.key === "Enter") saveTitle(); if (e.key === "Escape") setEditing(false); }}
-              className="watch-title-input w-full bg-panel2 border border-edge rounded-lg px-3 py-2 outline-none focus:border-accent" />
-          : <h1 onClick={() => { setTv(video.title || ""); setEditing(true); }}
-              className="watch-title cursor-text hover:opacity-90">{video.title || video.uploader} <span className="watch-edit-mark">✎</span></h1>}
-
-        {/* Posted-by row — channel-style. The person connected to the source
-            account, or the bare account chip (click to give it a person). */}
-        <div className="watch-people flex items-center flex-wrap gap-x-4 gap-y-2">
-          {video.owner
-            ? <button onClick={() => onOpenModel(video.owner)} className="flex items-center gap-2.5 group">
-                {avatarOf(video.owner)
-                  ? <img src={mediaURL(avatarOf(video.owner))} className="w-9 h-9 rounded-full object-cover ring-1 ring-edge" />
-                  : <span className="w-9 h-9 rounded-full bg-panel2 border border-edge grid place-items-center text-sm font-bold text-muted">{modelLabel(video.owner)[0]?.toUpperCase()}</span>}
-                <span className="font-semibold text-[15px] group-hover:text-accent transition">{modelLabel(video.owner)}</span>
-                {owner && <span className="text-xs text-muted">@{owner.handle}</span>}
-              </button>
-            : owner
-              ? <span className="inline-flex items-center gap-2.5">
-                  <AccountChip platform={owner.platform} handle={owner.handle} onClick={() => setAcctModal(owner)} />
-                  <button onClick={() => setOrganizing(true)} className="text-xs text-muted hover:text-fg">or tag a person</button>
-                </span>
-              : others.length === 0
-                ? <button onClick={() => setOrganizing(true)} className="flex items-center gap-2.5 text-muted hover:text-fg">
-                    <span className="w-9 h-9 rounded-full bg-panel2 border border-edge grid place-items-center"><Icon name="people" className="w-4.5 h-4.5" /></span>
-                    <span className="text-sm font-medium">Tag a person</span>
-                  </button>
-                : null}
-        </div>
-
-        {/* Appears in — tagged / cast-connected people first, then cast
-            ACCOUNTS with no person yet (click one to define its person). */}
-        {(others.length > 0 || castAccounts.length > 0) && (
-          <div className="flex items-center flex-wrap gap-2 mt-2.5 text-sm">
-            <span className="text-muted text-xs font-semibold uppercase tracking-wide">{video.owner || owner ? "Featuring" : "People"}</span>
-            {others.map((m) => (
-              <button key={m} onClick={() => onOpenModel(m)}
-                className="flex items-center gap-1.5 bg-panel2 border border-edge rounded-full pl-1 pr-3 py-1 hover:border-accent transition">
-                {avatarOf(m)
-                  ? <img src={mediaURL(avatarOf(m))} className="w-6 h-6 rounded-full object-cover" />
-                  : <span className="w-6 h-6 rounded-full bg-panel grid place-items-center text-[11px] font-bold text-muted">{modelLabel(m)[0]?.toUpperCase()}</span>}
-                <span className="text-[13px] font-medium">{modelLabel(m)}</span>
-              </button>
-            ))}
-            {castAccounts.map((ca) => (
-              <AccountChip key={ca.handle} platform="pornhub" handle={ca.handle}
-                onClick={() => setAcctModal({ platform: "pornhub", handle: ca.handle, display: ca.display })} />
-            ))}
-          </div>
-        )}
-
-        {/* Tags — passive chips; edited in Organize. */}
-        {labels.length > 0 && (
-          <div className="watch-tags flex flex-wrap gap-1.5">
-            {labels.map((l) => <span key={l} className="text-xs">{l}</span>)}
-          </div>
-        )}
-
-        {/* Action bar — one scrollable row of equal-weight pills. */}
-        <div className="watch-actions chipstrip flex items-center gap-2 -mx-4 px-4 md:mx-0 md:px-0">
-          <button onClick={toggleFav} className={`${pill} ${fav ? "is-active" : ""}`}>
-            <Icon name={fav ? "heart-fill" : "heart"} className="w-4 h-4" />{fav ? "Liked" : "Like"}
-          </button>
-          <button onClick={() => setOrganizing(true)} className={pill}><Icon name="tag" className="w-4 h-4" />Organize</button>
-          {video.webpage_url && <button onClick={copy} className={pill}>{copied ? "Copied ✓" : "Copy link"}</button>}
-          {video.webpage_url && <button onClick={() => BrowserOpenURL(video.webpage_url)} className={pill}>Source ↗</button>}
-          {isDesktopApp && <button onClick={() => OpenFolder(video.filepath)} className={pill}>Show file</button>}
-        </div>
-
-        {/* Details line — small, muted, out of the way. */}
-        <div className="watch-facts text-xs text-muted">
-          {[label(video.site), video.height ? `${video.height}p` : "", fmtSize(video.filesize), fmtDate(video.upload_date)].filter(Boolean).join("  ·  ")}
-        </div>
+          <div role="status" aria-live="polite" className="watch-copy-status">{copyError || (copied === "path" ? "File path copied to clipboard." : copied === "link" ? "Source link copied to clipboard." : "")}</div>
+          {(people.length > 0 || owner || castAccounts.length > 0) && <div className="watch-record-people">
+            <span className="watch-field-label">People</span>
+            <div>{people.map(name => <button key={name} onClick={() => onOpenModel(name)} className="watch-person">
+              {avatarOf(name) ? <img src={mediaURL(avatarOf(name))} alt="" /> : <span className="watch-person-initial">{modelLabel(name)[0]?.toUpperCase()}</span>}
+              <span>{modelLabel(name)}</span>
+            </button>)}
+            {!video.owner && owner && <AccountChip platform={owner.platform} handle={owner.handle} onClick={() => setAcctModal(owner)} />}
+            {castAccounts.map(ca => <AccountChip key={ca.handle} platform="pornhub" handle={ca.handle} onClick={() => setAcctModal({ platform: "pornhub", handle: ca.handle, display: ca.display })} />)}</div>
+          </div>}
+          {labels.length > 0 && <div className="watch-record-tags"><span className="watch-field-label">Tags</span><div>{labels.map(l => <span key={l}>{l}</span>)}</div></div>}
+          <details className="watch-disclosure" open={detailsOpen} onToggle={e => setDetailsOpen(e.currentTarget.open)}>
+            <summary>Details <span>File & source</span></summary>
+            <div className="watch-file-details">
+              <div className="watch-detail-toolbar"><button onClick={() => { setTv(video.title || ""); setEditing(true); }}>Rename video</button>{isDesktopApp && video.filepath && <button onClick={() => OpenFolder(video.filepath)}>Open folder ↗</button>}</div>
+              {video.filepath && <label>File path<input aria-label="File path" readOnly value={video.filepath} onFocus={e => e.currentTarget.select()} /></label>}
+              <dl><div><dt>Source</dt><dd>{label(video.site) || "Local"}</dd></div>{video.upload_date && <div><dt>Date</dt><dd>{fmtDate(video.upload_date)}</dd></div>}</dl>
+              {video.webpage_url && <><label>Source URL<input aria-label="Source URL" readOnly value={video.webpage_url} onFocus={e => e.currentTarget.select()} /></label><div className="watch-detail-toolbar"><button onClick={() => copy("link")}>{copied === "link" ? "Link copied ✓" : "Copy source link"}</button><button onClick={() => BrowserOpenURL(video.webpage_url)}>Open source ↗</button></div></>}
+            </div>
+          </details>
         </section>
+        {queue.length > 1 && <section className="watch-session" aria-label="Playback session">
+          <div className="watch-session-controls"><span>{idx >= 0 ? idx + 1 : "—"} / {queue.length} in this session</span><label><input type="checkbox" checked={autoplay} onChange={e => { setAutoplay(e.target.checked); localStorage.setItem("autoplayNext", e.target.checked ? "1" : "0"); }} />Play continuously</label>{next && <button onClick={() => onPlay(next, queue)}>Next video →</button>}</div>
+          {next && <details className="watch-disclosure"><summary>Remaining in this session <span>{queue.length - idx - 1}</span></summary><div className="watch-archive-strip">{queue.slice(idx + 1, idx + 13).map(v => <VideoCard key={v.site + "/" + v.id} v={v} onClick={() => onPlay(v, queue)} />)}</div></details>}
+        </section>}
+        {related.length > 0 && primary && <details className="watch-disclosure watch-related"><summary>With {modelLabel(primary)} <span>{related.length} in your archive</span></summary><div className="watch-archive-strip">{related.slice(0, 12).map(v => <VideoCard key={v.site + "/" + v.id} v={v} onClick={() => onPlay(v, related)} />)}</div></details>}
 
-        {next && (
-          <section className="watch-section">
-            <h2 className="section-title mb-3">Up next</h2>
-            <div className="watch-grid grid gap-3 md:gap-4" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(clamp(150px,44vw,260px),1fr))" }}>
-              {queue.slice(idx + 1, idx + 13).map((v) => <VideoCard key={v.site + "/" + v.id} v={v} onClick={() => onPlay(v, queue)} />)}
-            </div>
-          </section>
-        )}
-
-        {related.length > 0 && (
-          <section className="watch-section">
-            <h2 className="section-title mb-3">More from {primary ? modelLabel(primary) : "this collection"}</h2>
-            <div className="watch-grid grid gap-3 md:gap-4" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(clamp(150px,44vw,260px),1fr))" }}>
-              {related.map((v) => <VideoCard key={v.site + "/" + v.id} v={v} onClick={() => onPlay(v, related)} />)}
-            </div>
-          </section>
-        )}
       </div>
       {organizing && (
         <OrganizeSheet video={video} models={allModels} allLabels={allLabels} collections={collections}
@@ -2503,7 +2454,7 @@ function SettingsPage() {
 
       <section className="bg-panel border border-edge rounded-xl p-5 mb-6">
         <div className="text-sm font-semibold mb-1">Library location</div>
-        <p className="text-xs text-muted mb-3">Where your videos, thumbnails, and catalogue live. Point this at an external drive to take your vault with you.</p>
+        <p className="text-xs text-muted mb-3">Where your photos, videos, and catalogue live. Keep your archive on your device or an external drive.</p>
         <div className="flex items-center gap-2">
           <code className="flex-1 bg-panel2 border border-edge rounded-lg px-3 py-2 text-sm truncate">{root || "…"}</code>
           {isDesktopApp && <button onClick={change} className="text-sm font-medium px-4 py-2 rounded-lg bg-panel2 hover:bg-edge text-fg border border-edge shrink-0">Change folder…</button>}
@@ -2605,7 +2556,7 @@ function SettingsPage() {
             className="text-sm font-medium px-4 py-2 rounded-lg bg-panel2 hover:bg-edge text-fg border border-edge disabled:opacity-50">
             {backuping ? "Backing up…" : "Back up catalogue now"}
           </button>
-          {isDesktopApp && <button onClick={() => root && OpenFolder(root)} className="text-sm font-medium px-4 py-2 rounded-lg bg-panel2 hover:bg-edge text-fg border border-edge">Reveal vault folder</button>}
+          {isDesktopApp && <button onClick={() => root && OpenFolder(root)} className="text-sm font-medium px-4 py-2 rounded-lg bg-panel2 hover:bg-edge text-fg border border-edge">Reveal archive folder</button>}
           {backupPath && <span className="text-sm text-emerald-400 flex items-center gap-2">Saved ✓ {isDesktopApp && <button onClick={() => OpenFolder(backupPath)} className="text-muted hover:text-fg underline">show</button>}</span>}
         </div>
       </section>
@@ -3119,10 +3070,11 @@ function FeedItem({ v, index, active, near, muted, preload, avatar, models, onVi
 function TabBar({ route, onGo }:
   { route: Route; onGo: (r: Route) => void }) {
   const tabs = [
-    { key: "home", label: "Home", icon: "home", active: route.kind === "home", onClick: () => onGo({ kind: "home" }) },
+    { key: "home", label: "Archive", icon: "home", active: route.kind === "home", onClick: () => onGo({ kind: "home" }) },
     { key: "videos", label: "Videos", icon: "grid", active: ["videos", "recent", "watched", "favorites", "categories", "category"].includes(route.kind), onClick: () => onGo({ kind: "videos" }) },
     { key: "library", label: "People", icon: "people", active: route.kind === "library" || route.kind === "model", onClick: () => onGo({ kind: "library" }) },
-    { key: "feed", label: "Feed", icon: "feed", active: route.kind === "feed", onClick: () => onGo({ kind: "feed" }) },
+    { key: "photos", label: "Photos", icon: "photo", active: route.kind === "photos", onClick: () => onGo({ kind: "photos" }) },
+    { key: "connections", label: "Connections", icon: "connections", active: route.kind === "connections", onClick: () => onGo({ kind: "connections" }) },
   ];
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 flex glass border-t border-edge/70"

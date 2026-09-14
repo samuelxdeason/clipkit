@@ -33,5 +33,9 @@ echo.
 
 rem Explicit path: this system has cmd's current-directory exe search disabled,
 rem so a bare "troved.exe" is not found even with the cd above.
-"%~dp0troved.exe" -addr 0.0.0.0:%PORT% -ui "%~dp0frontend\dist"
+if exist "%~dp0build\bin\troved.exe" (
+  "%~dp0build\bin\troved.exe" -addr 0.0.0.0:%PORT% -ui "%~dp0frontend\dist"
+) else (
+  "%~dp0troved.exe" -addr 0.0.0.0:%PORT% -ui "%~dp0frontend\dist"
+)
 pause

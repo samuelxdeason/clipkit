@@ -4,13 +4,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Trove: a clean launcher-like dark system with one vivid mood color.
-        ink: "#0F0F11",
-        panel: "#18181C",
-        panel2: "#222228",
-        edge: "#303037",
-        muted: "#9B9BA4",
-        fg: "#F7F7F8",
+        // Trove: moonlit forest colors, driven by the live theme tokens.
+        ink: "rgb(var(--canvas-rgb) / <alpha-value>)",
+        panel: "rgb(var(--panel-rgb) / <alpha-value>)",
+        panel2: "rgb(var(--raised-rgb) / <alpha-value>)",
+        edge: "rgb(var(--edge-rgb) / <alpha-value>)",
+        muted: "rgb(var(--muted-rgb) / <alpha-value>)",
+        fg: "rgb(var(--fg-rgb) / <alpha-value>)",
         noir: "#08080A",
         accent: "rgb(var(--ac-rgb) / <alpha-value>)",
         acink: "var(--ac-ink)", // readable text on the accent

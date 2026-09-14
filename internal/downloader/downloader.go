@@ -545,6 +545,19 @@ func (d *Downloader) run(j *Job) {
 	outtmpl := filepath.Join(cfg.MediaRoot, library.MediaDirName,
 		"%(extractor_key)s-%(id)s.%(ext)s")
 
+	// Split audio/video formats require a working merger. yt-dlp can otherwise
+	// report an intended final path even though only the separate tracks exist.
+	ffmpeg := "ffmpeg"
+	if cfg.FfmpegDir != "" {
+		ffmpeg = filepath.Join(cfg.FfmpegDir, "ffmpeg.exe")
+	}
+	check := exec.Command(ffmpeg, "-version")
+	check.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	if err := check.Run(); err != nil {
+		d.finish(j, nil, err, "ERROR: FFmpeg could not start. Install FFmpeg in resources/ffmpeg or on PATH, then restart Trove. It is needed to combine video and audio.")
+		return
+	}
+
 	args := []string{
 		"--ignore-config",
 		// The PyInstaller-frozen yt-dlp.exe ignores PYTHONUTF8/PYTHONIOENCODING,
@@ -721,6 +734,8 @@ func (d *Downloader) finish(j *Job, saved []string, runErr error, lastErr string
 		if firstTitle != "" {
 			j.Title = firstTitle
 		}
+	case len(saved) > 0:
+		j.Status, j.Error = "error", "The download did not produce a complete media file. The audio/video merge may have failed; check FFmpeg before retrying."
 	case runErr == nil:
 		// yt-dlp exited cleanly but saved nothing -> already in the archive.
 		j.Status = "duplicate"
@@ -810,6 +825,12 @@ func (d *Downloader) ingest(filepathStr string) (library.Video, bool) {
 
 // ingestFrom catalogues a media file using an explicit sidecar path.
 func (d *Downloader) ingestFrom(filepathStr, sidecar string) (library.Video, bool) {
+	// Never publish a sidecar's intended filename as a playable download.
+	// Also leave its metadata in place so an interrupted merge is recoverable.
+	st, err := os.Stat(filepathStr)
+	if err != nil || st.IsDir() || st.Size() == 0 {
+		return library.Video{}, false
+	}
 	info := ytInfo{}
 	if data, err := os.ReadFile(sidecar); err == nil {
 		_ = json.Unmarshal(data, &info)

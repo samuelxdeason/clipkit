@@ -111,7 +111,10 @@ func (c *Core) AllLabels() ([]string, error)                        { return c.d
 func (c *Core) LabelCounts() ([]library.LabelCount, error)          { return c.db.LabelCounts() }
 func (c *Core) VideosByLabel(label string) ([]library.Video, error) { return c.db.VideosByLabel(label) }
 func (c *Core) PhotosByModel(model string) ([]library.Photo, error) { return c.db.PhotosByModel(model) }
-func (c *Core) Stats() (library.Stats, error)                       { return c.db.Stats() }
+func (c *Core) AllPhotos(limit, offset int, query string) ([]library.Photo, error) {
+	return c.db.AllPhotos(limit, offset, query)
+}
+func (c *Core) Stats() (library.Stats, error) { return c.db.Stats() }
 
 func (c *Core) GetModelInfo(name string) (library.ModelInfo, error) { return c.db.GetModelInfo(name) }
 
@@ -379,6 +382,15 @@ func ytdlpPath() string {
 }
 
 func ffmpegDir() string {
+	exe, _ := os.Executable()
+	for _, dir := range []string{filepath.Dir(exe), filepath.Join(filepath.Dir(exe), "resources", "ffmpeg"), filepath.Join("resources", "ffmpeg")} {
+		if st, err := os.Stat(filepath.Join(dir, "ffmpeg.exe")); err == nil && !st.IsDir() {
+			abs, err := filepath.Abs(dir)
+			if err == nil {
+				return abs
+			}
+		}
+	}
 	if p, err := exec.LookPath("ffmpeg"); err == nil {
 		return filepath.Dir(p)
 	}
