@@ -25,16 +25,31 @@ export function sourceKeys(source: Source): string[] {
 export function libraryIndex(videos: Source[]): Set<string> { return new Set(videos.flatMap(sourceKeys)); }
 export function isInLibrary(item: Source, index: Set<string>): boolean { return sourceKeys(item).some(k => index.has(k)); }
 
-export function matchesAccount(source: string, account: string): boolean {
+function normalizeAccount(raw: string) {
   try {
-    const normalize = (raw: string) => {
       const u = new URL(raw);
       let host = u.hostname.toLowerCase().replace(/^www\./, "");
       if (host === "x.com" || host === "mobile.twitter.com") host = "twitter.com";
       if (host.endsWith(".pornhub.com")) host = "pornhub.com";
       return { host, path: u.pathname.replace(/\/+$/, ""), query: u.search };
-    };
-    const a = normalize(source), b = normalize(account);
-    return !!b.path && a.host === b.host && (!b.query || a.query === b.query) && (a.path === b.path || a.path.startsWith(b.path + "/"));
-  } catch { return false; }
+  } catch { return undefined; }
+}
+type AccountAddress = ReturnType<typeof normalizeAccount>;
+function accountMatches(a: AccountAddress, b: AccountAddress): boolean {
+  return !!a && !!b && !!b.path && a.host === b.host && (!b.query || a.query === b.query) && (a.path === b.path || a.path.startsWith(b.path + "/"));
+}
+export function matchesAccount(source: string, account: string): boolean {
+  return accountMatches(normalizeAccount(source), normalizeAccount(account));
+}
+// Normalize each account once, then reuse the longest matching URL for a source.
+export function accountLookup<T extends { url: string }>(accounts: T[]): (source: string) => T | undefined {
+  const candidates = accounts.map(account => ({ account, address: normalizeAccount(account.url), length: account.url.length })).sort((a, b) => b.length - a.length);
+  const cache = new Map<string, T | undefined>();
+  return source => {
+    if (!cache.has(source)) {
+      const address = normalizeAccount(source);
+      cache.set(source, candidates.find(candidate => accountMatches(address, candidate.address))?.account);
+    }
+    return cache.get(source);
+  };
 }

@@ -1252,6 +1252,9 @@ func (d *Downloader) importWork(paths []string, model string) {
 				m = filepath.Base(p) // a dropped folder names the model
 			}
 			_ = filepath.WalkDir(p, func(fp string, e fs.DirEntry, err error) error {
+				if err == nil && e.IsDir() && strings.EqualFold(e.Name(), library.RecycleDirName) {
+					return fs.SkipDir
+				}
 				if err == nil && !e.IsDir() {
 					add(fp, m)
 				}
@@ -1448,7 +1451,7 @@ func (d *Downloader) RebuildFromDisk() (int, error) {
 			return nil
 		}
 		if e.IsDir() {
-			if e.Name() == stateDirBase { // skip .trove
+			if e.Name() == stateDirBase || strings.EqualFold(e.Name(), library.RecycleDirName) { // skip .trove
 				return fs.SkipDir
 			}
 			return nil

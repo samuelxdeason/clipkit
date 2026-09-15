@@ -51,10 +51,10 @@ type FlatPlan struct {
 	Root       string     `json:"root"`
 	Rows       []flatRow  `json:"rows"`
 	Covers     []coverFix `json:"covers"`
-	Issues     []string   `json:"issues"`  // fatal: apply refuses while any exist
-	Missing    []string   `json:"missing"` // rows left untouched: file not on disk
-	Skipped    int        `json:"skipped"` // rows already in flat form
-	Orphans    []string   `json:"orphans"` // files on disk no catalogue row references
+	Issues     []string   `json:"issues"`     // fatal: apply refuses while any exist
+	Missing    []string   `json:"missing"`    // rows left untouched: file not on disk
+	Skipped    int        `json:"skipped"`    // rows already in flat form
+	Orphans    []string   `json:"orphans"`    // files on disk no catalogue row references
 	Duplicates []string   `json:"duplicates"` // extra catalogue rows sharing another row's file (repointed, not moved)
 }
 
@@ -298,7 +298,7 @@ func PlanFlatMigration(db *library.DB, root string) (*FlatPlan, error) {
 			return nil
 		}
 		if e.IsDir() {
-			if e.Name() == stateDirName {
+			if e.Name() == stateDirName || strings.EqualFold(e.Name(), library.RecycleDirName) {
 				return fs.SkipDir
 			}
 			return nil
@@ -475,7 +475,7 @@ func pruneEmptyDirs(root string, logf func(string, ...any)) {
 		if err != nil || !e.IsDir() {
 			return nil
 		}
-		if e.Name() == stateDirName {
+		if e.Name() == stateDirName || strings.EqualFold(e.Name(), library.RecycleDirName) {
 			return fs.SkipDir
 		}
 		if p != root {

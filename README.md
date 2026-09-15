@@ -132,3 +132,40 @@ Person and Videos tabs share segmented-control styling at every screen size.
 Person breadcrumbs show People / person name, independent of the active tab.
 
 Following is available in the main sidebar. Load supported profile, channel, playlist, or favorites URLs; browse cached lists, check manually for updates, and queue selected items or all items not yet in the library. Unfollow removes only the saved source. Site support and login requirements depend on the existing downloader; this is not an automatic background subscription scheduler.
+
+Select two or more videos and choose **Mark as potential duplicates** to save a
+review group. Open **Potential duplicates** in the sidebar to preview each video,
+compare resolution, duration, and size, and choose which entries to keep. **Keep
+all** dismisses a group without changing the videos. Removing duplicates removes
+catalogue entries and collection memberships, and moves video files into the
+vault **Recycle bin** folder. Dated batches preserve filenames and original paths
+in a recycle manifest. Files stay there until you manually delete them to free
+space. The queue displays the folder path. Library scans skip recycled files.
+Private or locked collection videos cannot be added to this shared queue.
+
+To fill the queue automatically, run `troved find-duplicates` (dry run) and
+then `troved find-duplicates --apply`. It groups videos that point at the same
+file, or that share a source URL, an identical file size, or an identical title
+at the same duration; cleaner fallback titles ("Someone clip") are ignored.
+Groups already queued are skipped. Applying backs the catalogue up first, adds
+only review rows, and is safe while the app is running. Removing a review entry
+whose file is still catalogued under a kept entry drops the row and leaves the
+file where it is.
+
+Potential duplicates reviews one group at a time with aligned resolution, duration,
+size, and source comparisons. Use Keep only this for one copy, or check multiple
+keepers; Save & next recycles the others and advances. Skip preserves your choices
+while the page stays open. Side-by-side previews and More details provide a closer
+look, with queue navigation and a sticky decision bar for longer comparisons.
+
+When one file is catalogued under several rows, run `troved merge-same-file-rows`
+(dry run) and then `troved merge-same-file-rows --apply`. Each file keeps the row
+it is named after (else the oldest); people, tags, labels, favourite, watch
+history and collection memberships from the other rows are merged into it, and
+those rows are dropped. Files are never moved. The catalogue is backed up first
+and the dropped rows are written to a JSON file beside the backup.
+
+Photos now shares the Videos search and filter layout, segmented views, sort and
+grid/list controls, result counts, and pagination. The header Add photos action
+offers local and gallery-link imports. Person profile Photos uses the same browser.
+Utility pages share compact headings, search fields, button sizing, and spacing.

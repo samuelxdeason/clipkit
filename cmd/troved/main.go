@@ -5,11 +5,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/fs"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"trove/internal/core"
@@ -50,6 +52,65 @@ func main() {
 		}
 		log.Printf("clean-titles (%s): rules %s, checked %d, changed %d, %d need a title",
 			mode, rep.Rules, rep.Checked, rep.Changed, rep.Fallback)
+		return
+	}
+
+	// Subcommand: `troved find-duplicates` scans the catalogue for videos that
+	// share a source URL, file size + duration, or title + duration, and queues
+	// each group under Potential duplicates in the app (dry run unless --apply).
+	// Safe alongside a running app: it only adds review rows, after backing the
+	// catalogue up. Media files are never touched.
+	if len(os.Args) > 1 && os.Args[1] == "find-duplicates" {
+		fs := flag.NewFlagSet("find-duplicates", flag.ExitOnError)
+		root := fs.String("root", "", "vault directory (else $TROVE_ROOT, saved config, or a default under home)")
+		apply := fs.Bool("apply", false, "queue the groups for review (default is a dry run that only reports)")
+		_ = fs.Parse(os.Args[2:])
+		cands, rep, backup, err := core.FindDuplicatesAt(core.ResolveRoot(*root), !*apply)
+		for i, c := range cands {
+			fmt.Printf("group %d (%s)\n", i+1, strings.Join(c.Reasons, "; "))
+			for _, v := range c.Videos {
+				fmt.Printf("  %s/%s  %s  %s  %s  %s  %s\n", v.Site, v.ID, v.Title, fmtDuration(v.Duration), fmtDims(v.Width, v.Height), fmtSize(v.Filesize), v.Filename)
+			}
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		mode := "dry run"
+		if *apply {
+			mode = "applied; catalogue backup " + backup
+		}
+		log.Printf("find-duplicates (%s): %d candidate groups, %d queued", mode, rep.Scanned, rep.Queued)
+		return
+	}
+
+	// Subcommand: `troved merge-same-file-rows` folds catalogue rows that point
+	// at one file into a single row each, merging people, tags, labels,
+	// favourites and collection memberships (dry run unless --apply). Files are
+	// never touched; the catalogue is backed up and the dropped rows exported.
+	if len(os.Args) > 1 && os.Args[1] == "merge-same-file-rows" {
+		fs := flag.NewFlagSet("merge-same-file-rows", flag.ExitOnError)
+		root := fs.String("root", "", "vault directory (else $TROVE_ROOT, saved config, or a default under home)")
+		apply := fs.Bool("apply", false, "merge the rows (default is a dry run that only reports)")
+		_ = fs.Parse(os.Args[2:])
+		rep, backup, export, err := core.MergeSameFileRowsAt(core.ResolveRoot(*root), !*apply)
+		for _, m := range rep.Files {
+			fmt.Printf("%s\n  keep %s/%s", m.File, m.Keep.Site, m.Keep.ID)
+			for i, d := range m.Dropped {
+				fmt.Printf("; drop %s/%s (collections %v)", d.Site, d.ID, m.DroppedCollections[i])
+			}
+			if len(m.Filled) > 0 {
+				fmt.Printf("; fills %s", strings.Join(m.Filled, ", "))
+			}
+			fmt.Println()
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		mode := "dry run"
+		if *apply {
+			mode = "applied; catalogue backup " + backup + "; dropped rows saved to " + export
+		}
+		log.Printf("merge-same-file-rows (%s): %d files with extra rows, %d rows dropped, %d collection memberships carried over", mode, len(rep.Files), rep.RowsDropped, rep.ItemsMoved)
 		return
 	}
 
@@ -106,4 +167,25 @@ func portInUse(addr string) bool {
 	}
 	_ = conn.Close()
 	return true
+}
+
+func fmtDuration(d *int) string {
+	if d == nil {
+		return "?:??"
+	}
+	return fmt.Sprintf("%d:%02d", *d/60, *d%60)
+}
+
+func fmtDims(w, h *int) string {
+	if w == nil || h == nil {
+		return "?x?"
+	}
+	return fmt.Sprintf("%dx%d", *w, *h)
+}
+
+func fmtSize(n *int64) string {
+	if n == nil {
+		return "? MB"
+	}
+	return fmt.Sprintf("%.1f MB", float64(*n)/1048576)
 }

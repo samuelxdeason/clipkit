@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"syscall"
+	"trove/internal/library"
 )
 
 // optimizeRunning guards against two overlapping optimize runs.
@@ -32,7 +33,7 @@ func (c *Core) OptimizeStreaming() {
 				return nil
 			}
 			if d.IsDir() {
-				if d.Name() == stateDirName {
+				if d.Name() == stateDirName || strings.EqualFold(d.Name(), library.RecycleDirName) {
 					return filepath.SkipDir
 				}
 				return nil

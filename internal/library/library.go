@@ -211,7 +211,7 @@ func Open(path, root string) (*DB, error) {
 			return nil, fmt.Errorf("pragma %q: %w", pragma, err)
 		}
 	}
-	if _, err := sqlDB.Exec(schema); err != nil {
+	if _, err := sqlDB.Exec(schema + duplicatesSchema); err != nil {
 		return nil, fmt.Errorf("schema: %w", err)
 	}
 	// Older DBs predate these columns — add if missing (ignore "duplicate column").

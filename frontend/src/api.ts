@@ -267,3 +267,11 @@ async function uploadFiles(model: string, accept: string): Promise<void> {
 export const MoveJob = (id: string, direction: "up" | "down" | "next") => postJSON("/api/job/move", { id, direction });
 export const RetryFailed = (id = "") => postJSON<{ added: number }>("/api/job/retry", { id });
 export const ClearCompleted = () => postJSON("/api/queue/clear-completed");
+
+export type VideoKey = { site: string; id: string };
+export type DuplicateGroup = { id: number; created: string; videos: Video[] };
+export const DuplicateGroups = () => getJSON<DuplicateGroup[]>("/api/duplicates");
+export const CreateDuplicateGroup = (videos: VideoKey[]) => postJSON<number>("/api/duplicates/create", { videos: videos.map(({site,id}) => ({site,id})) });
+export const ResolveDuplicateGroup = (id64: number, keep: VideoKey[]) => postJSON("/api/duplicates/resolve", { id64, keep: keep.map(({site,id}) => ({site,id})) });
+
+export const DuplicateRecycleFolder = () => getJSON<string>("/api/duplicates/recycle-folder");
