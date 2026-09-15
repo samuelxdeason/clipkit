@@ -323,3 +323,44 @@
   .finder-shell .download-queue-heading .utility-tabs { width: 100%; }
   .finder-shell .download-queue-heading .utility-tabs button { flex: 1 1 auto; min-width: 0; padding: 8px; }
 }
+
+.finder-shell [data-section="following"] { --nav-color: #eab985; }
+.following-page { width: 100%; padding-bottom: 28px; }
+.following-add { background: var(--ui-panel); border: 1px solid var(--ui-line); border-radius: 12px; padding: 20px; margin-bottom: 24px; }
+.following-add>label { display: block; margin-bottom: 12px; font-size: 15px; font-weight: 600; }
+.following-add>div, .following-toolbar, .following-source-heading { display: flex; align-items: center; gap: 12px; }
+.following-add input { flex: 1; min-width: 0; padding: 11px 12px; background: var(--ui-field); border: 1px solid var(--ui-line); border-radius: 8px; color: var(--ui-text); font-size: 13px; }
+.following-add p, .following-summary { color: var(--ui-secondary); font-size: 12px; line-height: 1.6; margin-top: 12px; }
+.following-sources { display: grid; gap: 12px; }
+.following-sources article { display: flex; align-items: center; gap: 16px; padding: 18px; border: 1px solid var(--ui-line); border-radius: 12px; background: var(--ui-panel); }
+.following-sources article>svg { width: 22px; height: 22px; color: #eab985; flex-shrink: 0; }
+.following-sources article>div:first-of-type, .following-source-heading>div { flex: 1; min-width: 0; }
+.following-page h2 { font-size: 15px; font-weight: 600; }
+.following-sources p, .following-source-heading p { overflow-wrap: anywhere; font-size: 12px; color: var(--ui-secondary); margin: 5px 0; }
+.following-sources small { font-size: 11px; color: var(--ui-muted); }
+.following-source-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.following-source-heading { margin-bottom: 20px; }
+.following-toolbar .manager-search { flex: 1; min-width: 0; margin: 0; }
+.following-items { margin-top: 16px; border-top: 1px solid var(--ui-line); }
+.following-items label { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 12px; border-bottom: 1px solid var(--ui-line); cursor: pointer; font-size: 13px; }
+.following-items label:hover { background: var(--ui-hover); }
+.following-items input { accent-color: var(--ui-accent); }
+.following-items span { flex: 1; overflow-wrap: anywhere; }
+.following-items small { color: var(--ui-secondary); font-size: 11px; }
+@media(max-width:760px) { .following-add>div, .following-toolbar, .following-source-heading, .following-sources article { flex-wrap: wrap; } .following-toolbar .manager-search { flex-basis: 100%; } .following-source-actions { width: 100%; } }
+
+.following-queue-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; color: var(--ui-secondary); font-size: 12px; }
+.following-items label:has(input:disabled) { cursor: default; color: var(--ui-secondary); }
+
+.finder-shell .following-status-tabs { margin-top: 18px; margin-bottom: 12px; }
+.following-item { display: flex; align-items: center; gap: 16px; padding: 12px; min-height: 54px; border-bottom: 1px solid var(--ui-line); }
+.following-items .following-item>label, .following-item-title { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; margin: 0; padding: 0; border: 0; font-size: 13px; }
+.following-items .following-item>label { min-height: 30px; }
+.following-item-title>span:last-child { overflow-wrap: anywhere; }
+.following-items .following-item-mark { flex: 0 0 18px; display: grid; place-items: center; color: #91d6ad; }
+.following-item-mark svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+.following-item .following-item-status { flex: 0 0 auto; font-size: 11px; padding: 4px 8px; border-radius: 6px; background: #0a84ff15; color: #a9d3ff; }
+.following-item.is-downloaded .following-item-status { background: #61bc8914; color: #9fdbb6; }
+.following-item.is-downloaded { background: #61bc8905; }
+.following-item.is-pending .following-item-status { background: #d9aa5815; color: #e5c18d; }
+.following-item.is-pending .following-item-mark { color: #e5c18d; }

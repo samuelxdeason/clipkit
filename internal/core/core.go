@@ -368,6 +368,41 @@ func (c *Core) UpsertVideo(v library.Video) error {
 // AddPhoto catalogues a photo an external tool has placed in the vault.
 func (c *Core) AddPhoto(p library.Photo) error { return c.db.AddPhoto(p) }
 
+// CleanTitles backs the catalogue up, then rewrites source titles into plain
+// descriptive ones (see library.CleanTitle). Originals stay in source_title;
+// hand-renamed videos are skipped; already-checked rows are skipped, so it is
+// safe to run again after new downloads.
+func (c *Core) CleanTitles() (library.TitleCleanReport, error) {
+	if _, err := c.BackupCatalogue(); err != nil {
+		return library.TitleCleanReport{}, err
+	}
+	return c.db.CleanTitles(false)
+}
+
+// CleanTitlesAt runs the title cleaner against the vault at mediaRoot without
+// starting the rest of the engine (downloader, syncs) — for the
+// `clean-titles` CLI. A dry run only reports. Otherwise the catalogue is
+// backed up to .trove/backups first and the backup path is returned.
+func CleanTitlesAt(mediaRoot string, dryRun bool) (rep library.TitleCleanReport, backup string, err error) {
+	sdir := stateDir(mediaRoot)
+	dbPath, _ := resolveDBPath(mediaRoot, sdir)
+	db, err := library.Open(dbPath, mediaRoot)
+	if err != nil {
+		return rep, "", err
+	}
+	defer db.Close()
+	if dryRun {
+		rep, err = db.CleanTitles(true)
+		return rep, "", err
+	}
+	c := &Core{db: db, mediaRoot: mediaRoot, stateDir: sdir, emit: func(string, any) {}}
+	if backup, err = c.BackupCatalogue(); err != nil {
+		return rep, "", err
+	}
+	rep, err = db.CleanTitles(false)
+	return rep, backup, err
+}
+
 // RebuildFromDisk re-catalogues the vault by scanning media + .info.json sidecars.
 // It restores the library if the DB is lost and re-points filepaths after files
 // are moved, without discarding user data (models/favorites/labels survive).

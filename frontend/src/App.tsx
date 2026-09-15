@@ -7,7 +7,7 @@ import {
   Enqueue, EnqueueMany, Redownload, Enumerate, SyncedLists, RemoveSync, Queue, RemoveJob, ClearFinished, Import, ImportFilesDialog, ImportFolderDialog,
   AllPhotos, PhotosByModel, ImportPhotosDialog, ImportPhotosFromURL, GetModelInfo, SaveModelInfo, RenameModel, SetModelCover, SetAvatarFromURL, UploadAvatar, FetchAvatar, FetchAllAvatars,
   CookieStatus, ConnectCookies, OpenFolder, CopyText,
-  MediaRootPath, ChooseMediaRoot, RestartApp, Stats, MediaBase, RebuildLibrary, BackupCatalogue, OptimizeStreaming, isDesktopApp,
+  MediaRootPath, ChooseMediaRoot, RestartApp, Stats, MediaBase, RebuildLibrary, BackupCatalogue, OptimizeStreaming, CleanTitles, isDesktopApp,
   Collections, CreateCollection, RenameCollection, SetCollectionHidden, SetCollectionLocked,
   DeleteCollection, AddToCollection, RemoveFromCollection, VideosByCollection, CollectionsForVideo,
   EventsOn, BrowserOpenURL,
@@ -2228,6 +2228,7 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
               <div className="watch-detail-toolbar"><button onClick={() => { setTv(video.title || ""); setEditing(true); }}>Rename video</button>{isDesktopApp && video.filepath && <button onClick={() => OpenFolder(video.filepath)}>Open folder ↗</button>}</div>
               {video.filepath && <label>File path<input aria-label="File path" readOnly value={video.filepath} onFocus={e => e.currentTarget.select()} /></label>}
               <dl><div><dt>Source</dt><dd>{label(video.site) || "Local"}</dd></div>{video.upload_date && <div><dt>Date</dt><dd>{fmtDate(video.upload_date)}</dd></div>}</dl>
+              {(video as { source_title?: string }).source_title && <label>Original title<input aria-label="Original title" readOnly value={(video as { source_title?: string }).source_title} onFocus={e => e.currentTarget.select()} /></label>}
               {video.webpage_url && <><label>Source URL<input aria-label="Source URL" readOnly value={video.webpage_url} onFocus={e => e.currentTarget.select()} /></label><div className="watch-detail-toolbar"><button onClick={() => copy("link")}>{copied === "link" ? "Link copied ✓" : "Copy source link"}</button><button onClick={() => BrowserOpenURL(video.webpage_url)}>Open source ↗</button></div>
                 <div className="watch-detail-toolbar">
                   {redl === "confirm"
@@ -2447,6 +2448,15 @@ export function SettingsPage() {
     try { const r = await RebuildLibrary(); setRebuilt(r.count); Stats().then(setStats); }
     finally { setRebuilding(false); }
   };
+  const [cleaningTitles, setCleaningTitles] = useState(false);
+  const [titlesReport, setTitlesReport] = useState<{ checked: number; changed: number; fallback: number } | null>(null);
+  const [titlesError, setTitlesError] = useState("");
+  const cleanTitles = async () => {
+    setCleaningTitles(true); setTitlesReport(null); setTitlesError("");
+    try { setTitlesReport(await CleanTitles()); }
+    catch (e: any) { setTitlesError(String(e?.message || e)); }
+    finally { setCleaningTitles(false); }
+  };
   const fetchAvatars = () => { setAvBusy(true); setAvProg(null); FetchAllAvatars(); };
   const [cleanup, setCleanup] = useState<CleanupReport | null>(null);
   useEffect(() => { PeopleCleanupReport().then((r) => setCleanup(r && (r.kept.length || r.deleted.length) ? r : null)).catch(() => {}); }, []);
@@ -2594,6 +2604,21 @@ export function SettingsPage() {
             {rebuilding ? "Rebuilding…" : "Rebuild library from disk"}
           </button>
           {rebuilt !== null && <span className="text-sm text-emerald-400">Catalogued {rebuilt} files ✓</span>}
+        </div>
+        <p className="text-xs text-muted mt-5 mb-3 leading-relaxed">
+          <b>Clean up titles</b> rewrites source titles into plain descriptive ones: links, emoji, promo
+          words, site names, and the names of attached people are removed. Original titles are kept and
+          still match in search; videos you renamed by hand are left alone; clips with nothing usable get a
+          placeholder and the <code>needs-title</code> tag. The catalogue is backed up first. Run it again
+          after new downloads to clean only the new ones.
+        </p>
+        <div className="flex items-center gap-3 flex-wrap">
+          <button onClick={cleanTitles} disabled={cleaningTitles}
+            className="text-sm font-medium px-4 py-2 rounded-lg bg-panel2 hover:bg-edge text-fg border border-edge disabled:opacity-50">
+            {cleaningTitles ? "Cleaning…" : "Clean up titles"}
+          </button>
+          {titlesReport && <span className="text-sm text-emerald-400">Checked {titlesReport.checked}, changed {titlesReport.changed}{titlesReport.fallback ? `, ${titlesReport.fallback} need a title` : ""} ✓</span>}
+          {titlesError && <span className="text-sm text-red-400">{titlesError}</span>}
         </div>
       </section>
 

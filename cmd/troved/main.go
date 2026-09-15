@@ -31,6 +31,28 @@ func main() {
 		return
 	}
 
+	// Subcommand: `troved clean-titles` rewrites source titles into plain
+	// descriptive ones (dry run unless --apply). Originals are kept in
+	// source_title; hand-renamed videos are skipped. Safe alongside a running
+	// app: it only touches the catalogue, after backing it up.
+	if len(os.Args) > 1 && os.Args[1] == "clean-titles" {
+		fs := flag.NewFlagSet("clean-titles", flag.ExitOnError)
+		root := fs.String("root", "", "vault directory (else $TROVE_ROOT, saved config, or a default under home)")
+		apply := fs.Bool("apply", false, "write the cleaned titles (default is a dry run that only reports)")
+		_ = fs.Parse(os.Args[2:])
+		rep, backup, err := core.CleanTitlesAt(core.ResolveRoot(*root), !*apply)
+		if err != nil {
+			log.Fatal(err)
+		}
+		mode := "dry run"
+		if *apply {
+			mode = "applied; catalogue backup " + backup
+		}
+		log.Printf("clean-titles (%s): rules %s, checked %d, changed %d, %d need a title",
+			mode, rep.Rules, rep.Checked, rep.Changed, rep.Fallback)
+		return
+	}
+
 	addr := flag.String("addr", ":8899", "listen address (e.g. 0.0.0.0:8899 to expose on the LAN). Avoid 8787 — Plex uses it.")
 	root := flag.String("root", "", "vault directory (else $TROVE_ROOT, saved config, or a default under home)")
 	uiDir := flag.String("ui", "frontend/dist", "directory of the built web UI to serve (empty to disable)")

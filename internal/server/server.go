@@ -189,6 +189,7 @@ func (s *Server) routes(ui fs.FS) {
 		return map[string]string{"path": p}, err
 	})
 	post(m, "/api/optimize", func(_ body) (any, error) { s.core.OptimizeStreaming(); return ok, nil })
+	post(m, "/api/titles/clean", func(_ body) (any, error) { return s.core.CleanTitles() })
 
 	// --- downloads ---
 	post(m, "/api/enqueue", func(b body) (any, error) { return s.core.Enqueue(b.URL), nil })

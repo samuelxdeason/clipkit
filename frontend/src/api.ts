@@ -153,6 +153,11 @@ export const RebuildLibrary = () => postJSON<{ count: number }>("/api/rebuild");
 export const OptimizeStreaming = () => postJSON("/api/optimize");
 // BackupCatalogue copies the catalogue db to .trove/backups and returns its path.
 export const BackupCatalogue = () => postJSON<{ path: string }>("/api/backup");
+// CleanTitles rewrites source titles into plain descriptive ones (links, emoji,
+// promo words, site names, and attached people's names removed). Originals are
+// kept as source_title and stay searchable; hand-renamed videos are skipped.
+// Backs the catalogue up first. Safe to run again after new downloads.
+export const CleanTitles = () => postJSON<{ rules: string; checked: number; changed: number; fallback: number }>("/api/titles/clean");
 
 /* ---------------- collections ---------------- */
 export const CreateCollection = async (name: string, hidden: boolean) =>

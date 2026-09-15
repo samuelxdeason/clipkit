@@ -115,6 +115,7 @@ func (d *Downloader) SetCookieSpec(spec string) {
 
 // RemoteItem is one video in a remote list (model catalogue / favorites).
 type RemoteItem struct {
+	Site  string `json:"site,omitempty"`
 	URL   string `json:"url"`
 	Title string `json:"title"`
 	ID    string `json:"id"`
@@ -194,7 +195,7 @@ func (d *Downloader) Enumerate(listURL string, refresh bool) ([]RemoteItem, erro
 	}
 
 	args := []string{"--ignore-config", "--encoding", "utf-8", "--flat-playlist", "--no-warnings",
-		"--print", "%(url)s %(title)s"}
+		"--dump-json"}
 	args = append(args, d.cookieArgs()...)
 	args = append(args, listURL)
 
@@ -216,11 +217,9 @@ func (d *Downloader) Enumerate(listURL string, refresh bool) ([]RemoteItem, erro
 		if line == "" {
 			continue
 		}
-		url, title := line, ""
-		if sp := strings.IndexByte(line, ' '); sp >= 0 {
-			url, title = line[:sp], strings.TrimSpace(line[sp+1:])
+		if item, ok := parseRemote(line); ok {
+			items = append(items, item)
 		}
-		items = append(items, RemoteItem{URL: url, Title: title, ID: viewkey(url)})
 	}
 	if len(items) > 0 {
 		d.storeEnum(listURL, items) // only cache a successful fetch
@@ -287,14 +286,14 @@ func (d *Downloader) storeEnum(u string, items []RemoteItem) {
 // SyncedLists returns saved syncs with live owned/new counts, newest fetch first.
 func (d *Downloader) SyncedLists() []SyncSummary {
 	d.loadEnumCache()
-	owned := d.archiveSet()
+	owned := d.ownedSources()
 	d.enumMu.Lock()
 	defer d.enumMu.Unlock()
 	out := make([]SyncSummary, 0, len(d.enumCache))
 	for _, sl := range d.enumCache {
 		o, n := 0, 0
 		for _, it := range sl.Items {
-			if it.ID != "" && owned["pornhub "+it.ID] {
+			if isOwned(it, owned) {
 				o++
 			} else {
 				n++
@@ -373,10 +372,10 @@ func prettySlug(s string) string {
 
 // withOwned returns a copy of items with the Owned flag set from the current archive.
 func (d *Downloader) withOwned(items []RemoteItem) []RemoteItem {
-	owned := d.archiveSet()
+	owned := d.ownedSources()
 	out := make([]RemoteItem, len(items))
 	for i, it := range items {
-		it.Owned = it.ID != "" && owned["pornhub "+it.ID]
+		it.Owned = isOwned(it, owned)
 		out[i] = it
 	}
 	return out
@@ -465,10 +464,11 @@ func (d *Downloader) Enqueue(url string) string {
 
 // EnqueueMany adds many URLs at once (deduped). Returns how many were newly queued.
 func (d *Downloader) EnqueueMany(urls []string) int {
+	owned := d.ownedSources()
 	added := 0
 	d.mu.Lock()
 	for _, u := range urls {
-		if u = strings.TrimSpace(u); u != "" {
+		if u = strings.TrimSpace(u); u != "" && !isOwned(RemoteItem{URL: u}, owned) {
 			if _, ok := d.addLocked(u); ok {
 				added++
 			}

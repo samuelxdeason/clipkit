@@ -130,3 +130,5 @@ toggle that combines with the current video view. Add videos lives in the header
 
 Person and Videos tabs share segmented-control styling at every screen size.
 Person breadcrumbs show People / person name, independent of the active tab.
+
+Following is available in the main sidebar. Load supported profile, channel, playlist, or favorites URLs; browse cached lists, check manually for updates, and queue selected items or all items not yet in the library. Unfollow removes only the saved source. Site support and login requirements depend on the existing downloader; this is not an automatic background subscription scheduler.

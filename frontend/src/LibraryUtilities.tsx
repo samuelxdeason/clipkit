@@ -63,7 +63,7 @@ export function LibrarySettings({ onTools, initialSection = "general", onSection
   </div>;
 }
 
-export function LibraryDownloads({ queue, onChanged, onSettings }: { queue: downloader.Job[]; onChanged: () => void; onSettings: () => void }) {
+export function LibraryDownloads({ queue, onChanged, onSettings, onFollowing }: { onFollowing: () => void; queue: downloader.Job[]; onChanged: () => void; onSettings: () => void }) {
   const [url, setUrl] = useState("");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -82,6 +82,7 @@ export function LibraryDownloads({ queue, onChanged, onSettings }: { queue: down
     finally { setBusy(""); }
   };
   return <div className="utility-page downloads-page">
+    <div className="following-queue-link"><span>Download entire profiles, channels, and playlists.</span><button className="m-button" onClick={onFollowing}><Icon name="connections" />Browse Following</button></div>
     <div className="download-add-card"><div className="download-add-content"><h2>New download</h2><form onSubmit={e => { e.preventDefault(); const value = url.trim(); if (value) run("add", async () => { await api.Enqueue(value); setUrl(""); }, "Download added to the queue."); }}><input type="url" required aria-label="Video URL" placeholder="Paste a video link…" value={url} onChange={e => setUrl(e.target.value)} /><button className="m-button primary" disabled={!!busy || !url.trim()}><Icon name="plus" />{busy === "add" ? "Adding…" : "Add download"}</button></form><div className="download-import"><span>Already on your device?</span><button disabled={!!busy} onClick={() => run("files", () => api.ImportFilesDialog(""), "Files submitted for import.")}><Icon name="folder" />{busy === "files" ? "Importing…" : "Import files…"}</button>{api.isDesktopApp && <button disabled={!!busy} onClick={() => run("folder", () => api.ImportFolderDialog(), "Folder submitted for import.")}>{busy === "folder" ? "Importing…" : "Import folder…"}</button>}</div></div></div>
     {error && <div className="manager-alert" role="alert">{error}<button aria-label="Dismiss error" onClick={() => setError("")}><Icon name="x" /></button></div>}
     {notice && <div className="manager-notice" role="status">{notice}</div>}

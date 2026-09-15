@@ -19,12 +19,20 @@ import (
 // Video is one catalogue entry. JSON tags match the legacy library.json so we
 // can migrate the existing collection straight in.
 type Video struct {
-	ID         string   `json:"id"`
-	Site       string   `json:"site"`
-	Title      string   `json:"title"`
-	Uploader   string   `json:"uploader"`
-	UploaderID string   `json:"uploader_id"` // platform's canonical account id (e.g. "pornstar/arabella-rose")
-	Cast       []string `json:"cast"`        // platform-asserted cast members (Pornhub)
+	ID    string `json:"id"`
+	Site  string `json:"site"`
+	Title string `json:"title"`
+	// SourceTitle is the title as it arrived from the source, kept once Title
+	// has been changed (by the cleaner or by hand) so it stays searchable and
+	// the change is undoable. "" = Title is still the source title.
+	SourceTitle string `json:"source_title"`
+	// TitleStatus records who last decided the title: "" = untouched source
+	// title, TitleRules (e.g. "v1") = checked by the cleaner at that rule
+	// version, TitleStatusManual = typed by the user.
+	TitleStatus string   `json:"title_status"`
+	Uploader    string   `json:"uploader"`
+	UploaderID  string   `json:"uploader_id"` // platform's canonical account id (e.g. "pornstar/arabella-rose")
+	Cast        []string `json:"cast"`        // platform-asserted cast members (Pornhub)
 	// Source account: recorded at ingest, never re-guessed. "" for Local files.
 	SourcePlatform string `json:"source_platform"`
 	SourceHandle   string `json:"source_handle"`
@@ -219,6 +227,8 @@ func Open(path, root string) (*DB, error) {
 	_, _ = sqlDB.Exec(`ALTER TABLE videos ADD COLUMN cast TEXT`)
 	_, _ = sqlDB.Exec(`ALTER TABLE videos ADD COLUMN source_platform TEXT`)
 	_, _ = sqlDB.Exec(`ALTER TABLE videos ADD COLUMN source_handle TEXT`)
+	_, _ = sqlDB.Exec(`ALTER TABLE videos ADD COLUMN source_title TEXT`)
+	_, _ = sqlDB.Exec(`ALTER TABLE videos ADD COLUMN title_status TEXT`)
 	if _, err := sqlDB.Exec(accountsSchema); err != nil {
 		return nil, fmt.Errorf("accounts schema: %w", err)
 	}
@@ -367,14 +377,21 @@ func (db *DB) Upsert(v Video) error {
 		_ = db.EnsurePerson(p)
 	}
 	// favorite + labels + model are user data: set on first insert, never
-	// overwritten on re-download (no entry in the ON CONFLICT SET).
+	// overwritten on re-download (no entry in the ON CONFLICT SET). A title
+	// that was cleaned or typed by hand (source_title set / status manual) is
+	// user data too; an untouched title takes the fresh source title and its
+	// cleaner status is reset so the next clean pass looks at it again.
 	_, err := db.sql.Exec(`
 INSERT INTO videos (id,site,title,uploader,model,duration,width,height,ext,filepath,filename,
   thumbnail,thumbnail_url,webpage_url,upload_date,view_count,like_count,tags,categories,
   description,filesize,added,favorite,labels,uploader_id,cast,source_platform,source_handle)
 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 ON CONFLICT(site,id) DO UPDATE SET
-  title=excluded.title, uploader=excluded.uploader, duration=excluded.duration,
+  title=CASE WHEN COALESCE(videos.source_title,'')<>'' OR videos.title_status='manual'
+             THEN videos.title ELSE excluded.title END,
+  title_status=CASE WHEN COALESCE(videos.source_title,'')<>'' OR videos.title_status='manual'
+             THEN videos.title_status ELSE NULL END,
+  uploader=excluded.uploader, duration=excluded.duration,
   width=excluded.width, height=excluded.height, ext=excluded.ext, filepath=excluded.filepath,
   filename=excluded.filename, thumbnail=excluded.thumbnail, thumbnail_url=excluded.thumbnail_url,
   webpage_url=excluded.webpage_url, upload_date=excluded.upload_date, view_count=excluded.view_count,
@@ -671,9 +688,13 @@ func HandleSlug(name string) string {
 	return strings.Trim(b.String(), "-")
 }
 
-// SetTitle renames a video.
+// SetTitle renames a video by hand. The source title is kept the first time
+// the title changes, and the manual status stops the cleaner and re-downloads
+// from touching it again.
 func (db *DB) SetTitle(site, id, title string) error {
-	_, err := db.sql.Exec(`UPDATE videos SET title=? WHERE site=? AND id=?`, title, site, id)
+	_, err := db.sql.Exec(`UPDATE videos SET
+  source_title=CASE WHEN COALESCE(source_title,'')='' AND COALESCE(title,'')<>? THEN title ELSE source_title END,
+  title=?, title_status=? WHERE site=? AND id=?`, title, title, TitleStatusManual, site, id)
 	return err
 }
 
@@ -807,7 +828,7 @@ const cols = `videos.id,videos.site,videos.title,videos.uploader,videos.model,vi
 	`videos.thumbnail_url,videos.webpage_url,videos.upload_date,videos.view_count,videos.like_count,` +
 	`videos.tags,videos.categories,videos.description,videos.filesize,videos.added,videos.watched_at,` +
 	`videos.favorite,videos.labels,videos.position,videos.featured,videos.uploader_id,videos.cast,` +
-	`videos.source_platform,videos.source_handle`
+	`videos.source_platform,videos.source_handle,videos.source_title,videos.title_status`
 
 // notHidden is true for a video that is NOT a member of any hidden collection.
 // Default views AND this in so hidden content (e.g. an adult collection) stays
@@ -830,15 +851,16 @@ func scanVideo(rows *sql.Rows) (Video, error) {
 	var dur, w, h, vc, lc, fs sql.NullInt64
 	var tags, cats string
 	var watched sql.NullString
-	var model, labels, featured, uploaderID, cast, srcPlat, srcHandle sql.NullString
+	var model, labels, featured, uploaderID, cast, srcPlat, srcHandle, srcTitle, titleStatus sql.NullString
 	var fav sql.NullInt64
 	var pos sql.NullFloat64
 	if err := rows.Scan(&v.ID, &v.Site, &v.Title, &v.Uploader, &model, &dur, &w, &h, &v.Ext,
 		&v.Filepath, &v.Filename, &v.Thumbnail, &v.ThumbnailURL, &v.WebpageURL,
 		&v.UploadDate, &vc, &lc, &tags, &cats, &v.Description, &fs, &v.Added, &watched, &fav, &labels, &pos,
-		&featured, &uploaderID, &cast, &srcPlat, &srcHandle); err != nil {
+		&featured, &uploaderID, &cast, &srcPlat, &srcHandle, &srcTitle, &titleStatus); err != nil {
 		return v, err
 	}
+	v.SourceTitle, v.TitleStatus = srcTitle.String, titleStatus.String
 	v.Models = parseModels(model.String)
 	v.legacyFeatured = parseModels(featured.String)
 	v.UploaderID = uploaderID.String
@@ -964,10 +986,11 @@ func (db *DB) RecentlyWatched(limit int) ([]Video, error) {
 	return db.query(`WHERE watched_at IS NOT NULL AND watched_at<>'' AND `+notHidden+` ORDER BY watched_at DESC LIMIT ?`, limit)
 }
 
-// Search returns videos whose title, model, uploader, or tag matches (blank = all).
+// Search returns videos whose title (current or original), model, uploader,
+// or tag matches (blank = all).
 func (db *DB) Search(q string) ([]Video, error) {
 	like := "%" + q + "%"
-	return db.query(`WHERE (title LIKE ? OR model LIKE ? OR uploader LIKE ? OR labels LIKE ?) AND `+notHidden+` ORDER BY added DESC LIMIT 500`, like, like, like, like)
+	return db.query(`WHERE (title LIKE ? OR source_title LIKE ? OR model LIKE ? OR uploader LIKE ? OR labels LIKE ?) AND `+notHidden+` ORDER BY added DESC LIMIT 500`, like, like, like, like, like)
 }
 
 // MigrateFromJSON imports a legacy library.json file, returning rows imported.
