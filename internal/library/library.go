@@ -72,7 +72,7 @@ type Video struct {
 // Model summarises one person (registry row) with tallies derived from the
 // library. Kept under its historical name for the API.
 type Model struct {
-	Name         string `json:"name"`     // "" = Unsorted bucket
+	Name         string `json:"name"`     // Registered person name
 	Nickname     string `json:"nickname"` // optional display name; "" = show Name
 	Count        int    `json:"count"`
 	TotalSeconds int    `json:"totalSeconds"`

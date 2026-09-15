@@ -41,8 +41,12 @@ func TestDownloadsCreateNoPeople(t *testing.T) {
 			t.Fatalf("download created a person: %+v", people)
 		}
 	}
-	if len(people) != 1 || people[0].Count != 2 {
-		t.Fatalf("expected only an Unsorted bucket of 2, got %+v", people)
+	if len(people) != 0 {
+		t.Fatalf("unassigned videos must not create people, got %+v", people)
+	}
+	unsorted, err := db.Unsorted()
+	if err != nil || len(unsorted) != 2 {
+		t.Fatalf("unassigned videos remain accessible: count=%d err=%v", len(unsorted), err)
 	}
 	vids, _ := db.query(`WHERE 1=1`)
 	src := map[string]string{}
@@ -224,7 +228,7 @@ VALUES (?,?,?,?,?,?,?,?,'2026-01-01','','','','','','','','[]','[]','')`, id, si
 	for _, p := range people {
 		names = append(names, p.Name)
 	}
-	if len(people) != 3 { // Arabella, Sophie, Unsorted(j1)
+	if len(people) != 2 { // Arabella and Sophie; unassigned videos are not people
 		t.Errorf("people after cleanup: %v", names)
 	}
 	vids, _ := db.query(`WHERE 1=1`)
@@ -256,5 +260,19 @@ VALUES (?,?,?,?,?,?,?,?,'2026-01-01','','','','','','','','[]','[]','')`, id, si
 	defer db3.Close()
 	if db3.LastCleanup != nil {
 		t.Errorf("cleanup ran twice")
+	}
+}
+
+func TestPeopleExcludesBlankRegistryNames(t *testing.T) {
+	db := openTest(t)
+	if _, err := db.sql.Exec("INSERT INTO model_info(name) VALUES (''), ('   '), ('Alex')"); err != nil {
+		t.Fatal(err)
+	}
+	people, err := db.People()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(people) != 1 || people[0].Name != "Alex" {
+		t.Fatalf("expected only the named person, got %+v", people)
 	}
 }

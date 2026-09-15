@@ -285,8 +285,8 @@ func (c *Core) CollectionsForVideo(site, videoID string) ([]int64, error) {
 
 // ---- downloads ---------------------------------------------------------
 
-func (c *Core) Enqueue(url string) string             { return c.dl.Enqueue(url) }
-func (c *Core) EnqueueMany(urls []string) int         { return c.dl.EnqueueMany(urls) }
+func (c *Core) Enqueue(url string) string     { return c.dl.Enqueue(url) }
+func (c *Core) EnqueueMany(urls []string) int { return c.dl.EnqueueMany(urls) }
 
 // Redownload re-fetches a catalogued video at the best quality now available,
 // replacing its file once the new copy is complete.
@@ -584,3 +584,7 @@ func SaveRoot(root string) error {
 	}
 	return os.WriteFile(configPath(), data, 0o644)
 }
+
+func (c *Core) MoveJob(id, direction string) error { return c.dl.MoveJob(id, direction) }
+func (c *Core) RetryFailed(id string) int          { return c.dl.RetryFailed(id) }
+func (c *Core) ClearCompleted()                    { c.dl.ClearCompleted() }

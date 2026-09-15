@@ -596,6 +596,7 @@ func (d *Downloader) worker() {
 		for _, jid := range d.order { // first still-queued job, in order
 			if j := d.jobs[jid]; j != nil && j.Status == "queued" {
 				next = j
+				j.Status = "downloading" // Claim under the lock before queue edits can intervene.
 				break
 			}
 		}

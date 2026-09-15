@@ -24,3 +24,17 @@ export function sourceKeys(source: Source): string[] {
 }
 export function libraryIndex(videos: Source[]): Set<string> { return new Set(videos.flatMap(sourceKeys)); }
 export function isInLibrary(item: Source, index: Set<string>): boolean { return sourceKeys(item).some(k => index.has(k)); }
+
+export function matchesAccount(source: string, account: string): boolean {
+  try {
+    const normalize = (raw: string) => {
+      const u = new URL(raw);
+      let host = u.hostname.toLowerCase().replace(/^www\./, "");
+      if (host === "x.com" || host === "mobile.twitter.com") host = "twitter.com";
+      if (host.endsWith(".pornhub.com")) host = "pornhub.com";
+      return { host, path: u.pathname.replace(/\/+$/, ""), query: u.search };
+    };
+    const a = normalize(source), b = normalize(account);
+    return !!b.path && a.host === b.host && (!b.query || a.query === b.query) && (a.path === b.path || a.path.startsWith(b.path + "/"));
+  } catch { return false; }
+}

@@ -263,3 +263,7 @@ async function uploadFiles(model: string, accept: string): Promise<void> {
     if (!response.ok) throw new Error(await response.text() || "File upload failed");
   }
 }
+
+export const MoveJob = (id: string, direction: "up" | "down" | "next") => postJSON("/api/job/move", { id, direction });
+export const RetryFailed = (id = "") => postJSON<{ added: number }>("/api/job/retry", { id });
+export const ClearCompleted = () => postJSON("/api/queue/clear-completed");

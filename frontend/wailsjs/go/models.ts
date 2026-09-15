@@ -50,6 +50,7 @@ export namespace downloader {
 	    }
 	}
 	export class RemoteItem {
+	    site?: string;
 	    url: string;
 	    title: string;
 	    id: string;
@@ -61,6 +62,7 @@ export namespace downloader {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.site = source["site"];
 	        this.url = source["url"];
 	        this.title = source["title"];
 	        this.id = source["id"];
@@ -263,6 +265,8 @@ export namespace library {
 	    id: string;
 	    site: string;
 	    title: string;
+	    source_title: string;
+	    title_status: string;
 	    uploader: string;
 	    uploader_id: string;
 	    cast: string[];
@@ -302,6 +306,8 @@ export namespace library {
 	        this.id = source["id"];
 	        this.site = source["site"];
 	        this.title = source["title"];
+	        this.source_title = source["source_title"];
+	        this.title_status = source["title_status"];
 	        this.uploader = source["uploader"];
 	        this.uploader_id = source["uploader_id"];
 	        this.cast = source["cast"];

@@ -1,10 +1,21 @@
-import { isInLibrary, libraryIndex, sourceKeys } from "./followingIdentity";
+import { isInLibrary, libraryIndex, sourceKeys, matchesAccount } from "./followingIdentity";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as api from "./api";
 import { downloader, library } from "../wailsjs/go/models";
 import { Icon } from "./App";
+import PersonAvatar from "./PersonAvatar";
+const hostOf = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return "Source"; } };
+const safeLink = (url: string) => /^https?:\/\//i.test(url);
+const checkedAt = (value?: string) => value && !isNaN(Date.parse(value)) ? new Date(value).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "Not checked yet";
+const duration = (seconds: number) => Math.floor(seconds / 60) + ":" + String(Math.floor(seconds % 60)).padStart(2, "0");
+function SavedThumbnail({ src }: { src?: string }) {
+ const [failed, setFailed] = useState(false);
+ return src && !failed ? <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} /> : <Icon name="film" />;
+}
 
-export default function Following({ onDownloads, queue, onQueued, version, videos, libraryReady }: { videos: library.Video[]; libraryReady: boolean; version: number; onDownloads: () => void; queue: downloader.Job[]; onQueued: () => void }) {
+export default function Following({ onDownloads, queue, onQueued, version, videos, libraryReady, people, media, onPlay, onPerson }: { people: library.Model[]; media: (path: string) => string; onPlay: (video: library.Video, queue: library.Video[]) => void; onPerson: (person: library.Model) => void; videos: library.Video[]; libraryReady: boolean; version: number; onDownloads: () => void; queue: downloader.Job[]; onQueued: () => void }) {
+  const [accounts, setAccounts] = useState<api.AccountInfo[]>([]);
+  const [sourceSearch, setSourceSearch] = useState("");
   const [lists, setLists] = useState<api.SyncSummary[]>([]);
   const [url, setUrl] = useState("");
   const [current, setCurrent] = useState("");
@@ -16,6 +27,12 @@ export default function Following({ onDownloads, queue, onQueued, version, video
   const [notice, setNotice] = useState("");
   const [pending, setPending] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState("all");
+  useEffect(() => { let live = true; api.AllAccounts().then(a => { if (live) setAccounts(a || []); }).catch(() => { if (live) setError("Could not load account connections. Refresh Following to see associated people."); }); return () => { live = false; }; }, [version]);
+  const accountFor = (source: string) => accounts.filter(a => matchesAccount(source, a.url)).sort((a, b) => b.url.length - a.url.length)[0];
+  const personFor = (source: string) => people.find(p => p.name === accountFor(source)?.person);
+  const savedVideos = useMemo(() => { const map = new Map<string, library.Video>(); for (const video of videos) for (const key of sourceKeys(video)) map.set(key, video); return map; }, [videos]);
+  const videoFor = (item: downloader.RemoteItem) => sourceKeys(item).map(key => savedVideos.get(key)).find(Boolean);
+  const avatar = (source: string) => { const person = personFor(source); return <PersonAvatar className="following-avatar" name={person?.nickname || person?.name || accountFor(source)?.displayName || hostOf(source)} src={person?.thumbnail ? media(person.thumbnail) : undefined} />; };
   const savedIndex = useMemo(() => libraryIndex(videos), [videos]);
   const queueKey = (value: string) => { try { const u = new URL(value); u.hash = ""; return u.toString(); } catch { return value; } };
   const queueIndex = useMemo(() => { const result = new Map<string, downloader.Job>(); for (const job of queue) if (job.status !== "removed") for (const key of sourceKeys({ url: job.url })) result.set(key, job); return result; }, [queue]);
@@ -61,29 +78,41 @@ export default function Following({ onDownloads, queue, onQueued, version, video
   const fresh = items.filter(canDownload);
   const downloaded = items.filter(i => stateFor(i) === "Downloaded");
   const inProgress = items.filter(i => stateFor(i) === "Queued" || stateFor(i).startsWith("Downloading"));
-  const visible = items.filter(i => (statusFilter === "all" || statusFilter === "available" && canDownload(i) || statusFilter === "downloaded" && stateFor(i) === "Downloaded" || statusFilter === "progress" && inProgress.includes(i)) && [i.title, i.url].join(" ").toLowerCase().includes(query.toLowerCase()));
+  const visible = items.filter(i => (statusFilter === "all" || statusFilter === "available" && canDownload(i) || statusFilter === "downloaded" && stateFor(i) === "Downloaded" || statusFilter === "progress" && inProgress.includes(i)) && [i.title, i.url, videoFor(i)?.title, videoFor(i)?.source_title].join(" ").toLowerCase().includes(query.toLowerCase()));
+  const playback = items.map(videoFor).filter((v): v is library.Video => !!v);
   return <section className="following-page">
     <div className="following-queue-link"><span>{queue.filter(j => j.status === "queued" || j.status === "downloading").length} active downloads</span><button className="m-button" onClick={onDownloads}><Icon name="download" />Open downloads</button></div>
     {error && <div className="manager-alert" role="alert">{error}</div>}
     {notice && <div className="manager-notice" role="status">{notice}<button onClick={onDownloads}>View downloads →</button></div>}
     {!current ? <>
       <form className="following-add" onSubmit={e => { e.preventDefault(); if (url.trim()) load(url.trim(), true); }}><label htmlFor="following-url">Follow a source</label><div><input id="following-url" type="url" required value={url} onChange={e => setUrl(e.target.value)} placeholder="Paste a profile, channel, playlist, or favorites URL…" /><button className="m-button primary" disabled={busy || !url.trim()}>Load source</button></div><p>Browse everything available from a supported source, then choose what to download. Private content may need a connection in Settings.</p></form>
-      <div className="directory-heading">{lists.length} saved sources</div>
-      <div className="following-sources">{lists.map(l => <article key={l.url}><Icon name="connections" /><div><h2>{l.title || l.url}</h2><p>{l.url}</p><small>{l.count} items · {l.owned} in your library · {l.new} new</small></div><div className="following-source-actions"><button className="m-button" disabled={busy} onClick={() => load(l.url)}>Browse</button><button className="m-button" disabled={busy} onClick={() => load(l.url, true)}>Check for updates</button><button className="clear-filters" disabled={busy} onClick={() => unfollow(l.url)} aria-label={"Unfollow " + (l.title || l.url)}>Unfollow</button></div></article>)}</div>
+      <div className="following-directory-toolbar"><div className="manager-search"><Icon name="search" /><input aria-label="Search followed sources" placeholder="Search sources or people…" value={sourceSearch} onChange={e => setSourceSearch(e.target.value)} /></div><span>{lists.length} saved sources</span></div>
+      <div className="following-sources">{lists.filter(l => [l.title, l.url, personFor(l.url)?.name, personFor(l.url)?.nickname].join(" ").toLowerCase().includes(sourceSearch.toLowerCase())).map(l => {
+        const person = personFor(l.url), account = accountFor(l.url);
+        return <article key={l.url}>{avatar(l.url)}<div className="following-source-copy"><button className="following-source-name" onClick={() => load(l.url)} disabled={busy}>{person?.nickname || person?.name || account?.displayName || l.title || hostOf(l.url)}</button><p>{hostOf(l.url)}{account?.handle ? " · @" + account.handle : ""}{l.kind ? " · " + l.kind : ""}</p>{person && l.title && <p className="following-source-description">{l.title}</p>}<small>{l.count} videos · {l.owned} downloaded · {l.new} available</small><small className="following-checked">Last checked: {checkedAt(l.fetchedAt)}</small></div><div className="following-source-actions">{person && <button className="m-button" onClick={() => onPerson(person)}>View person</button>}<button className="m-button" disabled={busy} onClick={() => load(l.url)}>Browse</button><button className="m-button" disabled={busy} onClick={() => load(l.url, true)}>Check for updates</button><button className="clear-filters" disabled={busy} onClick={() => unfollow(l.url)} aria-label={"Unfollow " + (l.title || l.url)}>Unfollow</button></div></article>;
+      })}</div>
+      {!!lists.length && !lists.some(l => [l.title, l.url, personFor(l.url)?.name, personFor(l.url)?.nickname].join(" ").toLowerCase().includes(sourceSearch.toLowerCase())) && <div className="manager-empty"><h2>No matching sources</h2><p>Try a person’s name, source name, or website.</p></div>}
       {!lists.length && <div className="manager-empty"><Icon name="connections" /><h2>Your sources, in one place</h2><p>Add a source above to browse its content and save it here for future checks.</p></div>}
     </> : <>
-      <div className="following-source-heading"><button className="m-button" disabled={busy} onClick={() => { setCurrent(""); setNotice(""); setError(""); }}>← All sources</button><div><h2>{lists.find(l => l.url === current)?.title || "Source content"}</h2><p>{current}</p></div><button className="m-button" disabled={busy} onClick={() => load(current, true)}>Check for updates</button></div>
-      <div className="following-toolbar"><div className="manager-search"><Icon name="search" /><input aria-label="Search source content" placeholder="Search this source…" value={query} onChange={e => setQuery(e.target.value)} /></div><button className="m-button" disabled={busy || !selected.length} onClick={() => download(selected)}>Download selected ({selected.length})</button><button className="m-button primary" disabled={busy || !fresh.length} onClick={() => download(fresh.map(i => i.url))}>Download available ({fresh.length})</button></div>
+      <button className="m-button following-back" disabled={busy} onClick={() => { setCurrent(""); setItems([]); setSelected([]); setNotice(""); setError(""); }}>← All sources</button>
+      <div className="following-source-heading">{avatar(current)}<div><h2>{personFor(current)?.nickname || personFor(current)?.name || lists.find(l => l.url === current)?.title || "Source content"}</h2><p>{current}</p><small>Last checked: {checkedAt(lists.find(l => l.url === current)?.fetchedAt)}</small></div><div className="following-source-actions">{personFor(current) && <button className="m-button" onClick={() => onPerson(personFor(current)!)}>View person</button>}{safeLink(current) && <a className="m-button" href={current} target="_blank" rel="noreferrer">Open source ↗</a>}<button className="m-button" disabled={busy} onClick={() => load(current, true)}>Check for updates</button></div></div>
       <nav className="utility-tabs following-status-tabs" aria-label="Source item status">{[["all", "All", items.length], ["available", "Available", fresh.length], ["downloaded", "Downloaded", downloaded.length], ["progress", "In progress", inProgress.length]].map(([id, label, count]) => <button key={id} className={statusFilter === id ? "active" : ""} aria-pressed={statusFilter === id} onClick={() => setStatusFilter(String(id))}>{label}<span>{count}</span></button>)}</nav>
+      <div className="following-toolbar"><div className="manager-search"><Icon name="search" /><input aria-label="Search source content" placeholder="Search this source…" value={query} onChange={e => setQuery(e.target.value)} /></div><button className="m-button" disabled={busy || !selected.length} onClick={() => download(selected)}>Download selected ({selected.length})</button><button className="m-button primary" disabled={busy || !fresh.length} onClick={() => download(fresh.map(i => i.url))}>Download available ({fresh.length})</button></div>
       {!libraryReady && <p className="following-summary" role="status">Checking your library before enabling downloads…</p>}
       {busy && <p role="status">Working… Large sources can take a moment.</p>}
       {!busy && !items.length && <div className="manager-empty"><h2>No items returned</h2><p>Check the URL and your connections. Some sites do not support listing an entire account.</p><button className="m-button" onClick={() => load(current, true)}>Try again</button></div>}
       {!busy && items.length > 0 && !visible.length && <p>No items match your search.</p>}
       <div className="following-items">{visible.map((i, n) => {
-        const state = stateFor(i), available = canDownload(i), saved = state === "Downloaded";
-        return <div key={i.url + n} className={"following-item " + (saved ? "is-downloaded" : available ? "is-available" : "is-pending")}>
-          {available ? <label><input type="checkbox" disabled={busy} checked={selected.includes(i.url)} onChange={() => { if (!canDownload(i)) return; setSelected(v => v.includes(i.url) ? v.filter(u => u !== i.url) : [...v, i.url]); }} /><span>{i.title || i.url}</span></label> : <div className="following-item-title"><span className="following-item-mark" aria-hidden="true">{saved ? <svg viewBox="0 0 20 20"><path d="m4 10 4 4 8-9" /></svg> : <Icon name="download" />}</span><span>{i.title || i.url}</span></div>}
-          <span className="following-item-status">{state}</span>
+        const state = stateFor(i), available = canDownload(i), saved = state === "Downloaded", video = videoFor(i);
+        const title = video?.title || i.title || i.url;
+        return <div key={i.url + n} className={"following-item following-media-item " + (saved ? "is-downloaded" : available ? "is-available" : "is-pending")}>
+          {available ? <input className="following-select" type="checkbox" aria-label={"Select " + title} disabled={busy} checked={selected.includes(i.url)} onChange={() => { if (canDownload(i)) setSelected(v => v.includes(i.url) ? v.filter(u => u !== i.url) : [...v, i.url]); }} /> : <span className="following-item-mark" aria-label={saved ? "Downloaded" : state}>{saved ? <svg viewBox="0 0 20 20"><path d="m4 10 4 4 8-9" /></svg> : <Icon name="download" />}</span>}
+          {video ? <button className="following-thumbnail" aria-label={"Play " + title} onClick={() => onPlay(video, playback)}><SavedThumbnail key={video.thumbnail} src={video.thumbnail ? media(video.thumbnail) : undefined} /><span className="following-thumbnail-play"><Icon name="play-fill" /></span></button> : <div className="following-thumbnail is-placeholder"><Icon name="film" /></div>}
+          <div className="following-media-copy">{video ? <button className="following-video-title" onClick={() => onPlay(video, playback)}>{title}</button> : <button className="following-video-title" disabled={!available || busy} onClick={() => { if (available) setSelected(v => v.includes(i.url) ? v.filter(u => u !== i.url) : [...v, i.url]); }}>{title}</button>}
+          {video?.source_title && video.source_title !== title && <p className="following-original" title={video.source_title}>Original: {video.source_title}</p>}
+          <p>{[video?.site || hostOf(i.url), video?.duration ? duration(video.duration) : "", video?.height ? video.height + "p" : "", video?.filesize ? Math.round(video.filesize / 1048576) + " MB" : ""].filter(Boolean).join(" · ")}</p>
+          {!!video?.people?.length && <p>{video.people.map(name => people.find(p => p.name === name)?.nickname || name).join(", ")}</p>}
+          </div><div className="following-media-actions"><span className="following-item-status">{state}</span>{video ? <button className="m-button" onClick={() => onPlay(video, playback)}><Icon name="play-fill" />Play</button> : safeLink(i.url) && <a className="following-source-link" href={i.url} target="_blank" rel="noreferrer">View source ↗</a>}</div>
         </div>;
       })}</div>
     </>}

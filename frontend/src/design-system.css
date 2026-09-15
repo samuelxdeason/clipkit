@@ -364,3 +364,64 @@
 .following-item.is-downloaded { background: #61bc8905; }
 .following-item.is-pending .following-item-status { background: #d9aa5815; color: #e5c18d; }
 .following-item.is-pending .following-item-mark { color: #e5c18d; }
+
+/* Source titles remain readable without crowding library cards. */
+.watch-original-title { margin-top: 8px; font-size: 13px; color: var(--ui-secondary); }
+.watch-original-title summary { cursor: pointer; width: fit-content; }
+.watch-original-title summary:focus-visible { outline: 2px solid var(--ui-accent); outline-offset: 4px; border-radius: 4px; }
+.watch-record-title .watch-original-title p, .watch-source-title p { margin: 8px 0 0; font-size: 13px; line-height: 1.6; color: var(--ui-secondary); overflow-wrap: anywhere; white-space: pre-wrap; user-select: text; }
+.watch-source-title { min-width: 0; }
+
+.inspector-original-title p { white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; line-height: 1.6; }
+
+/* Download queue controls use the shared library surfaces. */
+.queue-bulk-actions, .download-order-controls, .queue-step-controls { display: flex; align-items: center; gap: 8px; }
+.queue-bulk-actions, .download-order-controls { flex-shrink: 0; }
+.queue-step-controls { gap: 0; border: 1px solid var(--ui-line); border-radius: 8px; overflow: hidden; }
+.queue-step-controls button { width: 32px; height: 32px; display: grid; place-items: center; }
+.queue-step-controls button+button { border-left: 1px solid var(--ui-line); }
+.queue-step-controls svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.queue-step-controls button:hover:not(:disabled) { background: var(--ui-hover); }
+.download-order-controls button:disabled, .queue-bulk-actions button:disabled { opacity: .35; cursor: default; }
+.downloads-page .download-url { overflow-wrap: anywhere; }
+@media(max-width: 1100px) { .download-queue-heading { flex-wrap: wrap; } .download-order-controls { flex-direction: column; align-items: flex-end; } }
+@media(max-width: 650px) { .downloads-page .download-row { flex-wrap: wrap; } .downloads-page .download-info { flex-basis: calc(100% - 52px); } .download-order-controls { flex-direction: row; margin-left: 40px; } .queue-bulk-actions { width: 100%; justify-content: space-between; } }
+
+.download-add-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.finder-shell .download-add-heading h2 { margin: 0; }
+.download-library-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.download-library-toolbar .queue-search { flex: 1; min-width: 0; margin: 0; background: var(--ui-field); border-color: var(--ui-line); }
+.downloads-page .download-row.is-running { background: var(--ui-panel); box-shadow: none; }
+@media(max-width: 700px) { .download-library-toolbar { flex-wrap: wrap; } .download-library-toolbar .queue-search { flex-basis: 100%; } .download-add-heading { flex-wrap: wrap; } }
+
+/* Following uses the same source identity and media surfaces as the library. */
+.following-avatar { width: 64px; height: 64px; flex: 0 0 64px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--ui-field); color: var(--ui-secondary); font-size: 21px; font-weight: 600; border: 1px solid var(--ui-line); }
+.following-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.following-directory-toolbar { display: flex; align-items: center; gap: 16px; margin: 20px 0 16px; }
+.following-directory-toolbar .manager-search { flex: 1; margin: 0; }
+.following-directory-toolbar>span, .following-source-heading small { color: var(--ui-secondary); font-size: 12px; }
+.following-source-name { font-size: 15px; font-weight: 600; text-align: left; color: var(--ui-text); }
+.following-source-name:hover, .following-video-title:hover { text-decoration: underline; text-underline-offset: 3px; }
+.following-checked { display: block; margin-top: 6px; }
+.following-back { margin-bottom: 16px; }
+.following-source-heading { padding: 20px; background: var(--ui-panel); border: 1px solid var(--ui-line); border-radius: var(--ui-panel-radius); }
+.following-source-heading>.following-source-actions { flex: 0 1 auto; }
+.following-items { border: 1px solid var(--ui-line); border-radius: var(--ui-panel-radius); overflow: hidden; background: var(--ui-panel); }
+.following-media-item { min-height: 108px; padding: 16px; gap: 16px; }
+.following-media-item:last-child { border-bottom: 0; }
+.following-media-item.is-downloaded { background: transparent; }
+.following-select { width: 18px; height: 18px; flex: 0 0 18px; cursor: pointer; }
+.following-thumbnail { position: relative; width: 112px; height: 72px; flex: 0 0 112px; overflow: hidden; border-radius: 8px; background: var(--ui-field); display: grid; place-items: center; color: var(--ui-muted); }
+.following-thumbnail>img { width: 100%; height: 100%; object-fit: contain; }
+.following-thumbnail>svg { width: 24px; height: 24px; }
+.following-thumbnail-play { position: absolute; inset: 0; display: grid; place-items: center; background: #0003; opacity: 0; }
+.following-thumbnail-play svg { width: 22px; height: 22px; color: white; }
+.following-thumbnail:hover .following-thumbnail-play, .following-thumbnail:focus-visible .following-thumbnail-play { opacity: 1; }
+.following-media-copy { flex: 1; min-width: 0; }
+.following-video-title { font-size: 13px; font-weight: 600; line-height: 1.5; text-align: left; color: var(--ui-text); overflow-wrap: anywhere; }
+.following-media-copy p { margin-top: 5px; font-size: 12px; line-height: 1.5; color: var(--ui-secondary); }
+.following-media-copy .following-original { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ui-muted); }
+.following-media-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex: 0 0 auto; }
+.following-source-link { font-size: 12px; color: var(--ui-secondary); }
+.following-source-link:hover { color: var(--ui-text); }
+@media(max-width: 760px) { .following-source-actions { gap: 8px; } .following-directory-toolbar { flex-wrap: wrap; } .following-media-item { flex-wrap: wrap; gap: 12px; } .following-thumbnail { width: 80px; flex-basis: 80px; height: 58px; } .following-media-copy { flex-basis: calc(100% - 140px); } .following-media-actions { flex-direction: row; justify-content: space-between; width: 100%; padding-left: 30px; } }

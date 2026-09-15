@@ -2122,7 +2122,7 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
 
   const saveTitle = async () => {
     const t = tv.trim(); setEditing(false);
-    if (t && t !== video.title) { await SetTitle(video.site, video.id, t); video.title = t; onChanged(); }
+    if (t && t !== video.title) { await SetTitle(video.site, video.id, t); if (!video.source_title) video.source_title = video.title; video.title = t; onChanged(); }
   };
   const toggleFav = async () => { const nf = !fav; setFav(nf); video.favorite = nf; await SetFavorite(video.site, video.id, nf); onChanged(); };
   const copy = async (kind: "path" | "link") => {
@@ -2203,6 +2203,7 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
                 <input aria-label="Video title" value={tv} autoFocus onChange={e => setTv(e.target.value)} onKeyDown={e => { if (e.key === "Escape") { e.stopPropagation(); setEditing(false); } }} />
                 <button type="submit" className="secondary-btn px-3 py-2">Save</button><button type="button" onClick={() => setEditing(false)}>Cancel</button>
               </form> : <h1>{video.title || video.uploader || "Untitled video"}</h1>}
+              {video.source_title && video.source_title !== video.title && <details className="watch-original-title"><summary>Original title</summary><p>{video.source_title}</p></details>}
               <p>{[fmtDur(video.duration), video.height ? video.height + "p" : "", fmtSize(video.filesize)].filter(Boolean).join(" · ")}</p>
             </div>
             <div className="watch-record-actions">
@@ -2228,7 +2229,7 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
               <div className="watch-detail-toolbar"><button onClick={() => { setTv(video.title || ""); setEditing(true); }}>Rename video</button>{isDesktopApp && video.filepath && <button onClick={() => OpenFolder(video.filepath)}>Open folder ↗</button>}</div>
               {video.filepath && <label>File path<input aria-label="File path" readOnly value={video.filepath} onFocus={e => e.currentTarget.select()} /></label>}
               <dl><div><dt>Source</dt><dd>{label(video.site) || "Local"}</dd></div>{video.upload_date && <div><dt>Date</dt><dd>{fmtDate(video.upload_date)}</dd></div>}</dl>
-              {(video as { source_title?: string }).source_title && <label>Original title<input aria-label="Original title" readOnly value={(video as { source_title?: string }).source_title} onFocus={e => e.currentTarget.select()} /></label>}
+              <div className="watch-source-title"><span className="watch-field-label">Original title</span><p>{video.source_title || video.title || "Not available"}</p></div>
               {video.webpage_url && <><label>Source URL<input aria-label="Source URL" readOnly value={video.webpage_url} onFocus={e => e.currentTarget.select()} /></label><div className="watch-detail-toolbar"><button onClick={() => copy("link")}>{copied === "link" ? "Link copied ✓" : "Copy source link"}</button><button onClick={() => BrowserOpenURL(video.webpage_url)}>Open source ↗</button></div>
                 <div className="watch-detail-toolbar">
                   {redl === "confirm"

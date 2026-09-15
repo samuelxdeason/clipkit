@@ -195,6 +195,9 @@ func (s *Server) routes(ui fs.FS) {
 	post(m, "/api/enqueue", func(b body) (any, error) { return s.core.Enqueue(b.URL), nil })
 	post(m, "/api/enqueue/many", func(b body) (any, error) { return map[string]int{"added": s.core.EnqueueMany(b.URLs)}, nil })
 	post(m, "/api/redownload", func(b body) (any, error) { return s.core.Redownload(b.Site, b.ID) })
+	post(m, "/api/job/move", func(b body) (any, error) { return ok, s.core.MoveJob(b.ID, b.Direction) })
+	post(m, "/api/job/retry", func(b body) (any, error) { return map[string]int{"added": s.core.RetryFailed(b.ID)}, nil })
+	post(m, "/api/queue/clear-completed", func(_ body) (any, error) { s.core.ClearCompleted(); return ok, nil })
 	post(m, "/api/job/remove", func(b body) (any, error) { s.core.RemoveJob(b.ID); return ok, nil })
 	post(m, "/api/clearfinished", func(_ body) (any, error) { s.core.ClearFinished(); return ok, nil })
 	post(m, "/api/synced/remove", func(b body) (any, error) { s.core.RemoveSync(b.URL); return ok, nil })
@@ -224,30 +227,31 @@ func (s *Server) routes(ui fs.FS) {
 
 // body is the union of every POST payload; each handler reads the fields it needs.
 type body struct {
-	URL      string              `json:"url"`
-	Site     string              `json:"site"`
-	ID       string              `json:"id"`
-	VideoID  string              `json:"videoId"`
-	Title    string              `json:"title"`
-	Name     string              `json:"name"`
-	Bio      string              `json:"bio"`
-	Cover    string              `json:"cover"`
-	Model    string              `json:"model"`
-	Fav      bool                `json:"fav"`
-	Position float64             `json:"position"`
-	Duration float64             `json:"duration"`
-	Hidden   bool                `json:"hidden"`
-	Locked   bool                `json:"locked"`
-	ID64     int64               `json:"id64"`
-	Models   []string            `json:"models"`
-	Labels   []string            `json:"labels"`
-	Paths    []string            `json:"paths"`
-	URLs     []string            `json:"urls"`
-	Links    []library.ModelLink `json:"links"`
-	Nickname string              `json:"nickname"`
-	NewName  string              `json:"newName"`
-	Handle   string              `json:"handle"`
-	Platform string              `json:"platform"`
+	Direction string              `json:"direction"`
+	URL       string              `json:"url"`
+	Site      string              `json:"site"`
+	ID        string              `json:"id"`
+	VideoID   string              `json:"videoId"`
+	Title     string              `json:"title"`
+	Name      string              `json:"name"`
+	Bio       string              `json:"bio"`
+	Cover     string              `json:"cover"`
+	Model     string              `json:"model"`
+	Fav       bool                `json:"fav"`
+	Position  float64             `json:"position"`
+	Duration  float64             `json:"duration"`
+	Hidden    bool                `json:"hidden"`
+	Locked    bool                `json:"locked"`
+	ID64      int64               `json:"id64"`
+	Models    []string            `json:"models"`
+	Labels    []string            `json:"labels"`
+	Paths     []string            `json:"paths"`
+	URLs      []string            `json:"urls"`
+	Links     []library.ModelLink `json:"links"`
+	Nickname  string              `json:"nickname"`
+	NewName   string              `json:"newName"`
+	Handle    string              `json:"handle"`
+	Platform  string              `json:"platform"`
 }
 
 var ok = map[string]bool{"ok": true}

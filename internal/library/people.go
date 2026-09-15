@@ -79,7 +79,7 @@ func (db *DB) personNames() ([]string, error) {
 	var out []string
 	for rows.Next() {
 		var n string
-		if rows.Scan(&n) == nil {
+		if rows.Scan(&n) == nil && strings.TrimSpace(n) != "" {
 			out = append(out, n)
 		}
 	}
@@ -255,7 +255,7 @@ func (db *DB) Unsorted() ([]Video, error) {
 }
 
 // People returns the registry with per-person tallies derived from the
-// library, plus an Unsorted bucket ("") when anything is unsorted. Ordered by
+// library. Unassigned videos are not people. Ordered by
 // video count, then name.
 func (db *DB) People() ([]Model, error) {
 	names, err := db.personNames()
@@ -279,7 +279,6 @@ func (db *DB) People() ([]Model, error) {
 		acc[n] = &agg{sites: map[string]bool{}}
 		canon[strings.ToLower(n)] = n
 	}
-	unsorted := &agg{sites: map[string]bool{}}
 	bump := func(a *agg, v Video) {
 		a.count++
 		if v.Duration != nil {
@@ -296,15 +295,10 @@ func (db *DB) People() ([]Model, error) {
 		}
 	}
 	for _, v := range all {
-		hit := false
 		for _, p := range v.People {
 			if n, ok := canon[strings.ToLower(p)]; ok {
 				bump(acc[n], v)
-				hit = true
 			}
-		}
-		if !hit {
-			bump(unsorted, v)
 		}
 	}
 
@@ -324,7 +318,7 @@ func (db *DB) People() ([]Model, error) {
 		crows.Close()
 	}
 
-	out := make([]Model, 0, len(names)+1)
+	out := make([]Model, 0, len(names))
 	build := func(name string, a *agg) Model {
 		sites := make([]string, 0, len(a.sites))
 		for s := range a.sites {
@@ -343,9 +337,6 @@ func (db *DB) People() ([]Model, error) {
 	}
 	for _, n := range names {
 		out = append(out, build(n, acc[n]))
-	}
-	if unsorted.count > 0 {
-		out = append(out, build("", unsorted))
 	}
 	sort.SliceStable(out, func(i, j int) bool {
 		if out[i].Count != out[j].Count {
