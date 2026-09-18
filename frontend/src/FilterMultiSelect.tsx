@@ -12,7 +12,7 @@ export default function FilterMultiSelect({ label, choices, selected, onChange }
   const close = () => { setOpen(false); setQuery(""); trigger.current?.focus(); };
   const matches = choices.filter(c => [c.label, c.value, c.detail].join(" ").toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
   const names = selected.map(value => choices.find(c => c.value === value)?.label || value);
-  return <div className="filter-multi">
+  return <div className={`filter-multi ${selected.length ? "has-selection" : ""}`}>
     <button ref={trigger} type="button" className="filter-picker-trigger" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
       <span>{label}</span><span className="filter-picker-preview">{names.length ? names.join(", ") : "Any"}</span>
       {selected.length > 0 && <span className="filter-picker-count">{selected.length}</span>}

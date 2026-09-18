@@ -11,6 +11,8 @@ import * as wails from "../wailsjs/go/main/App";
 import { BrowserOpenURL as wailsOpenURL, ClipboardSetText } from "../wailsjs/runtime/runtime";
 import { library, downloader } from "../wailsjs/go/models";
 
+import { requestJSON } from "./httpResponse";
+
 type Video = library.Video;
 
 const isWails = !!(window as any).go || typeof (window as any).runtime !== "undefined";
@@ -22,18 +24,14 @@ function base(): Promise<string> {
 }
 
 async function getJSON<T>(path: string): Promise<T> {
-  const r = await fetch((await base()) + path);
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
+  return requestJSON<T>((await base()) + path);
 }
 async function postJSON<T = any>(path: string, body?: any): Promise<T> {
-  const r = await fetch((await base()) + path, {
+  return requestJSON<T>((await base()) + path, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body || {}),
   });
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
 }
 const qs = (o: Record<string, string | number>) =>
   "?" + Object.entries(o).map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");

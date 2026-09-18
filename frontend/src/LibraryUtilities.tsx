@@ -1,3 +1,4 @@
+import { LoadState } from "./WorkspaceUI";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import * as api from "./api";
@@ -17,12 +18,14 @@ export function LibrarySettings({ onTools, initialSection = "general", onSection
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [changed, setChanged] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [tab, setTab] = useState(initialSection);
   useEffect(() => { setTab(initialSection); }, [initialSection]);
   const [version, setVersion] = useState(0);
   useEffect(() => {
-    let live = true;
-    Promise.all([api.MediaRootPath(), api.Stats(), api.CookieStatus()]).then(([r, s, c]) => { if (live) { setRoot(r); setStats(s); setConnections(c); } }).catch(e => { if (live) setError(String(e)); });
+    let live = true; setLoading(true); setLoadError("");
+    Promise.all([api.MediaRootPath(), api.Stats(), api.CookieStatus()]).then(([r, s, c]) => { if (live) { setRoot(r); setStats(s); setConnections(c); } }).catch(e => { if (live) setLoadError(String(e)); }).finally(() => { if (live) setLoading(false); });
     return () => { live = false; };
   }, [version]);
   useEffect(() => {
@@ -42,13 +45,16 @@ export function LibrarySettings({ onTools, initialSection = "general", onSection
     catch (e) { setError(String(e)); setBusy(""); }
   };
   const connect = () => run("connections", async () => { setConnections(await api.ConnectCookies()); setNotice("Connection settings updated."); });
+  if (loading && !stats) return <LoadState title="Opening settings…" busy />;
+  if (loadError && !stats) return <LoadState title="Couldn’t load settings" message={loadError} onRetry={() => setVersion(v => v + 1)} />;
   return <div className="utility-page settings-page">
     <nav className="settings-navigation" aria-label="Settings sections">{[["general", "Library", "folder"], ["connections", "Connections", "connections"], ["maintenance", "Maintenance", "gear"], ["advanced", "Advanced", "grid"]].map(([id, label, icon]) => <button key={id} aria-pressed={tab === id} className={tab === id ? "active" : ""} onClick={() => { setTab(id); onSectionChange?.(id); }}><Icon name={icon} />{label}</button>)}</nav>
     <div className="settings-detail"><header className="settings-section-heading"><h2>{({ general: "Your library", connections: "Connections", maintenance: "Maintenance", advanced: "Advanced" } as Record<string, string>)[tab]}</h2><p>{({ general: "Storage and library information, in one place.", connections: "Manage access to the services you save from.", maintenance: "Keep your catalogue backed up and your media ready to play.", advanced: "Additional tools for managing your library." } as Record<string, string>)[tab]}</p></header>
+    {loadError && <div className="manager-alert" role="alert">Couldn’t refresh settings. Showing previously loaded information.<button onClick={() => setVersion(v => v + 1)}>Retry</button></div>}
     {error && <div className="manager-alert" role="alert">{error}<button onClick={() => { setError(""); setVersion(v => v + 1); }}>Retry loading</button></div>}
     {notice && <div className="manager-notice" role="status">{notice}</div>}
     {tab === "general" && <>
-      <section className="settings-group"><h2>Library & storage</h2><div className="settings-card"><SettingRow icon="folder" title="Library location" detail="Your media and catalogue are stored here.">{api.isDesktopApp && <button className="m-button" disabled={!!busy} onClick={() => run("location", async () => { const next = await api.ChooseMediaRoot(); if (next && next !== root) { setRoot(next); setChanged(true); } })}>Change folder…</button>}</SettingRow><div className="setting-path"><code>{root || "Loading library location…"}</code></div>{changed && <div className="setting-inline-notice">Restart ClipKit to use this location.<button className="m-button" onClick={() => api.RestartApp()}>Restart now</button></div>}<div className="storage-summary"><div><strong>{stats ? bytes(stats.totalBytes) : "—"}</strong><span>Library storage</span></div><div><strong>{stats?.videoCount.toLocaleString() ?? "—"}</strong><span>Videos</span></div><div><strong>{stats?.modelCount.toLocaleString() ?? "—"}</strong><span>People</span></div></div>{!!stats?.sites?.length && <div className="storage-breakdown"><div className="storage-track">{stats.sites.map((s, i) => <span key={s.site} style={{ width: `${stats.totalBytes ? s.bytes / stats.totalBytes * 100 : 0}%`, background: ["#0a84ff", "#5e5ce6", "#64d2ff", "#bf5af2"][i % 4] }} />)}</div><div className="storage-legend">{stats.sites.map((s, i) => <span key={s.site}><i style={{ background: ["#0a84ff", "#5e5ce6", "#64d2ff", "#bf5af2"][i % 4] }} />{s.site} <b>{bytes(s.bytes)}</b></span>)}</div></div>}</div></section>
+      <section className="settings-group"><h2>Library & storage</h2><div className="settings-card"><SettingRow icon="folder" title="Library location" detail="Your media and catalogue are stored here.">{api.isDesktopApp && <button className="m-button" disabled={!!busy} onClick={() => run("location", async () => { const next = await api.ChooseMediaRoot(); if (next && next !== root) { setRoot(next); setChanged(true); } })}>Change folder…</button>}</SettingRow><div className="setting-path"><code>{root || "Loading library location…"}</code></div>{changed && <div className="setting-inline-notice">Restart ClipKit to use this location.<button className="m-button" onClick={() => api.RestartApp()}>Restart now</button></div>}<div className="storage-summary"><div><strong>{stats ? bytes(stats.totalBytes) : "—"}</strong><span>Library storage</span></div><div><strong>{stats?.videoCount.toLocaleString() ?? "—"}</strong><span>Videos</span></div><div><strong>{stats?.modelCount.toLocaleString() ?? "—"}</strong><span>People</span></div></div>{!!stats?.sites?.length && <div className="storage-breakdown"><div className="storage-track">{stats.sites.map((s, i) => <span key={s.site} style={{ width: `${stats.totalBytes ? s.bytes / stats.totalBytes * 100 : 0}%`, background: ["var(--ui-mist)", "var(--ui-lilac)", "var(--ui-foam)", "var(--ui-rose)"][i % 4] }} />)}</div><div className="storage-legend">{stats.sites.map((s, i) => <span key={s.site}><i style={{ background: ["var(--ui-mist)", "var(--ui-lilac)", "var(--ui-foam)", "var(--ui-rose)"][i % 4] }} />{s.site} <b>{bytes(s.bytes)}</b></span>)}</div></div>}</div></section>
 
     </>}
     {tab === "advanced" && <>

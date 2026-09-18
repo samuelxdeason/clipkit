@@ -1,0 +1,72 @@
+/* Shared workspace roles. Keep dimensions and hierarchy consistent across pages. */
+.finder-shell {
+  --ui-control-height: 36px;
+  --ui-type-heading: 22px;
+  --ui-type-title: 15px;
+  --ui-type-body: 14px;
+  --ui-type-control: 13px;
+  --ui-type-meta: 12px;
+}
+.finder-shell .manager-heading { min-height: 44px; margin-bottom: 20px; padding-bottom: 0; border: 0; gap: 16px; }
+.finder-shell .manager-heading h1 { font-size: var(--ui-type-heading); font-weight: 700; line-height: 1.3; letter-spacing: -.4px; }
+.finder-shell .manager-heading p { font-size: var(--ui-type-body); font-weight: 400; line-height: 1.5; margin-top: 5px; color: var(--ui-secondary); }
+.finder-shell .m-button { min-height: var(--ui-control-height); padding: 7px 12px; border-radius: var(--ui-radius)!important; font-size: var(--ui-type-control); font-weight: 600; line-height: 1.4; }
+.finder-shell :is(.m-button.primary, .m-button.library-add) { min-height: var(--ui-control-height); padding: 7px 12px; font-weight: 650; }
+.finder-shell :is(.manager-search, .queue-search) { height: var(--ui-control-height); min-height: var(--ui-control-height); border-radius: var(--ui-radius); }
+.finder-shell :is(.manager-search, .queue-search) input { font-size: var(--ui-type-control); font-weight: 400; }
+.finder-shell :is(.video-filter-popover summary, .filter-picker-trigger) { min-height: var(--ui-control-height); height: auto; font-size: var(--ui-type-control); font-weight: 600; border-radius: var(--ui-radius); }
+.finder-shell .video-filter-popover summary { height: var(--ui-control-height); }
+.finder-shell :is(.toolbar-right, .photo-actions, .video-actions, .video-filter-menu, .video-result-scope, .photo-import-form) select { min-height: var(--ui-control-height); height: var(--ui-control-height); font: inherit; font-size: var(--ui-type-control); font-weight: 500; color: var(--ui-text); background-color: var(--ui-field); border: 1px solid var(--ui-line); border-radius: var(--ui-radius); }
+.finder-shell :is(.utility-tabs, .settings-navigation) button { min-height: 34px; font-size: var(--ui-type-control); font-weight: 600; }
+.finder-shell :is(.utility-tabs, .settings-navigation) button.active, .finder-shell .view-switch .chosen { background: var(--ui-raised); color: var(--ui-text); box-shadow: none; }
+.finder-shell .view-switch { display: flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--ui-line); border-radius: var(--ui-radius); background: var(--ui-field); }
+.finder-shell .view-switch button { display: grid; place-items: center; width: 30px; min-height: 28px; border-radius: 6px; color: var(--ui-secondary); }
+.finder-shell :is(.video-card-title, .photo-tile>strong, .file-name strong, .setting-copy>strong, .account-row strong) { font-size: var(--ui-type-title); font-weight: 650; }
+.finder-shell :is(.video-card-people, .video-card-meta, .video-list-table .numeric, .file-name small, .photo-tile>small, .profile-stats, .manager-footer, .directory-heading) { font-size: var(--ui-type-meta); color: var(--ui-secondary); }
+.finder-shell .video-list-table .file-name small { font-size: var(--ui-type-meta)!important; }
+.finder-shell :is(.manager-modal h2, .profile-editor-dialog h2, .photo-import-dialog h2, .settings-section-heading h2, .account-connect h2, .person-accounts h2) { font-size: 18px; font-weight: 700; letter-spacing: -.25px; }
+.finder-shell :is(.following-directory-toolbar, .following-toolbar, .download-queue-toolbar, .content-search-row) { gap: 12px; margin-bottom: 16px; align-items: center; }
+.finder-shell :is(.following-directory-toolbar, .following-toolbar, .download-queue-toolbar, .content-search-row) .manager-search { flex: 1; width: auto; min-width: 180px; }
+.finder-shell .library-toolbar { display: grid; grid-template-columns: minmax(250px, 1fr) auto; gap: 8px 12px; align-items: start; margin-bottom: 16px; }
+.finder-shell .library-toolbar>.video-search-controls { margin: 0; min-width: 0; }
+.finder-shell .library-toolbar>:is(.video-actions, .photo-actions) { min-height: var(--ui-control-height); padding: 0; border: 0; gap: 8px; align-items: center; }
+.finder-shell .library-toolbar .photo-actions>span { display: none; }
+.finder-shell .library-toolbar .chrome-tools { gap: 8px; }
+.finder-shell .library-toolbar .toolbar-right { gap: 8px; flex-wrap: nowrap; }
+.finder-shell .library-toolbar>.video-result-scope { grid-column: 1 / -1; border-top: 1px solid var(--ui-line); margin-top: 2px; padding-top: 6px; min-height: 32px; font-size: var(--ui-type-meta); }
+.finder-shell .library-toolbar .video-actions>.m-button { font-size: var(--ui-type-control); }
+.finder-shell .library-toolbar .video-result-scope select { min-height: 30px; height: 30px; }
+.finder-shell .workspace-load-state { min-height: 260px; padding: 32px 20px; }
+.finder-shell .workspace-load-state h2 { font-size: 18px; color: var(--ui-text); font-weight: 700; }
+.finder-shell .workspace-load-state p { max-width: 440px; margin: 10px auto 18px; font-size: var(--ui-type-body); line-height: 1.6; }
+.finder-shell .manager-alert { color: #eed3d6; background: #d8b2b910; border-color: #d8b2b930; font-size: var(--ui-type-control); }
+.finder-shell .manager-alert button { color: var(--ui-text); font-weight: 650; min-height: 32px; }
+@media(max-width: 1200px) {
+  .finder-shell .library-toolbar { grid-template-columns: minmax(0, 1fr); }
+  .finder-shell .library-toolbar>.video-actions { justify-content: space-between; }
+  .finder-shell .library-toolbar>.photo-actions { justify-content: flex-end; }
+}
+@media(max-width: 760px) {
+  .finder-shell .manager-heading { flex-wrap: wrap; gap: 12px; }
+  .finder-shell .library-toolbar .toolbar-right { flex-wrap: wrap; gap: 6px; }
+  .finder-shell .library-toolbar .video-actions { flex-wrap: wrap; }
+  .finder-shell .library-toolbar .chrome-tools { flex: 1; }
+  .finder-shell :is(.following-directory-toolbar, .following-toolbar, .download-queue-toolbar) { flex-wrap: wrap; }
+}
+.finder-shell .filter-picker-search input:focus-visible { outline: none; box-shadow: none; }
+.finder-shell .photo-tile { background: var(--ui-panel); border: 1px solid var(--ui-line); border-radius: var(--ui-panel-radius)!important; overflow: hidden; padding: 7px 7px 10px; }
+.finder-shell .photo-tile:hover { background: var(--ui-raised); border-color: var(--ui-dialog-line); }
+.finder-shell .photo-tile>strong { padding: 0 5px; }
+.finder-shell .photo-tile>small { padding: 4px 5px 0; }
+@media(max-width: 760px) {
+  .finder-shell .manager-heading p { max-width: none; }
+  .finder-shell .settings-navigation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; gap: 6px; padding-bottom: 0; }
+  .finder-shell .settings-navigation button { width: 100%; min-width: 0; padding: 9px 10px; }
+}
+.finder-shell :is(.download-import button, .download-help button, .clear-filters, .setting-inline-notice button) { color: var(--ui-accent); font-size: var(--ui-type-meta); font-weight: 600; }
+.finder-shell :is(.download-meta, .download-url, .download-import, .download-help, .settings-description, .setting-copy p, .storage-summary span, .storage-legend) { color: var(--ui-secondary); font-size: var(--ui-type-meta); }
+.finder-shell :is(.following-add input, .download-add-content input) { min-height: var(--ui-control-height); font-size: var(--ui-type-control); border-radius: var(--ui-radius); background: var(--ui-field); color: var(--ui-text); border-color: var(--ui-line); }
+/* Direct fields get one focus ring; compound search fields own their ring. */
+.finder-shell :is(input, select, textarea):focus { box-shadow: none; }
+.finder-shell :is(input, select, textarea):focus-visible { outline: 2px solid var(--ui-accent); outline-offset: 2px; box-shadow: none; }
+.finder-shell :is(.manager-search, .queue-search, .filter-picker-search) input:focus-visible { outline: none; box-shadow: none; }

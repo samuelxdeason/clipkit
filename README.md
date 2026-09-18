@@ -31,8 +31,10 @@ lives in a hidden `.trove/` folder inside the vault; media files live under
 
 The sidebar separates Videos and Photos. Videos contains All videos, Recently
 added, Favorites, and Needs organizing views in its own navigation.
-The default workspace is a dark video file manager with neutral surfaces and
-blue controls. Search titles, filenames, paths,
+The default workspace is a dark video file manager with restrained charcoal surfaces,
+warm whites, muted blush actions, and locally bundled Nunito for rounded,
+readable type. Subtle gray selections mark the current location, while compact
+media cards and list rows share consistent metadata and controls. Search titles, filenames, paths,
 sources, people (including nicknames), and tags with Ctrl/Cmd+K. Search words
 are combined; quotation marks keep a phrase together. Combine people, tag,
 source, duration, and resolution filters, then sort or switch between list and
