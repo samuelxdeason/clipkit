@@ -120,6 +120,14 @@ func (db *DB) AccountsForPerson(name string) ([]AccountInfo, error) {
 	return out, nil
 }
 
+// AccountPerson returns the person an account is connected to ("" if nobody).
+func (db *DB) AccountPerson(platform, handle string) string {
+	var person string
+	_ = db.sql.QueryRow(`SELECT COALESCE(person,'') FROM accounts WHERE platform=? AND handle=?`,
+		platform, strings.ToLower(strings.TrimSpace(handle))).Scan(&person)
+	return person
+}
+
 // AccountVideoCounts tallies how many videos each account is the source of.
 func (db *DB) AccountVideoCounts() (map[Account]int, error) {
 	rows, err := db.sql.Query(`SELECT source_platform, source_handle, COUNT(*) FROM videos

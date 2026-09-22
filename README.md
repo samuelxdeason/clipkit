@@ -48,6 +48,12 @@ and Enter or double-click opens the video.
 Use the floating action bar to tag, assign people, or add selected videos to
 collections without scrolling back up. Search sits alongside the filters.
 Open the player’s Details panel to organize the current video.
+Choose **Move to trash** in the selection bar to move selected videos to the
+vault’s `Recycle bin` folder. Photos support **Select photos** in both grid and
+list views, including person galleries; **Select all matching** includes every
+photo matching the current filters across pages. Trashed files leave the library
+but remain in dated recycle folders with a manifest of their original paths.
+Recovery is manual; there is no in-app restore action yet.
 Grid thumbnails and titles play the video directly. A compact circular selector
 toggles each card; toolbar Select mode makes thumbnails and titles select instead,
 with double-click opening the video. Shift-click selects a range, and Ctrl/Cmd-click

@@ -3,7 +3,7 @@
 //
 //  1. gallery-dl (the yt-dlp of image sites) when installed — it knows
 //     hundreds of sites' layouts and solves e.g. Pornhub's JS-guarded albums
-//     (with the vault's cookies.txt).
+//     and X's login-walled photo tweets (with the vault's cookies.txt).
 //  2. A generic scrape of the page: collect links that point at real image
 //     files, download them with a browser UA + the page as Referer, and keep
 //     everything that is actually a substantial image (thumbnails and site
@@ -42,57 +42,98 @@ func (d *Downloader) importPhotosURLWork(pageURL, model, album string) {
 			album = strings.TrimPrefix(u.Hostname(), "www.")
 		}
 	}
-	urls := d.galleryDLURLs(pageURL)
-	if len(urls) == 0 {
-		urls = scrapeGalleryImages(pageURL)
+	groups := d.galleryDLURLs(pageURL)
+	if len(groups) == 0 {
+		for _, u := range scrapeGalleryImages(pageURL) {
+			groups = append(groups, []string{u})
+		}
 	}
-	total := len(urls)
+	total := len(groups)
 	if total == 0 {
 		d.emit("import", map[string]any{"done": 0, "total": 0, "added": 0, "finished": true})
 		return
 	}
 	client := &http.Client{Timeout: 90 * time.Second}
 	added := 0
-	for i, u := range urls {
-		if d.downloadPhotoOne(client, u, pageURL, model, album) {
+	for i, g := range groups {
+		if d.downloadPhotoGroup(client, g, pageURL, model, album) {
 			added++
 		}
-		d.emit("import", map[string]any{"done": i + 1, "total": total, "name": photoBaseName(u)})
+		d.emit("import", map[string]any{"done": i + 1, "total": total, "name": photoBaseName(g[0])})
 	}
 	d.emit("import", map[string]any{"done": total, "total": total, "added": added, "finished": true})
 }
 
-// galleryDLURLs asks gallery-dl for the gallery's direct image URLs. Returns
-// nil when gallery-dl is missing or doesn't understand the site.
-func (d *Downloader) galleryDLURLs(pageURL string) []string {
-	var argv []string
+// galleryDLArgv locates gallery-dl: beside yt-dlp (resources/gallery-dl.exe),
+// on PATH, or as an importable Python module. nil when it isn't installed.
+func (d *Downloader) galleryDLArgv() []string {
+	d.mu.Lock()
+	ytdlp := d.cfg.YtDlp
+	d.mu.Unlock()
+	if ytdlp != "" {
+		if p := filepath.Join(filepath.Dir(ytdlp), "gallery-dl.exe"); fileExists(p) {
+			return []string{p}
+		}
+	}
 	if p, err := exec.LookPath("gallery-dl"); err == nil {
-		argv = []string{p}
-	} else if py, err := exec.LookPath("python"); err == nil {
-		argv = []string{py, "-m", "gallery_dl"}
-	} else {
+		return []string{p}
+	}
+	if py, err := exec.LookPath("python"); err == nil {
+		// Windows ships a Store-redirect stub named python.exe, so only trust
+		// python if the module really answers.
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+		c := exec.CommandContext(ctx, py, "-m", "gallery_dl", "--version")
+		c.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+		if c.Run() == nil {
+			return []string{py, "-m", "gallery_dl"}
+		}
+	}
+	return nil
+}
+
+// galleryDLURLs asks gallery-dl for the gallery's direct image URLs. Each
+// entry is one picture: its primary URL first, then gallery-dl's fallback
+// URLs for the same picture. Returns nil when gallery-dl is missing or
+// doesn't understand the site.
+func (d *Downloader) galleryDLURLs(pageURL string) [][]string {
+	argv := d.galleryDLArgv()
+	if argv == nil {
 		return nil
 	}
-	if spec := d.cfg.CookieSpec; strings.HasPrefix(spec, "file:") {
-		argv = append(argv, "--cookies", strings.TrimPrefix(spec, "file:"))
-	}
+	argv = append(argv, d.cookieArgs()...) // gallery-dl takes the same --cookies flags as yt-dlp
 	argv = append(argv, "-g", pageURL)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 	c := exec.CommandContext(ctx, argv[0], argv[1:]...)
 	c.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	c.Env = d.env()
 	out, err := c.Output()
 	if err != nil && len(out) == 0 {
 		return nil
 	}
-	var urls []string
-	for _, ln := range strings.Split(string(out), "\n") {
-		ln = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(ln), "| "))
-		if strings.HasPrefix(ln, "http://") || strings.HasPrefix(ln, "https://") {
-			urls = append(urls, ln)
+	return parseGalleryDLOutput(string(out))
+}
+
+// parseGalleryDLOutput groups `gallery-dl -g` output: a plain line starts a
+// new picture, and the "| url" lines that follow are alternate URLs for it
+// (lower resolutions, other formats), never separate pictures.
+func parseGalleryDLOutput(out string) [][]string {
+	var groups [][]string
+	for _, ln := range strings.Split(out, "\n") {
+		ln = strings.TrimSpace(ln)
+		alt := strings.HasPrefix(ln, "|")
+		ln = strings.TrimSpace(strings.TrimPrefix(ln, "|"))
+		if !strings.HasPrefix(ln, "http://") && !strings.HasPrefix(ln, "https://") {
+			continue
+		}
+		if alt && len(groups) > 0 {
+			groups[len(groups)-1] = append(groups[len(groups)-1], ln)
+		} else {
+			groups = append(groups, []string{ln})
 		}
 	}
-	return urls
+	return groups
 }
 
 // imageLinkRe matches href/src/data-src attribute values.
@@ -149,12 +190,28 @@ func scrapeGalleryImages(pageURL string) []string {
 	return out
 }
 
-// downloadPhotoOne fetches one image and catalogues it. Small responses are
-// discarded — a real gallery photo is never a 10KB thumbnail.
-func (d *Downloader) downloadPhotoOne(client *http.Client, imgURL, referer, model, album string) bool {
+// photoID is the catalogue id for a picture, keyed on its primary URL.
+func photoID(imgURL string) string { return "photo_" + hashStr(imgURL) }
+
+// downloadPhotoGroup fetches one picture — trying its alternate URLs in turn
+// when the primary one fails — and catalogues it under the primary URL's id.
+func (d *Downloader) downloadPhotoGroup(client *http.Client, urls []string, referer, model, album string) bool {
+	for _, u := range urls {
+		data, ct, ok := fetchPhoto(client, u, referer)
+		if !ok {
+			continue
+		}
+		return d.catalogPhoto(urls[0], data, extFromImage(ct, u), model, album)
+	}
+	return false
+}
+
+// fetchPhoto downloads one image. Small responses are rejected — a real
+// gallery photo is never a 10KB thumbnail.
+func fetchPhoto(client *http.Client, imgURL, referer string) (data []byte, contentType string, ok bool) {
 	req, err := http.NewRequest("GET", imgURL, nil)
 	if err != nil {
-		return false
+		return nil, "", false
 	}
 	req.Header.Set("User-Agent", photoUA)
 	if referer != "" {
@@ -162,19 +219,23 @@ func (d *Downloader) downloadPhotoOne(client *http.Client, imgURL, referer, mode
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return false
+		return nil, "", false
 	}
 	defer resp.Body.Close()
 	ct := resp.Header.Get("Content-Type")
 	if resp.StatusCode != 200 || (ct != "" && !strings.HasPrefix(ct, "image/")) {
-		return false
+		return nil, "", false
 	}
-	data, err := io.ReadAll(io.LimitReader(resp.Body, 64<<20))
+	data, err = io.ReadAll(io.LimitReader(resp.Body, 64<<20))
 	if err != nil || len(data) < 25<<10 {
-		return false
+		return nil, "", false
 	}
-	ext := extFromImage(ct, imgURL)
-	id := "photo_" + hashStr(imgURL)
+	return data, ct, true
+}
+
+// catalogPhoto stores image bytes in the vault and records the photo row.
+func (d *Downloader) catalogPhoto(imgURL string, data []byte, ext, model, album string) bool {
+	id := photoID(imgURL)
 	dest := d.writeVaultFile(library.FlatBase("photo", id)+ext, data)
 	if dest == "" {
 		return false
@@ -222,6 +283,14 @@ func extFromImage(contentType, imgURL string) string {
 		}
 		return "." + e
 	}
+	if u, err := url.Parse(imgURL); err == nil { // pbs.twimg.com/media/<id>?format=jpg
+		switch f := strings.ToLower(u.Query().Get("format")); f {
+		case "jpg", "jpeg":
+			return ".jpg"
+		case "png", "webp", "gif":
+			return "." + f
+		}
+	}
 	return ".jpg"
 }
 
@@ -239,6 +308,9 @@ func photoBaseName(imgURL string) string {
 		}
 	}
 	if b := path.Base(p); b != "" && b != "." {
+		if f := strings.ToLower(u.Query().Get("format")); f != "" && !strings.Contains(b, ".") {
+			return b + "." + f // X media ids carry their type in ?format=
+		}
 		return b
 	}
 	return "photo"

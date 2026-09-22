@@ -65,6 +65,7 @@ func (s *Server) Handler() http.Handler {
 
 func (s *Server) routes(ui fs.FS) {
 	m := s.mux
+	post(m, "/api/media/trash", func(b body) (any, error) { return ok, s.core.TrashMedia(b.Videos, b.Photos) })
 	m.HandleFunc("GET /api/duplicates/recycle-folder", j(func(_ *http.Request) (any, error) { return s.core.DuplicateRecycleFolder(), nil }))
 	m.HandleFunc("GET /api/duplicates", j(func(_ *http.Request) (any, error) { return s.core.DuplicateGroups() }))
 	post(m, "/api/duplicates/create", func(b body) (any, error) { return s.core.CreateDuplicateGroup(b.Videos) })
@@ -231,6 +232,7 @@ func (s *Server) routes(ui fs.FS) {
 
 // body is the union of every POST payload; each handler reads the fields it needs.
 type body struct {
+	Photos    []string            `json:"photos"`
 	Videos    []library.VideoKey  `json:"videos"`
 	Keep      []library.VideoKey  `json:"keep"`
 	Direction string              `json:"direction"`

@@ -37,6 +37,8 @@ const qs = (o: Record<string, string | number>) =>
   "?" + Object.entries(o).map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
 
 /* ---------------- catalogue reads ---------------- */
+export const TrashMedia = (videos: { site: string; id: string }[], photos: string[]) =>
+  postJSON("/api/media/trash", { videos, photos });
 export const Models = () => getJSON<library.Model[]>("/api/models");
 export const AllLabels = () => getJSON<string[]>("/api/labels");
 export const LabelCounts = () => getJSON<library.LabelCount[]>("/api/labelcounts");

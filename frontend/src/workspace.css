@@ -56,6 +56,7 @@
 .finder-shell .filter-picker-search input:focus-visible { outline: none; box-shadow: none; }
 .finder-shell .photo-tile { background: var(--ui-panel); border: 1px solid var(--ui-line); border-radius: var(--ui-panel-radius)!important; overflow: hidden; padding: 7px 7px 10px; }
 .finder-shell .photo-tile:hover { background: var(--ui-raised); border-color: var(--ui-dialog-line); }
+.finder-shell .photo-tile.photo-selected { outline: 2px solid var(--ac); outline-offset: -2px; background: var(--ui-raised); }
 .finder-shell .photo-tile>strong { padding: 0 5px; }
 .finder-shell .photo-tile>small { padding: 4px 5px 0; }
 @media(max-width: 760px) {

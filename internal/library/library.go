@@ -699,6 +699,12 @@ func (db *DB) SetTitle(site, id, title string) error {
 }
 
 // AddPhoto inserts/updates a photo (paths stored relative to root).
+// PhotoExists reports whether a photo id is already catalogued.
+func (db *DB) PhotoExists(id string) bool {
+	var one int
+	return db.sql.QueryRow(`SELECT 1 FROM photos WHERE id=?`, id).Scan(&one) == nil
+}
+
 func (db *DB) AddPhoto(p Photo) error {
 	_, err := db.sql.Exec(`
 INSERT INTO photos (id,model,album,filepath,filename,added) VALUES (?,?,?,?,?,?)

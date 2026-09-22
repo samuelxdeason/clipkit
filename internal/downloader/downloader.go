@@ -616,6 +616,17 @@ func (d *Downloader) run(j *Job) {
 	d.mu.Unlock()
 	d.emitQueue()
 
+	// A link to a picture in a tweet: gallery-dl territory, yt-dlp would only refuse it.
+	if _, isTweet, photoOnly := tweetRequest(j.URL); isTweet && photoOnly && j.replace == nil {
+		d.runTweetPhotos(j, "")
+		return
+	}
+	// A copied image address: save it as a photo, not as yt-dlp's "unknown_video".
+	if fetchURL, album, ok := directImageRequest(j.URL); ok && j.replace == nil {
+		d.runDirectImage(j, fetchURL, album)
+		return
+	}
+
 	// Flat layout: files land directly in media/ named by source+id (pure
 	// machine identity — models/titles live only in the catalogue). ingest
 	// canonicalises the name and parks the sidecars under .trove after
@@ -751,6 +762,13 @@ func (d *Downloader) run(j *Job) {
 	pmu.Unlock()
 	if wasStalled && lastErr == "" {
 		lastErr = "ERROR: Stalled — no data for over 2 minutes; skipped to keep the queue moving."
+	}
+	// yt-dlp got nothing out of a tweet: either it has no video, or yt-dlp
+	// chased a link in the tweet text ("Unsupported URL: fanvue.com/…").
+	// Either way the pictures, if any, are gallery-dl's job.
+	if _, isTweet, _ := tweetRequest(j.URL); isTweet && j.replace == nil && len(saved) == 0 && lastErr != "" {
+		d.runTweetPhotos(j, cleanErr(lastErr))
+		return
 	}
 	d.finish(j, saved, runErr, lastErr)
 }

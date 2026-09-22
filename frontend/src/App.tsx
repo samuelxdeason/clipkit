@@ -10,7 +10,7 @@ import {
   MediaRootPath, ChooseMediaRoot, RestartApp, Stats, MediaBase, RebuildLibrary, BackupCatalogue, OptimizeStreaming, CleanTitles, isDesktopApp,
   Collections, CreateCollection, RenameCollection, SetCollectionHidden, SetCollectionLocked,
   DeleteCollection, AddToCollection, RemoveFromCollection, VideosByCollection, CollectionsForVideo,
-  EventsOn, BrowserOpenURL,
+  EventsOn, BrowserOpenURL, TrashMedia,
 } from "./api";
 import { AccountsWithCounts, AccountsForPerson, ConnectAccount, CreateAccount, VideosUploadedBy, VideosAppearing, AllAccounts, AdoptAccount, CreatePerson, DeletePerson, PeopleCleanupReport } from "./api";
 import type { CleanupReport } from "./api";
@@ -836,15 +836,16 @@ function VideosPage({ version, modelNames, collections, onPlay, onChanged, onOpe
 
 /* ---------------- Home (discovery wall) ---------------- */
 
-function ArchiveMedia({ video, photo, onClick }: { video?: Video; photo?: Photo; onClick: () => void }) {
+function ArchiveMedia({ video, photo, onClick, selected }: { video?: Video; photo?: Photo; onClick: () => void; selected?: boolean }) {
   const [imageFailed, setImageFailed] = useState(false);
   useEffect(() => setImageFailed(false), [photo?.filepath, video?.thumbnail]);
   const title = photo ? photo.album || photo.filename || "Untitled photograph" : video?.title || video?.uploader || "Untitled film";
-  return <button className={`archive-media ${photo ? "is-photo" : "is-film"}`} onClick={onClick}>
+  return <button className={`archive-media ${photo ? "is-photo" : "is-film"}`} onClick={onClick} aria-pressed={selected}
+    style={selected ? {outline: "2px solid var(--ac)", outlineOffset: 2} : undefined}>
     <div className="archive-media-image">
       {!imageFailed && (photo?.filepath || video?.thumbnail) ? <img onError={() => setImageFailed(true)} src={mediaURL(photo?.filepath || video?.thumbnail)} alt={title} loading="lazy" decoding="async" /> : <div className="media-placeholder"><Icon name={photo ? "photo" : "film"} className="w-9 h-9" /></div>}
       <span className="media-kind"><Icon name={photo ? "photo" : "film"} className="w-3 h-3" />{photo ? "Photo" : fmtDur(video?.duration) || "Video"}</span>
-      <span className="media-open"><Icon name={photo ? "expand" : "play-fill"} className="w-5 h-5" /></span>
+      {selected !== undefined ? <span className="selection-indicator" aria-hidden>{selected ? "✓" : "○"}</span> : <span className="media-open"><Icon name={photo ? "expand" : "play-fill"} className="w-5 h-5" /></span>}
     </div>
     <div className="archive-media-caption"><strong>{title}</strong><span>{photo ? (photo.model ? modelLabel(photo.model) : "Your archive") : (peopleOf(video!).map(modelLabel).join(", ") || "Your archive")}</span></div>
   </button>;
@@ -902,6 +903,42 @@ function Home({ onPlay, onOpenModel, onGo, version }:
   </div>;
 }
 
+function TrashButton({ videos = [], photos = [], onDone }: { videos?: Video[]; photos?: string[]; onDone: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const count = videos.length + photos.length;
+  const trash = async () => {
+    setBusy(true); setError("");
+    try { await TrashMedia(videos.map(v => ({ site: v.site, id: v.id })), photos); onDone(); }
+    catch (e) { setError(String(e)); }
+    finally { setBusy(false); }
+  };
+  return <>
+    <button disabled={!count || busy} onClick={trash} className="secondary-btn px-3 py-1.5 text-xs disabled:opacity-40">{busy ? "Moving…" : "Move to trash"}</button>
+    <span className="text-xs text-muted">Files move to your vault’s Recycle bin folder.</span>
+    {error && <span role="alert" className="text-sm text-rose-400">{error}</span>}
+  </>;
+}
+
+function usePhotoSelection(photos: Photo[], onDone: () => void) {
+  const [active, setActive] = useState(false);
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const ids = photos.map(p => p.id);
+  const signature = JSON.stringify(ids);
+  useEffect(() => { setPicked(p => new Set([...p].filter(id => ids.includes(id)))); }, [signature]);
+  const exit = () => { setActive(false); setPicked(new Set()); };
+  const toggle = (id: string) => setPicked(p => { const next = new Set(p); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  const toolbar = <div className="flex flex-wrap items-center gap-3 my-3 text-sm">
+    {active ? <>
+      <span aria-live="polite">{picked.size} selected</span>
+      <button className="text-muted" onClick={() => setPicked(new Set(picked.size === ids.length ? [] : ids))}>{picked.size === ids.length ? "Deselect all" : "Select all loaded"}</button>
+      <TrashButton photos={ids.filter(id => picked.has(id))} onDone={() => { exit(); onDone(); }} />
+      <button onClick={exit}>Cancel</button>
+    </> : !!photos.length && <button className="secondary-btn px-3 py-1.5" onClick={() => setActive(true)}>Select photos</button>}
+  </div>;
+  return { active, picked, toggle, toolbar };
+}
+
 function PhotosPage({ version, query = "" }: { version: number; query?: string }) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [lightbox, setLightbox] = useState<number | null>(null);
@@ -911,6 +948,7 @@ function PhotosPage({ version, query = "" }: { version: number; query?: string }
   const [urlOpen, setUrlOpen] = useState(false);
   const [retry, setRetry] = useState(0);
   const [layout, setLayout] = useState("gallery");
+  const selection = usePhotoSelection(photos, () => setRetry(r => r + 1));
   useEffect(() => {
     let alive = true; setLoading(true); setError(false); setLightbox(null);
     AllPhotos(120, 0, query).then(p => { if (alive) { setPhotos(p || []); setMore(p?.length === 120); } }).catch(() => { if (alive) setError(true); }).finally(() => { if (alive) setLoading(false); });
@@ -920,8 +958,9 @@ function PhotosPage({ version, query = "" }: { version: number; query?: string }
   const albums = useMemo(() => Array.from(new Set(photos.map(p => p.album || "Individual photographs"))), [photos]);
   return <div className="archive-home photo-page"><header className="archive-page-heading"><div><h1>{query ? "Matching photographs" : "Photographs"}</h1></div><div className="flex gap-2"><button className="secondary-btn px-4 py-2.5 text-sm" onClick={() => setUrlOpen(true)}>From a link</button><button className="glow-btn px-4 py-2.5 text-sm" onClick={() => ImportPhotosDialog("").catch(() => setError(true))}>＋ Add photos</button></div></header>
     <div className="archive-section-heading"><span className="text-sm text-muted">{photos.length}{more ? "+" : ""} photographs</span><div className="segmented">{["gallery", "albums"].map(l => <button key={l} className={layout === l ? "selected" : ""} aria-pressed={layout === l} onClick={() => setLayout(l)}>{l === "gallery" ? "Gallery" : "By album"}</button>)}</div></div>
+    {selection.toolbar}
     {error && <div role="alert" className="archive-error">Unable to load or import photographs. <button onClick={() => setRetry(r => r + 1)}>Try again</button></div>}
-    {loading && !photos.length ? <CardGridSkeleton ratio="aspect-[3/4]" /> : !photos.length && !error ? <div className="archive-empty"><Icon name="photo" className="w-7 h-7" /><h2>No photographs yet</h2><p>Add photos from your device or a gallery link.</p><button className="glow-btn px-5 py-3" onClick={() => ImportPhotosDialog("").catch(() => setError(true))}>Add your first photographs</button></div> : (layout === "gallery" ? [""] : albums).map(album => <section key={album}>{album && <h2 className="album-heading">{album}</h2>}<div className="photo-masonry">{photos.map((p, i) => (!album || (p.album || "Individual photographs") === album) && <ArchiveMedia key={p.id} photo={p} onClick={() => setLightbox(i)} />)}</div></section>)}
+    {loading && !photos.length ? <CardGridSkeleton ratio="aspect-[3/4]" /> : !photos.length && !error ? <div className="archive-empty"><Icon name="photo" className="w-7 h-7" /><h2>No photographs yet</h2><p>Add photos from your device or a gallery link.</p><button className="glow-btn px-5 py-3" onClick={() => ImportPhotosDialog("").catch(() => setError(true))}>Add your first photographs</button></div> : (layout === "gallery" ? [""] : albums).map(album => <section key={album}>{album && <h2 className="album-heading">{album}</h2>}<div className="photo-masonry">{photos.map((p, i) => (!album || (p.album || "Individual photographs") === album) && <ArchiveMedia key={p.id} photo={p} selected={selection.active ? selection.picked.has(p.id) : undefined} onClick={() => selection.active ? selection.toggle(p.id) : setLightbox(i)} />)}</div></section>)}
     {more && <button className="archive-view-all" disabled={loading} onClick={loadMore}>{loading ? "Loading…" : "More photographs"} ↓</button>}
     {lightbox !== null && <Lightbox photos={photos} index={lightbox} onIndex={setLightbox} onClose={() => setLightbox(null)} />}
     {urlOpen && <PhotosFromURLModal model="" onClose={() => setUrlOpen(false)} />}
@@ -1312,6 +1351,7 @@ function ModelPage({ name, version, modelNames, onPlay, onChanged, onRenamed }:
   useEffect(() => { load(); }, [load, version]);
   useEffect(() => { const off = EventsOn("import", (s: any) => { if (s.finished) load(); }); return () => { off(); }; }, [load]);
   const changed = () => { load(); onChanged(); };
+  const photoSelection = usePhotoSelection(photos, changed);
 
   const avatar = info?.cover || videos[0]?.thumbnail || "";
   const totalSecs = videos.reduce((s, v) => s + (v.duration || 0), 0);
@@ -1394,6 +1434,7 @@ function ModelPage({ name, version, modelNames, onPlay, onChanged, onRenamed }:
           <button onClick={() => setPhotoURL(true)} className="secondary-btn text-xs font-semibold px-3 py-1.5">From URL</button>
         </div>
       </div>
+      {photoSelection.toolbar}
       {albums.map((a) => (
         <div key={a.title || "__loose"} className="mb-4">
           {a.title && (
@@ -1403,8 +1444,12 @@ function ModelPage({ name, version, modelNames, onPlay, onChanged, onRenamed }:
           )}
           <div className="photo-rail flex gap-2 overflow-x-auto pb-3">
             {a.items.map(({ p, i }) => (
-              <img key={p.id} src={mediaURL(p.filepath)} loading="lazy" onClick={() => setLightbox(i)}
-                className="h-44 rounded-xl object-cover cursor-pointer hover:opacity-80 shrink-0" />
+              <button key={p.id} className="relative shrink-0 rounded-xl" aria-pressed={photoSelection.active ? photoSelection.picked.has(p.id) : undefined}
+                style={photoSelection.picked.has(p.id) ? {outline: "2px solid var(--ac)"} : undefined}
+                onClick={() => photoSelection.active ? photoSelection.toggle(p.id) : setLightbox(i)}>
+                <img src={mediaURL(p.filepath)} alt={p.filename || "Photograph"} loading="lazy" className="h-44 rounded-xl object-cover hover:opacity-80" />
+                {photoSelection.active && <span className="selection-indicator" aria-hidden>{photoSelection.picked.has(p.id) ? "✓" : "○"}</span>}
+              </button>
             ))}
           </div>
         </div>
@@ -1760,7 +1805,7 @@ function VideoArea({ videos, groups, modelNames, collections, collectionId, onPl
   return (
     <>
       {(!slim || selectMode || !(groups && groups.length)) && (
-      <div className="flex items-center gap-3 mb-3 text-sm">
+      <div className="flex flex-wrap items-center gap-3 mb-3 text-sm">
         {!selectMode
           ? slim
             ? <button onClick={() => setSelectMode(true)} className="ml-auto text-muted hover:text-fg">Select</button>
@@ -1770,7 +1815,9 @@ function VideoArea({ videos, groups, modelNames, collections, collectionId, onPl
               <button onClick={() => setSelectMode(true)} className="ml-auto text-muted hover:text-fg">Select</button>
             </>
           : <>
-              <span className="text-muted">{picked.size} selected</span>
+              <span className="text-muted">{pickedVideos.length} selected</span>
+              <button onClick={() => setPicked(new Set(pickedVideos.length === videos.length ? [] : videos.map(key)))} className="text-xs text-muted">{pickedVideos.length === videos.length ? "Deselect all" : "Select all loaded"}</button>
+              <TrashButton videos={pickedVideos} onDone={() => { exit(); onChanged(); }} />
               <button onClick={() => setMoving(true)} disabled={!picked.size} style={{ background: "var(--ac)", color: "var(--ac-ink)" }}
                 className="font-semibold px-3 py-1.5 rounded-lg text-xs disabled:opacity-40">Move to person…</button>
               {collections && (
@@ -1818,8 +1865,7 @@ function VideoArea({ videos, groups, modelNames, collections, collectionId, onPl
 function VideoCard({ v, onClick, selectMode, selected }:
   { v: Video; onClick: () => void; selectMode?: boolean; selected?: boolean }) {
   return <div className="archive-video-card" style={selected ? {outline: "2px solid var(--ac)", outlineOffset: 4, borderRadius: 7} : undefined}>
-    <ArchiveMedia video={v} onClick={onClick} />
-    {selectMode && <span className="selection-indicator" aria-hidden>{selected ? "✓" : "○"}</span>}
+    <ArchiveMedia video={v} onClick={onClick} selected={selectMode ? !!selected : undefined} />
     {!!v.position && !!v.duration && v.position < v.duration * .95 && <div className="archive-video-progress"><i style={{width: `${Math.round(v.position / v.duration * 100)}%`}} /></div>}
   </div>;
 }
@@ -2689,7 +2735,7 @@ export function Downloads({ queue }: { queue: Job[] }) {
         <div className="text-sm font-semibold mb-2">Add a download</div>
         <div className="flex gap-2">
           <input value={url} onChange={(e) => setUrl(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") add(); }}
-            placeholder="Paste a video URL and press Enter…"
+            placeholder="Paste a video or photo URL and press Enter…"
             className="flex-1 bg-panel2 border border-edge rounded-lg px-4 py-2.5 text-sm outline-none focus:border-accent" />
           <button onClick={add} className="glow-btn px-6 rounded-lg">Add</button>
         </div>
