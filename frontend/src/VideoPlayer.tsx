@@ -1,10 +1,11 @@
-import type { ReactNode } from "react";
+import WatchOrganizer, { WatchTab } from "./WatchOrganizer";
+import "./watch-organizer.css";
 import { useEffect, useRef, useState } from "react";
 import { library } from "../wailsjs/go/models";
 import { MarkWatched, SetPosition } from "./api";
 import { Icon } from "./App";
 
-export default function VideoPlayer({ video, src, poster, onClose, onPrevious, onNext, details, detailsOpen, onToggleDetails, onPosition }: {
+export default function VideoPlayer({ video, src, poster, onClose, onPrevious, onNext, onChanged, media, detailsOpen, onToggleDetails, onPosition }: {
   video: library.Video;
   src: string;
   poster?: string;
@@ -12,14 +13,19 @@ export default function VideoPlayer({ video, src, poster, onClose, onPrevious, o
   onPosition: (position: number) => void;
   onPrevious?: () => void;
   onNext?: () => void;
-  details: ReactNode;
+  onChanged: () => void;
+  media: (path: string) => string;
   detailsOpen: boolean;
   onToggleDetails: () => void;
 }) {
+  const [organizeTab, setOrganizeTab] = useState<WatchTab>("people");
+  const openSection = (tab: WatchTab) => { setOrganizeTab(tab); if (!detailsOpen) onToggleDetails(); };
   const player = useRef<HTMLVideoElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const close = useRef(onClose);
   close.current = onClose;
+  const detailsState = useRef({ open: detailsOpen, toggle: onToggleDetails });
+  detailsState.current = { open: detailsOpen, toggle: onToggleDetails };
   const lastSaved = useRef(0);
   const lastPosition = useRef(video.position || 0);
   const total = useRef(video.duration || 0);
@@ -43,11 +49,13 @@ export default function VideoPlayer({ video, src, poster, onClose, onPrevious, o
     const handle = (event: KeyboardEvent) => {
       if (document.querySelector(".manager-modal")) return;
       if (event.key === "Escape" && !document.fullscreenElement) {
+        event.preventDefault();
         event.stopImmediatePropagation();
-        close.current();
+        if (detailsState.current.open) detailsState.current.toggle();
+        else close.current();
       }
       if (event.key === "Tab") {
-        const elements = Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), video, input, select, textarea') || []);
+        const elements = Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), video, input:not(:disabled), select:not(:disabled), textarea:not(:disabled)') || []).filter(el => el.getClientRects().length > 0);
         const first = elements[0], last = elements[elements.length - 1];
         if (event.shiftKey && (document.activeElement === first || document.activeElement === panel.current)) { event.preventDefault(); last?.focus(); }
         else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
@@ -96,9 +104,10 @@ export default function VideoPlayer({ video, src, poster, onClose, onPrevious, o
         onPause={save} onEnded={() => { lastPosition.current = total.current; save(); }}
         onError={() => setError("This video couldn’t be played. Check that its file is available and its format is supported by your browser.")} />
       </div>
-      <footer className="watch-footer"><span>{video.site}{video.height ? ` · ${video.height}p` : ""}{video.ext ? ` · ${video.ext.toUpperCase()}` : ""}</span><div className="watch-controls"><button onClick={onPrevious} disabled={!onPrevious} aria-label="Previous video">←</button><button onClick={onNext} disabled={!onNext} aria-label="Next video">→</button><button onClick={() => seek(-10)} aria-label="Rewind 10 seconds">↶ <span>10s</span></button><button onClick={() => seek(10)} aria-label="Forward 10 seconds"><span>10s</span> ↷</button><button onClick={onToggleDetails} aria-pressed={detailsOpen}><Icon name="menu" />Details</button><button onClick={toggleFullscreen}><Icon name="expand" />{fullscreen ? "Exit fullscreen" : "Fullscreen"}</button></div></footer>
+      <div className="watch-organize-bar"><span>Organize while you watch</span><div>{(["people", "tags", "collections"] as WatchTab[]).map(tab => <button type="button" key={tab} aria-pressed={detailsOpen && organizeTab === tab} onClick={() => openSection(tab)}><Icon name={tab === "people" ? "people" : tab === "tags" ? "tag" : "folder"} />{tab[0].toUpperCase() + tab.slice(1)}</button>)}</div></div>
+      <footer className="watch-footer"><span>{video.site}{video.height ? ` · ${video.height}p` : ""}{video.ext ? ` · ${video.ext.toUpperCase()}` : ""}</span><div className="watch-controls"><button onClick={onPrevious} disabled={!onPrevious} aria-label="Previous video">←</button><button onClick={onNext} disabled={!onNext} aria-label="Next video">→</button><button onClick={() => seek(-10)} aria-label="Rewind 10 seconds">↶ <span>10s</span></button><button onClick={() => seek(10)} aria-label="Forward 10 seconds"><span>10s</span> ↷</button><button onClick={() => openSection("file")} aria-pressed={detailsOpen && organizeTab === "file"}><Icon name="menu" />File details</button><button onClick={toggleFullscreen}><Icon name="expand" />{fullscreen ? "Exit fullscreen" : "Fullscreen"}</button></div></footer>
       {(error || saveError) && <p className="watch-error" role="alert">{error || saveError}</p>}
-      </div>{detailsOpen && <div className="watch-inspector">{details}</div>}</div>
+      </div><div className="watch-inspector" hidden={!detailsOpen}><WatchOrganizer video={video} tab={organizeTab} onTab={setOrganizeTab} onClose={onToggleDetails} onChanged={onChanged} media={media} /></div></div>
     </div>
   </div>;
 }

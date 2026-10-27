@@ -9,8 +9,13 @@ export function LibraryToolbar({ children, label, className = "" }: { children: 
 }
 
 export function LoadState({ title, message, onRetry, busy = false }: { title: string; message?: string; onRetry?: () => void; busy?: boolean }) {
-  return <div className="manager-empty workspace-load-state" role={onRetry ? "alert" : "status"} aria-busy={busy || undefined}>
+  return <div className={`manager-empty workspace-load-state ${busy ? "is-loading" : onRetry ? "is-error" : ""}`} role={onRetry && !busy ? "alert" : "status"} aria-busy={busy || undefined}>
+    <span className="state-symbol" aria-hidden="true">{busy ? <span className="state-spinner" /> : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 3v1"/></svg>}</span>
     <h2>{title}</h2>{message && <p>{message.replace(/^Error:\s*/, "")}</p>}
-    {onRetry && <button className="m-button" onClick={onRetry}>Try again</button>}
+    {onRetry && <button className="m-button" disabled={busy} onClick={onRetry}>Try again</button>}
   </div>;
+}
+
+export function ActivityIndicator({ children }: { children: ReactNode }) {
+  return <div className="activity-indicator" role="status"><span className="state-spinner" aria-hidden="true"/><span>{children}</span></div>;
 }

@@ -62,14 +62,17 @@ func mergeCookies(existing, incoming string) string {
 	add := func(text string) {
 		for _, ln := range strings.Split(text, "\n") {
 			t := strings.TrimRight(ln, "\r")
-			if s := strings.TrimSpace(t); s == "" || strings.HasPrefix(s, "#") {
+			// Netscape exports use #HttpOnly_ as a cookie attribute, not a comment.
+			if s := strings.TrimSpace(t); s == "" || (strings.HasPrefix(s, "#") && !strings.HasPrefix(t, "#HttpOnly_")) {
 				continue
 			}
 			f := strings.Split(t, "\t")
 			if len(f) < 7 {
 				continue
 			}
-			k := key{f[0], f[5]}
+			// Match the same cookie even when its HttpOnly attribute changes,
+			// while preserving the incoming line (including its attribute).
+			k := key{strings.TrimPrefix(f[0], "#HttpOnly_"), f[5]}
 			if _, ok := seen[k]; !ok {
 				order = append(order, k)
 			}

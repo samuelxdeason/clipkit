@@ -33,7 +33,7 @@ export default function OrganizePicker({ kind, choices, value, onChange }: { kin
     setOpen(false); setActive(-1); input.current?.focus();
   };
   return <div className="organize-picker" onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false); }}>
-    <input ref={input} autoFocus role="combobox" aria-autocomplete="list" aria-expanded={open} aria-controls={open ? listId : undefined} aria-activedescendant={open && active >= 0 && matches[active] ? `${listId}-${active}` : undefined} aria-label={label} placeholder={kind === "tag" ? "Find or create tags…" : `Search ${kind === "assign" ? "people" : "collections"}…`} value={kind === "tag" ? value : query} onClick={() => setOpen(true)} onChange={e => { setOpen(true); setActive(-1); if (kind === "tag") onChange(e.target.value); else { setQuery(e.target.value); onChange(""); } }} onKeyDown={e => {
+    <input ref={input} autoFocus role="combobox" aria-autocomplete="list" aria-expanded={open} aria-controls={open && matches.length ? listId : undefined} aria-activedescendant={open && active >= 0 && matches[active] ? `${listId}-${active}` : undefined} aria-label={label} placeholder={kind === "tag" ? "Find or create tags…" : `Search ${kind === "assign" ? "people" : "collections"}…`} value={kind === "tag" ? value : query} onClick={() => setOpen(true)} onChange={e => { setOpen(true); setActive(-1); if (kind === "tag") onChange(e.target.value); else { setQuery(e.target.value); onChange(""); } }} onKeyDown={e => {
       if (e.key === "Escape" && open) { e.preventDefault(); e.stopPropagation(); setOpen(false); }
       else if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); setOpen(true); const next = matches.length ? (active < 0 ? (e.key === "ArrowDown" ? 0 : matches.length - 1) : (active + (e.key === "ArrowDown" ? 1 : -1) + matches.length) % matches.length) : -1; setActive(next); requestAnimationFrame(() => {
         const option = document.getElementById(listId + "-" + next);
@@ -46,7 +46,8 @@ export default function OrganizePicker({ kind, choices, value, onChange }: { kin
       else if (e.key === "Enter" && open && active >= 0 && matches[active]) { e.preventDefault(); choose(matches[active]); }
     }} />
     <svg className="picker-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
-    {open && createPortal(<div ref={list} className="picker-options organize-floating-options" style={position} id={listId} role="listbox" aria-label={`${label} suggestions`}>
+    {!matches.length && <p className="organize-empty-hint" role="status">{kind === "tag" ? "No matching tags. Save to create your typed tags." : `No matching ${kind === "assign" ? "people" : "collections"}.`}</p>}
+    {open && matches.length > 0 && createPortal(<div ref={list} className="picker-options organize-floating-options" style={position} id={listId} role="listbox" aria-label={`${label} suggestions`}>
       {matches.map((c, index) => <button type="button" role="option" id={`${listId}-${index}`} tabIndex={-1} key={c.value} aria-selected={active === index || (kind !== "tag" && value === c.value)} onMouseDown={e => e.preventDefault()} onClick={() => choose(c)}><span>{c.label}{c.detail && <small>{c.detail}</small>}</span>{value === c.value && <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4 10 4 4 8-9" /></svg>}</button>)}
       {!matches.length && <p role="status">{kind === "tag" ? "No matching tags. Save to create your typed tags." : `No matching ${kind === "assign" ? "people" : "collections"}.`}</p>}
     </div>, document.body)}

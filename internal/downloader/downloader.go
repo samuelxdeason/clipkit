@@ -9,6 +9,7 @@ import (
 	"hash/fnv"
 	"io"
 	"io/fs"
+	"log"
 	"net/url"
 	"os"
 	"os/exec"
@@ -58,14 +59,15 @@ type Config struct {
 
 // Downloader runs one job at a time on a background worker.
 type Downloader struct {
-	cfg   Config
-	db    *library.DB
-	emit  func(event string, data any)
-	jobs  map[string]*Job
-	order []string
-	wake  chan struct{} // buffered(1): nudges the worker that new work may exist
-	seq   uint64        // monotonic id source (guarded by mu)
-	mu    sync.Mutex
+	cfg               Config
+	db                *library.DB
+	emit              func(event string, data any)
+	jobs              map[string]*Job
+	order             []string
+	wake              chan struct{} // buffered(1): nudges the worker that new work may exist
+	seq               uint64        // monotonic id source (guarded by mu)
+	mu                sync.Mutex
+	queueStoreBlocked bool // preserve unreadable or newer queue files
 
 	enumMu    sync.Mutex
 	enumCache map[string]*SyncList // sync URL -> saved enumeration (persisted)
@@ -101,6 +103,9 @@ func New(cfg Config, db *library.DB, emit func(string, any)) *Downloader {
 		emit: emit,
 		jobs: map[string]*Job{},
 		wake: make(chan struct{}, 1),
+	}
+	if err := d.loadQueue(); err != nil {
+		log.Printf("restore download queue: %v", err)
 	}
 	go d.worker()
 	return d
@@ -454,6 +459,7 @@ func (d *Downloader) Enqueue(url string) string {
 	}
 	d.mu.Lock()
 	id, added := d.addLocked(url)
+	d.persistQueueLocked()
 	d.mu.Unlock()
 	if added {
 		d.notify()
@@ -474,6 +480,7 @@ func (d *Downloader) EnqueueMany(urls []string) int {
 			}
 		}
 	}
+	d.persistQueueLocked()
 	d.mu.Unlock()
 	if added > 0 {
 		d.notify()
@@ -502,6 +509,7 @@ func (d *Downloader) Redownload(v library.Video) (string, error) {
 	d.jobs[id] = &Job{ID: id, URL: u, Title: firstNonEmpty(v.Title, u), Status: "queued", Replace: true,
 		replace: &replaceTarget{site: v.Site, id: v.ID, oldFile: v.Filepath}}
 	d.order = append(d.order, id)
+	d.persistQueueLocked()
 	d.mu.Unlock()
 	d.notify()
 	d.emitQueue()
@@ -584,6 +592,9 @@ func (d *Downloader) Snapshot() []Job {
 }
 
 func (d *Downloader) emitQueue() {
+	d.mu.Lock()
+	d.persistQueueLocked()
+	d.mu.Unlock()
 	if d.emit != nil {
 		d.emit("queue", d.Snapshot())
 	}
@@ -599,6 +610,9 @@ func (d *Downloader) worker() {
 				j.Status = "downloading" // Claim under the lock before queue edits can intervene.
 				break
 			}
+		}
+		if next != nil {
+			d.persistQueueLocked()
 		}
 		d.mu.Unlock()
 		if next == nil {
@@ -674,10 +688,8 @@ func (d *Downloader) run(j *Job) {
 		"--socket-timeout", "30", // abort a dead socket instead of hanging forever
 		"--retries", "10", "--fragment-retries", "10", // ride out transient stalls
 		"--no-continue", // tokened CDNs (go.porn) don't resume cleanly — a stale .part hangs forever; always fetch fresh
-		"--progress-template",
-		"download:[[PROG]]%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(progress.downloaded_bytes)s",
-		"--print", "after_move:[[DONE]]%(filepath)s",
 	}
+	args = append(args, downloadProgressArgs()...)
 	if cfg.FfmpegDir != "" {
 		args = append(args, "--ffmpeg-location", cfg.FfmpegDir)
 	}
@@ -700,14 +712,16 @@ func (d *Downloader) run(j *Job) {
 	// Stall watchdog: if the download makes no byte progress for stallTimeout,
 	// kill yt-dlp (and its child) and move on — so one dead connection can't
 	// freeze the whole queue. Any non-progress output (retries, merge, post-
-	// processing) counts as activity, so a working merge is never killed.
+	// processing) counts as activity. Post-processing has no byte-progress
+	// deadline: a legitimate merge can remain silent for more than two minutes.
 	const stallTimeout = 2 * time.Minute
 	var pmu sync.Mutex
-	var lastBytes int64 = -1
-	lastActive := time.Now()
+	activity := downloadActivity{lastBytes: -1, lastActive: time.Now()}
 	stalled := false
 	watchDone := make(chan struct{})
+	watchExited := make(chan struct{})
 	go func() {
+		defer close(watchExited)
 		t := time.NewTicker(15 * time.Second)
 		defer t.Stop()
 		for {
@@ -716,9 +730,9 @@ func (d *Downloader) run(j *Job) {
 				return
 			case <-t.C:
 				pmu.Lock()
-				idle := time.Since(lastActive)
+				expired := activity.expired(time.Now(), stallTimeout)
 				pmu.Unlock()
-				if idle > stallTimeout {
+				if expired {
 					pmu.Lock()
 					stalled = true
 					pmu.Unlock()
@@ -736,17 +750,17 @@ func (d *Downloader) run(j *Job) {
 		if i := strings.Index(line, "[[PROG]]"); i >= 0 {
 			payload := line[i+8:]
 			d.applyProgress(j, payload)
-			if b := progBytes(payload); b > lastBytes { // real download progress only
-				pmu.Lock()
-				lastBytes = b
-				lastActive = time.Now()
-				pmu.Unlock()
-			}
+			pmu.Lock()
+			activity.progress(progBytes(payload), time.Now())
+			pmu.Unlock()
 			continue
 		}
 		// any non-progress line = activity (retries, post-processing, merge)
 		pmu.Lock()
-		lastActive = time.Now()
+		activity.lastActive = time.Now()
+		if strings.Contains(line, "[[PROCESSING]]") {
+			activity.processing = true
+		}
 		pmu.Unlock()
 		switch {
 		case strings.Contains(line, "[[DONE]]"):
@@ -756,6 +770,11 @@ func (d *Downloader) run(j *Job) {
 		}
 	}
 	close(watchDone)
+	<-watchExited
+	if err := sc.Err(); err != nil {
+		killTree(cmd)
+		lastErr = "ERROR: Could not read downloader output: " + err.Error()
+	}
 	runErr := cmd.Wait()
 	pmu.Lock()
 	wasStalled := stalled
@@ -771,6 +790,15 @@ func (d *Downloader) run(j *Job) {
 		return
 	}
 	d.finish(j, saved, runErr, lastErr)
+}
+
+func downloadProgressArgs() []string {
+	return []string{
+		"--progress", // --print implies quiet; explicitly retain progress updates.
+		"--progress-template", "download:[[PROG]]%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s|%(progress.downloaded_bytes)s",
+		"--print", "after_move:[[DONE]]%(filepath)s",
+		"--print", "post_process:[[PROCESSING]]",
+	}
 }
 
 // progBytes extracts downloaded_bytes (the 4th field) from a progress payload.
@@ -793,10 +821,12 @@ func killTree(cmd *exec.Cmd) {
 		return
 	}
 	pid := cmd.Process.Pid
-	_ = cmd.Process.Kill()
 	k := exec.Command("taskkill", "/F", "/T", "/PID", strconv.Itoa(pid))
 	k.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
-	_ = k.Run()
+	// Keep the parent alive until taskkill has enumerated its descendants.
+	if err := k.Run(); err != nil {
+		_ = cmd.Process.Kill()
+	}
 }
 
 func (d *Downloader) applyProgress(j *Job, payload string) {
@@ -813,7 +843,7 @@ func (d *Downloader) applyProgress(j *Job, payload string) {
 	if len(parts) > 2 {
 		j.ETA = strings.TrimSpace(parts[2])
 	}
-	prog := Job{ID: j.ID, Percent: j.Percent, Speed: j.Speed, ETA: j.ETA}
+	prog := *j // Consumers replace the row; retain status, title and URL.
 	d.mu.Unlock()
 	if d.emit != nil {
 		d.emit("progress", prog)

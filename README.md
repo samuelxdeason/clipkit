@@ -29,6 +29,30 @@ The vault location comes from `-root`, `$TROVE_ROOT`, or the saved config
 lives in a hidden `.trove/` folder inside the vault; media files live under
 `media/`.
 
+The download queue is saved to `.trove/queue.json` whenever jobs are added,
+reordered, removed, retried, or change status. Reopening ClipKit restores the
+queue and automatically runs unfinished jobs in their saved order. An interrupted
+download returns to waiting and may restart its file transfer from the beginning;
+failed jobs remain available for manual retry. Re-download jobs retain their
+replacement target. Completed queue history remains until cleared. This cannot
+recover queues lost before persistent storage was added.
+
+The player has People, Tags, and Collections actions beneath the video. These
+open an inline organization panel that stays inside fullscreen and preserves
+playback. Search existing entries, link or unlink them, or create a person, tag,
+or collection without leaving the player. Changes save immediately, with Undo
+for the last successful membership change (new profiles/collections themselves
+are kept). People linked through source accounts are identified separately.
+File details contains title editing, favorites, file information, and re-download.
+Escape closes the organization panel first, then the player outside fullscreen.
+
+Player UI regression checks: run `node frontend/tests/player-smoke.cjs` with
+Playwright available (`PLAYWRIGHT_MODULE_PATH` can point to its installed package).
+The test uses Edge by default (`PLAYWRIGHT_CHANNEL` overrides it), bundled FFmpeg,
+a synthetic video, mocked API responses, and a temporary Vite server on port 5198.
+It does not modify the real library. Preview fixtures live under `frontend/tests/`
+and are not included in the production build.
+
 The sidebar separates Videos and Photos. Videos contains All videos, Recently
 added, Favorites, and Needs organizing views in its own navigation.
 Photos have direct selection circles in grid and list views, Shift-click range
@@ -197,3 +221,73 @@ Photos now shares the Videos search and filter layout, segmented views, sort and
 grid/list controls, result counts, and pagination. The header Add photos action
 offers local and gallery-link imports. Person profile Photos uses the same browser.
 Utility pages share compact headings, search fields, button sizing, and spacing.
+
+Video cards show saved viewing progress and a fallback when a preview is missing.
+The People directory supports name search, alphabetical sorting, and sorting by
+video count. Profiles display the saved name, original name, notes, and library
+stats above their Videos, Photos, and Accounts tabs. Existing search, filters,
+selection, bulk organization, and grid/list controls remain available.
+
+`node frontend/tests/library-smoke.cjs` checks browsing and profile workflows with
+an isolated synthetic catalog. It requires Playwright (or `PLAYWRIGHT_MODULE_PATH`)
+and Edge; set `PLAYWRIGHT_CHANNEL` to use another installed browser channel.
+
+Collections use cover cards at the top level and compact subfolders inside each
+collection. Photos share the library card styling, with selection beside sorting
+and view controls. Missing image previews use a placeholder. Collection options
+close after choosing an action, clicking outside, or pressing Escape.
+`node frontend/tests/photo-collections-smoke.cjs` checks photo filtering, selection,
+viewer navigation, drag-and-drop payloads, collection dialogs, and narrow layouts
+against synthetic data using the same Playwright setup.
+
+Downloads uses queue overview cards, separate job cards, and prominent live
+progress, speed, and ETA information. Overview cards filter the queue; existing
+retry, reorder, removal, import, and history controls remain available.
+`node frontend/tests/downloads-smoke.cjs` simulates live queue events and verifies
+queue actions without connecting to the real download service.
+
+Following uses source cards with separate library counts and actions, plus a
+source header and selectable item cards. Search fields include clear buttons;
+the results row clarifies that Download available applies to the entire source.
+`node frontend/tests/following-smoke.cjs` verifies source browsing, refresh and
+retry, filtering, selection, queue exclusion, unfollowing, and responsive layouts
+with simulated sources and downloads.
+
+Settings shares the library's section headers and action cards, with descriptive
+navigation, storage summary cards, and dismissible completion notices.
+`node frontend/tests/settings-smoke.cjs` checks storage, mocked desktop folder
+selection and connection import, backup/rebuild actions, and maintenance events
+without modifying the real vault or settings.
+
+Potential duplicates uses a review summary, refined comparison panels, distinct
+keep/recycle states, and a sticky decision bar. Missing thumbnails have a fallback.
+`node frontend/tests/duplicates-smoke.cjs` verifies draft selections, navigation,
+playback, preview exclusivity, cleanup failure/retry, and exact keeper payloads
+with generated neutral video and mocked cleanup endpoints.
+
+Tags uses searchable cards with video counts and alphabetical or most-used
+sorting. Opening a tag retains the existing video filter and bulk organization
+workflow. Empty tag suggestions appear inline so they do not cover Save.
+The library smoke test includes tag search, keyboard browsing, and creating a
+tag through bulk editing while preserving existing labels.
+
+The sidebar groups Library and Organize destinations, highlights the active page
+and folder, and keeps collection search, pinned folders, and drag targets available.
+In narrow windows, Close navigation or Escape closes the sidebar and returns focus
+to its toggle. Escape first clears an active folder search. The photo/collection
+smoke test also checks sidebar shortcuts, folder navigation, pins, and closing.
+
+Editing, importing, and organizing dialogs share field, action, and menu styling.
+Shared dialogs preserve autofocus, skip hidden and disabled controls when trapping
+Tab, return focus on close, and let picker Escape handling run before dismissal.
+The library and photo/collection smoke tests cover these dialog workflows.
+
+Empty states, loading indicators, and recovery messages share consistent cards,
+spacing, and action styling. Loading indicators respect reduced-motion preferences.
+The states smoke test uses mocked failures to verify library, photo, Settings, and
+duplicate-queue recovery, empty-state actions, and narrow-window error layouts.
+
+The final consistency pass aligns search and keyboard focus, placeholder contrast,
+checkbox accents, pagination controls, compact headings, and numeric metadata.
+The eight page smoke suites cover player, library, photos/collections, downloads,
+Following, Settings, duplicates, and loading/recovery using isolated sample data.

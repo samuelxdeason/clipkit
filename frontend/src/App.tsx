@@ -2269,6 +2269,15 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
             {castAccounts.map(ca => <AccountChip key={ca.handle} platform="pornhub" handle={ca.handle} onClick={() => setAcctModal({ platform: "pornhub", handle: ca.handle, display: ca.display })} />)}</div>
           </div>}
           {labels.length > 0 && <div className="watch-record-tags"><span className="watch-field-label">Tags</span><div>{labels.map(l => <span key={l}>{l}</span>)}</div></div>}
+          {video.webpage_url ? <>
+                <div className="watch-detail-toolbar">
+                  {redl === "confirm"
+                    ? <><span>Download again at the best quality available and replace this file{video.height ? ` (${video.height}p)` : ""}? Favorites, tags and collections are kept.</span><button onClick={redownload}>Replace file</button><button onClick={() => setRedl("idle")}>Cancel</button></>
+                    : <button onClick={() => setRedl("confirm")} disabled={redl === "queued"}>{redl === "queued" ? "Re-download queued ✓" : "Re-download in best quality"}</button>}
+                </div>
+                {redl === "queued" && <p>Added to Downloads. This copy stays until the new one finishes, then it's replaced.</p>}
+                {redl === "error" && <p className="text-rose-400">{redlError || "Couldn't queue the re-download."}</p>}
+          </> : <p>Re-download unavailable: this video has no saved source link.</p>}
           <details className="watch-disclosure" open={detailsOpen} onToggle={e => setDetailsOpen(e.currentTarget.open)}>
             <summary>Details <span>File & source</span></summary>
             <div className="watch-file-details">
@@ -2277,13 +2286,7 @@ function WatchPage({ video, queue, allLabels, models: allModels, collections, on
               <dl><div><dt>Source</dt><dd>{label(video.site) || "Local"}</dd></div>{video.upload_date && <div><dt>Date</dt><dd>{fmtDate(video.upload_date)}</dd></div>}</dl>
               <div className="watch-source-title"><span className="watch-field-label">Original title</span><p>{video.source_title || video.title || "Not available"}</p></div>
               {video.webpage_url && <><label>Source URL<input aria-label="Source URL" readOnly value={video.webpage_url} onFocus={e => e.currentTarget.select()} /></label><div className="watch-detail-toolbar"><button onClick={() => copy("link")}>{copied === "link" ? "Link copied ✓" : "Copy source link"}</button><button onClick={() => BrowserOpenURL(video.webpage_url)}>Open source ↗</button></div>
-                <div className="watch-detail-toolbar">
-                  {redl === "confirm"
-                    ? <><span>Download again at the best quality available and replace this file{video.height ? ` (${video.height}p)` : ""}? Favorites, tags and collections are kept.</span><button onClick={redownload}>Replace file</button><button onClick={() => setRedl("idle")}>Cancel</button></>
-                    : <button onClick={() => setRedl("confirm")} disabled={redl === "queued"}>{redl === "queued" ? "Re-download queued ✓" : "Re-download in best quality"}</button>}
-                </div>
-                {redl === "queued" && <p>Added to Downloads. This copy stays until the new one finishes, then it's replaced.</p>}
-                {redl === "error" && <p className="text-rose-400">{redlError || "Couldn't queue the re-download."}</p>}</>}
+</>}
             </div>
           </details>
         </section>

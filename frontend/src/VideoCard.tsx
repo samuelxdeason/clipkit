@@ -1,4 +1,4 @@
-import type { MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { library } from "../wailsjs/go/models";
 import { Icon } from "./App";
 import { useCollectionDrag } from "./CollectionDnd";
@@ -6,6 +6,8 @@ import type { CollectionDrag } from "./collectionDrag";
 
 export default function VideoCard({ video: v, selected, selectionMode, thumbnail, people, onSelect, onPlay, onTag, dragData }: { video: library.Video; selected: boolean; selectionMode: boolean; thumbnail: string; people: string[]; onSelect: (shift: boolean) => void; onPlay: () => void; onTag: (tag: string) => void; dragData?: CollectionDrag }) {
   const drag=useCollectionDrag(dragData);
+  const [failedThumbnail, setFailedThumbnail] = useState("");
+  const progress = v.duration && v.position && v.duration > 0 && v.position > 0 ? Math.min(100, v.position / v.duration * 100) : 0;
   const title = v.title || v.filename || "Untitled video";
   const activate = (e: MouseEvent<HTMLButtonElement>) => {
     if (selectionMode || e.shiftKey || e.ctrlKey || e.metaKey) onSelect(e.shiftKey);
@@ -25,7 +27,7 @@ export default function VideoCard({ video: v, selected, selectionMode, thumbnail
   return <article {...drag} className={`video-card ${portrait ? "is-portrait" : ""} ${selected ? "is-selected" : ""} ${selectionMode ? "is-selecting" : ""}`}>
     <div className="video-card-frame">
       <button className="video-card-play" aria-label={`${selectionMode ? "Toggle selection for" : "Play"} ${title}`} aria-pressed={selectionMode ? selected : undefined} onClick={activate} onDoubleClick={doubleClick}>
-        {thumbnail ? <img draggable={false} src={thumbnail} alt="" loading="lazy" /> : <Icon name="film" />}
+        {thumbnail && failedThumbnail !== thumbnail ? <img draggable={false} src={thumbnail} alt="" loading="lazy" onError={() => setFailedThumbnail(thumbnail)} /> : <span className="video-card-placeholder"><Icon name="film" /><span>No preview</span></span>}
         <span className="video-card-play-symbol"><Icon name={selectionMode ? "check" : "play-fill"} /></span>
       </button>
       <button className="video-card-select" aria-label={`Select ${title}`} aria-pressed={selected} onClick={e => onSelect(e.shiftKey)}>
@@ -34,6 +36,7 @@ export default function VideoCard({ video: v, selected, selectionMode, thumbnail
       {seconds > 0 && <span className="video-card-duration">{duration}</span>}
       {portrait && <span className="video-card-format">Portrait</span>}
       {v.favorite && <span className="video-card-liked" role="img" aria-label="Favorite"><Icon name="heart-fill" /></span>}
+      {progress > 0 && <span className="video-card-progress" role="img" aria-label={`${Math.round(progress)}% watched`} title="Continue from your saved position"><span style={{ width: `${progress}%` }}/></span>}
     </div>
     <div className="video-card-body">
       <button className="video-card-title" title={v.source_title ? `${title}\nOriginal title: ${v.source_title}` : title} onClick={activate} onDoubleClick={doubleClick}>{title}</button>

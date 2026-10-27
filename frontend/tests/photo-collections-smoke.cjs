@@ -1,0 +1,138 @@
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
+const { spawn } = require('node:child_process');
+const fs = require('node:fs'), path = require('node:path'), os = require('node:os'), assert = require('node:assert/strict');
+(async () => {
+ const root = path.resolve(__dirname, '..'), temp = fs.mkdtempSync(path.join(os.tmpdir(), 'clipkit-photos-'));
+ const server = spawn(process.execPath, [path.join(root, 'node_modules/vite/bin/vite.js'), '--host', '127.0.0.1', '--port', '5197', '--strictPort'], { cwd: root, windowsHide: true, stdio: 'pipe' });
+ let browser;
+ try {
+  for (let i=0;i<60;i++) { try { if ((await fetch('http://127.0.0.1:5197')).ok) break; } catch {} await new Promise(r=>setTimeout(r,100)); }
+  browser = await chromium.launch({ headless: true, channel: process.env.PLAYWRIGHT_CHANNEL || 'msedge' });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const errors=[], writes=[]; page.on('pageerror',e=>errors.push(e.message));
+  const photos=Array.from({length:61},(_,i)=>({id:String(i),filename:`Landscape ${String(i+1).padStart(2,'0')}.jpg`,filepath:i===2?'broken':`neutral-${i}`,model:i%2?'Jamie':'Alex',album:i%2?'City walks':'Weekend trips',added:new Date(Date.now()-i*60000).toISOString()}));
+  const albums=[{id:1,name:'Weekend trips',parentId:0,count:12,photoCount:10,videoCount:2,albumCount:1,covers:['neutral-0']},{id:2,name:'City walks',parentId:0,count:8,photoCount:8,videoCount:0,albumCount:0,covers:['neutral-1']},{id:3,name:'Mountain mornings',parentId:1,count:0,photoCount:0,videoCount:0,albumCount:0,covers:[]},{id:4,name:'Watch later',parentId:0,count:0,photoCount:0,videoCount:0,albumCount:0,covers:[]}];
+  await page.route('**/api/**',async r=>{
+   const u=new URL(r.request().url()); let result=[];
+   if(u.pathname==='/api/events')return r.fulfill({contentType:'text/event-stream',body:': mock\n\n'});
+   if(r.request().method()==='POST'){
+    const b=r.request().postDataJSON();writes.push({path:u.pathname,body:b});result={};
+    if(u.pathname==='/api/albums/create'){const id=albums.length+1;albums.push({id,name:b.name,parentId:b.parentId,count:0,photoCount:0,videoCount:0,albumCount:0,covers:[]});result={id};}
+    if(u.pathname==='/api/collections/rename'){const a=albums.find(a=>a.id===b.id64);if(a)a.name=b.name;}
+   }else switch(u.pathname){
+    case '/api/models': result=[{name:'Alex',count:31},{name:'Jamie',count:30}];break;
+    case '/api/collections':result=albums;break;
+    case '/api/photos/all':result=photos;break;
+    case '/api/albums/photos':result=photos.slice(0,8);break;
+   }
+   await r.fulfill({contentType:'application/json',body:JSON.stringify(result)});
+  });
+  await page.route('**/media?*',r=>{
+   const p=new URL(r.request().url()).searchParams.get('p');if(p==='broken')return r.fulfill({status:404,body:''});
+   const n=Number(p.split('-')[1])||0,c=['#38545b','#64516b','#6a604d','#3c5550'][n%4];
+   return r.fulfill({contentType:'image/svg+xml',body:`<svg xmlns="http://www.w3.org/2000/svg" width="${n%2?400:640}" height="${n%2?540:360}"><rect width="100%" height="100%" fill="${c}"/><circle cx="280" cy="100" r="65" fill="#ffffff20"/><path d="M0 320 180 130 330 310 500 170 640 300V600H0" fill="#ffffff15"/></svg>`});
+  });
+  await page.goto('http://127.0.0.1:5197');
+  await page.locator('[data-section="photos"]').click();
+  await page.locator('.mixed-media-tile').first().waitFor();
+  assert.equal(await page.locator('.mixed-media-tile').count(),60);
+  await page.getByRole('button',{name:'Next →',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelectorAll('.mixed-media-tile').length===1);
+  await page.getByRole('button',{name:'← Previous',exact:true}).click();
+  await page.locator('.media-tile-placeholder').waitFor();
+  await page.screenshot({path:path.join(temp,'photos.png')});
+  await page.locator('.video-filter-popover summary').click();
+  await page.getByLabel('Photo collection',{exact:true}).selectOption('City walks');
+  await page.getByRole('button',{name:'Done',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelectorAll('.mixed-media-tile').length===30);
+  await page.getByRole('button',{name:'Remove collection filter'}).click();
+  await page.getByLabel('Search photos',{exact:true}).fill('Landscape 01');
+  await page.waitForFunction(()=>document.querySelectorAll('.mixed-media-tile').length===1);
+  await page.getByRole('button',{name:'Clear photo search'}).click();
+  await page.getByLabel('Sort photos',{exact:true}).selectOption('name');
+  await page.getByRole('button',{name:'list photo view'}).click();await page.locator('.photo-file-table').waitFor();
+  await page.getByRole('button',{name:'grid photo view'}).click();
+  await page.getByRole('button',{name:'Open Landscape 01.jpg',exact:true}).click();
+  await page.getByRole('dialog').waitFor();await page.keyboard.press('ArrowRight');
+  await page.getByRole('dialog',{name:'Landscape 02.jpg'}).waitFor();await page.keyboard.press('Escape');
+  await page.getByRole('button',{name:'Select photos',exact:true}).click();
+  await page.locator('.media-tile-select').first().click();
+  await page.locator('.media-tile-select').nth(2).click({modifiers:['Shift']});
+  await page.getByRole('toolbar',{name:'Bulk photo actions'}).getByText('3 selected').waitFor();
+  await page.getByRole('button',{name:'Assign person',exact:true}).click();
+  await page.getByRole('dialog',{name:'Assign person'}).waitFor();await page.getByRole('combobox',{name:'Person',exact:true}).click();await page.getByRole('listbox').waitFor();await page.screenshot({path:path.join(temp,'organize-dialog.png')});await page.keyboard.press('Escape');await page.getByRole('dialog',{name:'Assign person'}).waitFor();assert.equal(await page.getByRole('listbox').count(),0);await page.getByRole('dialog').getByRole('button',{name:'Cancel',exact:true}).focus();await page.keyboard.press('Tab');assert.equal(await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).evaluate(e=>e===document.activeElement),true);await page.keyboard.press('Shift+Tab');assert.equal(await page.getByRole('dialog').getByRole('button',{name:'Cancel',exact:true}).evaluate(e=>e===document.activeElement),true);await page.keyboard.press('Escape');
+  await page.getByRole('button',{name:'Add to collection',exact:true}).click();
+  await page.getByRole('dialog',{name:'Add to collection'}).waitFor();await page.keyboard.press('Escape');
+  await page.getByRole('button',{name:'Clear photo selection'}).click();
+  await page.getByRole('button',{name:'Cancel selection',exact:true}).click();
+  // The visual tile remains the pointer-drag handle; dropping into the tree must preserve payloads.
+  const from=await page.locator('.photo-tile').first().boundingBox(),to=await page.locator('.collection-tree-row').filter({hasText:'City walks'}).boundingBox();
+  await page.mouse.move(from.x+from.width/2,from.y+80);await page.mouse.down();await page.mouse.move(to.x+to.width/2,to.y+to.height/2,{steps:12});await page.mouse.up();
+  await page.getByText('Added 1 item to City walks.',{exact:false}).waitFor();
+  const transfer=writes.find(w=>w.path==='/api/collections/transfer');assert.deepEqual(transfer.body.photos,['0']);assert.equal(transfer.body.id64,2);
+  await page.getByRole('button',{name:'Dismiss organization message'}).click();
+  await page.locator('[data-section="collections"]').click();
+  await page.locator('.featured-collection').first().waitFor();
+  await page.screenshot({path:path.join(temp,'collections.png')});
+  await page.getByLabel('Search collection',{exact:true}).fill('Mountain');
+  await page.getByRole('button',{name:'Open folder Mountain mornings',exact:true}).waitFor();
+  assert.match(await page.locator('.compact-folder-copy').innerText(),/Weekend trips/);
+  await page.getByRole('button',{name:'Clear collection search'}).click();
+  await page.locator('.album-actions').getByRole('button',{name:'New collection',exact:true}).click();
+  await page.getByLabel('Collection name',{exact:true}).fill('Evening favorites');await page.screenshot({path:path.join(temp,'collection-dialog.png')});
+  await page.getByRole('button',{name:'Save',exact:true}).click();
+  await page.getByRole('button',{name:'Open folder Evening favorites',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Open folder Weekend trips',exact:true}).click();
+  await page.getByRole('button',{name:'Open folder Mountain mornings',exact:true}).waitFor();
+  assert.equal(await page.locator('.featured-collection').count(),0);
+  await page.screenshot({path:path.join(temp,'collection-detail.png')});
+  await page.getByRole('button',{name:'Videos',exact:true}).last().click();
+  await page.getByRole('heading',{name:'No matching media',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Photos',exact:true}).last().click();
+  await page.locator('.mixed-media-tile').first().waitFor();
+  await page.getByRole('button',{name:'Select items',exact:true}).click();await page.locator('.media-tile-select').first().click();
+  await page.getByRole('button',{name:'Move to folder',exact:true}).click();await page.getByRole('dialog',{name:'Move to folder'}).waitFor();await page.keyboard.press('Escape');
+  await page.getByRole('toolbar',{name:'Collection selection actions'}).locator('summary').click();
+  await page.getByRole('button',{name:'Remove from this folder',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Clear selection',exact:true}).click();
+  await page.locator('.album-menu summary').click();await page.getByRole('button',{name:'Rename',exact:true}).click();
+  await page.getByLabel('Collection name',{exact:true}).fill('Weekend escapes');await page.getByRole('button',{name:'Save',exact:true}).click();
+  assert(writes.some(w=>w.body.name==='Weekend escapes'));
+  assert.equal(await page.locator('.album-menu').getAttribute('open'),null);
+  await page.setViewportSize({width:700,height:900});await page.screenshot({path:path.join(temp,'collection-narrow.png')});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.getByRole('button',{name:'Toggle navigation'}).click();await page.locator('[data-section="photos"]').click();
+  await page.locator('.mixed-media-tile').first().waitFor();await page.screenshot({path:path.join(temp,'photos-narrow.png')});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.setViewportSize({width:1440,height:1000});
+  await page.keyboard.press('Control+k');
+  assert.equal(await page.getByLabel('Search photos',{exact:true}).evaluate(e=>e===document.activeElement),true);
+  await page.locator('.collection-tree-row').filter({hasText:'Mountain mornings'}).locator('.folder-open').click();
+  await page.getByRole('heading',{name:'Mountain mornings',exact:true}).waitFor();
+  assert.equal(await page.locator('.collection-tree-row.active .folder-open').getAttribute('aria-current'),'page');
+  await page.keyboard.press('Alt+ArrowUp');await page.getByRole('heading',{name:'Weekend escapes',exact:true}).waitFor();
+  await page.keyboard.press('F2');await page.getByRole('dialog',{name:'Rename collection'}).waitFor();await page.keyboard.press('Escape');
+  await page.keyboard.press('Control+Shift+n');await page.getByRole('dialog').waitFor();await page.keyboard.press('Escape');
+  await page.locator('.album-menu summary').click();await page.getByRole('button',{name:'Pin to sidebar',exact:true}).click();
+  await page.getByRole('button',{name:'Show pinned folders',exact:true}).click();
+  assert.equal(await page.locator('.collection-tree-row').count(),1);
+  await page.getByRole('button',{name:'Show pinned folders',exact:true}).click();
+  await page.getByLabel('Find folder',{exact:true}).fill('Mountain');assert.equal(await page.locator('.collection-tree-row').count(),1);
+  await page.getByLabel('Find folder',{exact:true}).press('Escape');assert.equal(await page.getByLabel('Find folder',{exact:true}).inputValue(),'');
+  await page.getByRole('button',{name:'Collapse collection folders',exact:true}).click();assert.equal(await page.locator('.collection-tree-scroll').count(),0);
+  await page.getByRole('button',{name:'Expand collection folders',exact:true}).click();await page.locator('.collection-tree-scroll').waitFor();
+  await page.getByRole('button',{name:'ClipKit home',exact:true}).click();await page.getByRole('heading',{name:'Your video library',exact:true}).waitFor();
+  await page.screenshot({path:path.join(temp,'navigation-desktop.png')});
+  await page.setViewportSize({width:700,height:900});await page.getByRole('button',{name:'Toggle navigation'}).click();
+  await page.getByLabel('Find folder',{exact:true}).fill('Mountain');await page.keyboard.press('Escape');
+  assert.equal(await page.getByRole('button',{name:'Toggle navigation'}).getAttribute('aria-expanded'),'true');
+  await page.keyboard.press('Escape');assert.equal(await page.getByRole('button',{name:'Toggle navigation'}).getAttribute('aria-expanded'),'false');
+  assert.equal(await page.getByRole('button',{name:'Toggle navigation'}).evaluate(e=>e===document.activeElement),true);
+  await page.getByRole('button',{name:'Toggle navigation'}).click();await page.screenshot({path:path.join(temp,'navigation-narrow.png')});
+  await page.getByRole('button',{name:'Close navigation',exact:true}).click();assert.equal(await page.getByRole('button',{name:'Toggle navigation'}).getAttribute('aria-expanded'),'false');
+  await page.getByRole('button',{name:'Toggle navigation'}).click();await page.locator('[data-section="tags"]').click();assert.equal(await page.getByRole('button',{name:'Toggle navigation'}).getAttribute('aria-expanded'),'false');
+  await page.getByRole('button',{name:'Toggle navigation'}).click();await page.locator('[data-section="photos"]').click();await page.getByRole('button',{name:'Add photos',exact:true}).click();await page.getByRole('dialog',{name:'Add photos'}).waitFor();await page.screenshot({path:path.join(temp,'import-dialog-narrow.png')});await page.keyboard.press('Escape');assert.equal(await page.getByRole('button',{name:'Add photos',exact:true}).evaluate(e=>e===document.activeElement),true);
+  assert.deepEqual(errors,[]);
+  console.log(JSON.stringify({passed:true,screenshots:temp,checks:['photo filters/search/sort/pagination','grid/list','viewer keyboard navigation','range selection','organization dialogs','photo drag/drop payload','collection search with nested path','create and rename','nested folders','media type filters','Ctrl+K/Ctrl+Shift+N/F2/Alt+Up shortcuts','pinned and nested folder navigation','mobile close and focus return','narrow layouts']}));
+ }finally{if(browser)await browser.close();server.kill();}
+})().catch(e=>{console.error(e);process.exitCode=1;});

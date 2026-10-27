@@ -74,18 +74,19 @@ func New(mediaRoot string, emit func(event string, data any)) (*Core, error) {
 		}
 	}
 
-	c.dl = downloader.New(downloader.Config{
-		YtDlp:     ytdlpPath(),
-		FfmpegDir: ffmpegDir(),
-		MediaRoot: mediaRoot,
-		StateDir:  sdir,
-		Archive:   filepath.Join(sdir, "downloaded.archive"),
-	}, db, emit)
-
-	// Auto-use a cookies.txt sitting in the vault.
+	// Restored jobs may start immediately; supply cookies before starting the worker.
+	cookieSpec := ""
 	if _, err := os.Stat(c.cookiesPath()); err == nil {
-		c.dl.SetCookieSpec("file:" + c.cookiesPath())
+		cookieSpec = "file:" + c.cookiesPath()
 	}
+	c.dl = downloader.New(downloader.Config{
+		YtDlp:      ytdlpPath(),
+		FfmpegDir:  ffmpegDir(),
+		MediaRoot:  mediaRoot,
+		StateDir:   sdir,
+		Archive:    filepath.Join(sdir, "downloaded.archive"),
+		CookieSpec: cookieSpec,
+	}, db, emit)
 	return c, nil
 }
 
