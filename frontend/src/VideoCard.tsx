@@ -1,3 +1,4 @@
+import { useDetailsPopover } from "./PopoverPosition";
 import { useEffect, useRef, type MouseEvent } from "react";
 import { CardImage, CardSelection } from "./LibraryCards";
 import { library } from "../wailsjs/go/models";
@@ -7,6 +8,7 @@ import type { CollectionDrag } from "./collectionDrag";
 
 export default function VideoCard({ video: v, selected, selectionMode, thumbnail, people, onSelect, onPlay, onTag, dragData }: { video: library.Video; selected: boolean; selectionMode: boolean; thumbnail: string; people: string[]; onSelect: (shift: boolean) => void; onPlay: () => void; onTag: (tag: string) => void; dragData?: CollectionDrag }) {
   const info=useRef<HTMLDetailsElement>(null);
+  useDetailsPopover(info, ".video-card-meta", 260);
   useEffect(()=>{const close=(e:PointerEvent)=>{if(info.current&&!info.current.contains(e.target as Node))info.current.open=false;};document.addEventListener("pointerdown",close);return()=>document.removeEventListener("pointerdown",close);},[]);
   const drag=useCollectionDrag(dragData);
   const progress = v.duration && v.position && v.duration > 0 && v.position > 0 ? Math.min(100, v.position / v.duration * 100) : 0;

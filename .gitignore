@@ -2,3 +2,13 @@ build/bin
 node_modules
 frontend/dist
 resources/ffmpeg/
+
+# Local root build outputs and catalogue backups (never source fixtures).
+/*.exe
+/*.exe~
+/*.db
+/*.db-*
+
+# Wails local install cache and temporary platform object.
+frontend/package.json.md5
+/*-res.syso

@@ -11,7 +11,6 @@
 .finder-shell .row-select.row-select svg { width: 18px; height: 18px; }
 .finder-shell .row-select.row-select[aria-pressed="true"] { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-ink); }
 
-
 /* A separate shelf for display preferences and the explicit organization mode. */
 .finder-shell .media-browse-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; margin: 0 0 22px; padding: 0 2px; }
 .finder-shell .media-display-controls, .finder-shell .media-manage-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; min-width: 0; }
@@ -117,29 +116,12 @@
 
 /* Reduce chrome above the video library without shrinking interaction targets. */
 .finder-shell .cinema-library>.video-library-tabs { margin-top: 0; margin-bottom: 16px; }
-.finder-shell .cinema-library>.library-toolbar.video-browser-controls { padding: 12px 14px; row-gap: 10px; margin-bottom: 12px; }
 .finder-shell .cinema-library>.media-browse-bar { margin-bottom: 16px; }
 .finder-shell .cinema-library .manager-grid.browse-media-grid { gap: 20px; }
 
-/* A single library toolbar; chips and result count live below the control row. */
-.finder-shell .library-toolbar.compact-video-toolbar { display: grid; grid-template-columns: minmax(240px,1fr) auto; gap: 10px 12px; align-items: start; }
-.finder-shell .compact-video-toolbar>.video-search-controls { display: contents; }
-.finder-shell .compact-video-toolbar .video-search-line { grid-column: 1; grid-row: 1; min-width: 0; }
-.finder-shell .compact-video-toolbar>.media-browse-bar { grid-column: 2; grid-row: 1; flex-wrap: nowrap; margin: 0; padding: 0; gap: 14px; }
-.finder-shell .compact-video-toolbar .media-display-controls .toolbar-right { flex-wrap: nowrap; }
-.finder-shell .compact-video-toolbar .video-filter-chips { grid-column: 1 / -1; grid-row: 2; margin: 0; padding-top: 2px; }
-.finder-shell .compact-video-toolbar>.video-result-scope { grid-column: 1 / -1; grid-row: auto; margin: 0; padding: 0; border: 0; min-height: 0; }
 .finder-shell .video-filter-menu .filter-section-label { grid-column: 1 / -1; font-size: 11px; font-weight: 600; color: var(--ui-muted); padding: 4px 0 0; }
 .finder-shell .video-filter-menu .video-actions { margin: 0; justify-content: flex-start; }
-@media(max-width: 1000px) {
-  .finder-shell .library-toolbar.compact-video-toolbar { grid-template-columns: minmax(0,1fr); }
-  .finder-shell .compact-video-toolbar .video-search-line { grid-column: 1; }
-  .finder-shell .compact-video-toolbar>.media-browse-bar { grid-column: 1; grid-row: 2; flex-wrap: wrap; }
-  .finder-shell .compact-video-toolbar .video-filter-chips { grid-row: 3; }
-}
 
-
-.finder-shell .photo-library>.library-toolbar.compact-video-toolbar { padding: 12px 14px; margin-bottom: 12px; }
 .finder-shell .photo-library>.ui-button { margin-bottom: 12px; }
 
 /* Workspace standard: location and page creation above; browse controls below. */
@@ -147,59 +129,30 @@
 .finder-shell .page-primary-actions:empty { display: none; }
 .finder-shell .page-primary-actions .ui-button { white-space: nowrap; }
 .finder-shell .manager-topbar .chrome-row { column-gap: var(--ui-space-4); }
-.finder-shell .library-toolbar.compact-video-toolbar {
-  background: var(--ui-panel); border: 1px solid var(--ui-line); border-radius: var(--ui-radius-panel); box-shadow: none;
-  align-items: center; column-gap: var(--ui-space-4);
-}
-.finder-shell .compact-video-toolbar .video-search-line { display: flex; align-items: center; gap: var(--ui-space-2); }
-.finder-shell .compact-video-toolbar .manager-search { flex: 1; min-width: 0; background: var(--ui-field); }
-.finder-shell .compact-video-toolbar .video-filter-popover { flex-shrink: 0; }
-.finder-shell .compact-video-toolbar>.media-browse-bar { gap: var(--ui-space-3); align-items: center; }
-.finder-shell .compact-video-toolbar .media-manage-controls { padding-left: var(--ui-space-3); border-left: 1px solid var(--ui-line); }
 .finder-shell .library-toolbar .video-filter-popover[data-active="true"]>summary {
   background: var(--ui-selection-surface); border-color: var(--ui-selection-line); color: var(--ui-selection-text);
 }
-.finder-shell .compact-video-toolbar .video-filter-chips { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); padding-top: var(--ui-space-2); }
-.finder-shell .compact-video-toolbar>.video-result-scope { padding-top: var(--ui-space-2); border-top: 1px solid var(--ui-line); }
 .finder-shell .video-filter-menu .filter-section-label { padding-top: var(--ui-space-3); border-top: 1px solid var(--ui-line); }
 .finder-shell .video-filter-menu-heading { align-items: center; gap: var(--ui-space-4); }
-@media(max-width: 1000px) {
-  .finder-shell .compact-video-toolbar>.media-browse-bar { justify-content: space-between; width: 100%; }
-}
 @media(max-width: 420px) {
   .finder-shell .manager-topbar .chrome-row { column-gap: var(--ui-space-2); }
   .finder-shell .manager-topbar .breadcrumbs { min-width: 0; }
-  .finder-shell .compact-video-toolbar .media-display-controls { min-width: 0; gap: var(--ui-space-2); }
-  .finder-shell .compact-video-toolbar .sort-menu-trigger { min-width: 140px; }
 }
 
-/* Directory pages use the same browse surface, without empty action groups. */
-.finder-shell .library-toolbar.directory-browse-toolbar { padding: var(--ui-space-3) var(--ui-space-4); margin-bottom: var(--ui-space-4); row-gap: var(--ui-space-2); }
-.finder-shell .directory-browse-toolbar .media-manage-controls:empty { display: none; }
-.finder-shell .directory-browse-toolbar .album-toolbar { display: flex; flex: 1; flex-wrap: wrap; width: 100%; min-width: 0; margin: 0; padding: 0; border: 0; gap: var(--ui-space-2); }
-.finder-shell .directory-browse-toolbar .album-toolbar .manager-search { flex: 1 1 180px; width: auto; }
-.finder-shell .directory-browse-toolbar .album-toolbar .view-switch { flex-shrink: 0; }
-.finder-shell .directory-browse-toolbar .video-result-scope { justify-content: flex-start; }
-.finder-shell .directory-browse-toolbar .sort-menu-popover { right: 0; left: auto; }
-@media(max-width: 1000px) {
-  .finder-shell .directory-browse-toolbar .sort-menu-popover { left: 0; right: auto; }
+/* Page hierarchy: title and primary action, then browsing controls. */
+.finder-shell .ui-page-header { justify-content: space-between; }
+.finder-shell .ui-page-header>div:first-child { min-width: 0; }
+.finder-shell .ui-page-header .page-primary-actions { align-self: flex-start; flex-wrap: wrap; }
+.finder-shell .page-navigation { display: none; }
+.finder-shell .page-navigation.has-breadcrumbs { display: flex; align-items: center; gap: var(--ui-space-3); margin-bottom: var(--ui-space-4); }
+.finder-shell .page-navigation .breadcrumbs { display: block; min-width: 0; overflow: hidden; }
+.finder-shell .page-navigation .breadcrumbs ol { flex-wrap: wrap; }
+.finder-shell .person-photo-actions { display: flex; justify-content: flex-end; margin-bottom: var(--ui-space-3); }
+@media (max-width: 760px) {
+  .finder-shell .page-navigation { display: flex; align-items: center; gap: var(--ui-space-3); margin-bottom: var(--ui-space-4); }
+  .finder-shell .page-navigation .mobile-nav { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: var(--ui-control-height); height: var(--ui-control-height); background: var(--ui-panel); border: 1px solid var(--ui-line); color: var(--ui-text); border-radius: var(--ui-radius-control); }
 }
-
-/* Sources and queues can have two display menus plus a group of bulk actions. */
-.finder-shell .utility-browse-toolbar .queue-search { flex: 1; min-width: 0; width: 100%; margin: 0; }
-.finder-shell .utility-browse-toolbar .queue-search input { min-width: 0; width: 100%; }
-.finder-shell .utility-browse-toolbar .following-results { margin: 0; width: 100%; gap: var(--ui-space-2) var(--ui-space-4); }
-.finder-shell .utility-browse-toolbar>.media-browse-bar { flex-wrap: wrap; }
-.finder-shell .utility-browse-toolbar .media-display-controls { flex-wrap: wrap; gap: var(--ui-space-2); }
-@media(max-width: 1280px) {
-  .finder-shell .library-toolbar.utility-browse-toolbar { grid-template-columns: minmax(0,1fr); }
-  .finder-shell .utility-browse-toolbar>.media-browse-bar { grid-column: 1; grid-row: 2; width: 100%; justify-content: space-between; }
-  .finder-shell .utility-browse-toolbar>.video-result-scope { grid-row: 3; }
-}
-@media(max-width: 600px) {
-  .finder-shell .utility-browse-toolbar .media-manage-controls { padding: var(--ui-space-2) 0 0; border-left: 0; border-top: 1px solid var(--ui-line); width: 100%; }
-  .finder-shell .utility-browse-toolbar .media-manage-controls:empty { display: none; }
-  .finder-shell .utility-browse-toolbar .media-display-controls { width: 100%; }
-  .finder-shell .utility-browse-toolbar .media-display-controls>.sort-menu { flex: 1; min-width: 0; }
-  .finder-shell .utility-browse-toolbar .sort-menu-trigger { min-width: 0; width: 100%; gap: var(--ui-space-2); }
+@media (max-width: 700px) {
+  .finder-shell .ui-page-header>div:first-child { flex-basis: 100%; }
+  .finder-shell .ui-page-header .page-primary-actions { margin-left: 0; justify-content: flex-start; }
 }

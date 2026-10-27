@@ -1,3 +1,4 @@
+import { anchorPopover } from "./PopoverPosition";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -9,24 +10,14 @@ export default function OrganizePicker({ kind, choices, value, onChange }: { kin
   const input = useRef<HTMLInputElement>(null);
   const listId = useId();
   const list = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState({ left: 0, top: 0, width: 0, maxHeight: 210 });
-  useLayoutEffect(() => {
-    if (!open) return;
-    const place = () => {
-      const rect = input.current?.getBoundingClientRect();
-      if (!rect) return;
-      setPosition({ left: rect.left, top: rect.bottom + 6, width: rect.width, maxHeight: Math.max(0, Math.min(210, window.innerHeight - rect.bottom - 18)) });
-    };
-    place();
-    window.addEventListener("resize", place);
-    window.addEventListener("scroll", place, true);
-    return () => { window.removeEventListener("resize", place); window.removeEventListener("scroll", place, true); };
-  }, [open]);
   const label = kind === "tag" ? "Tags" : kind === "assign" ? "Person" : "Collection";
   const parts = value.split(",");
   const term = (kind === "tag" ? parts[parts.length - 1] : query).trim().toLowerCase();
   const existing = parts.slice(0, -1).map(t => t.trim().toLowerCase());
   const matches = choices.filter(c => (!term || `${c.label} ${c.detail || ""}`.toLowerCase().includes(term)) && (kind !== "tag" || !existing.includes(c.value.toLowerCase()))).sort((a, b) => Number(b.label.toLowerCase().startsWith(term)) - Number(a.label.toLowerCase().startsWith(term)) || a.label.localeCompare(b.label));
+  useLayoutEffect(() => {
+    if (open && matches.length && input.current && list.current) return anchorPopover(input.current, list.current, input.current.getBoundingClientRect().width, 240);
+  }, [open, matches.length]);
   const choose = (c: Choice) => {
     if (kind === "tag") onChange([...parts.slice(0, -1).map(t => t.trim()).filter(Boolean), c.value].join(", ") + ", ");
     else { onChange(c.value); setQuery(c.label); }
@@ -47,7 +38,7 @@ export default function OrganizePicker({ kind, choices, value, onChange }: { kin
     }} />
     <svg className="picker-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
     {!matches.length && <p className="organize-empty-hint" role="status">{kind === "tag" ? "No matching tags. Save to create your typed tags." : `No matching ${kind === "assign" ? "people" : "collections"}.`}</p>}
-    {open && matches.length > 0 && createPortal(<div ref={list} className="picker-options organize-floating-options" style={position} id={listId} role="listbox" aria-label={`${label} suggestions`}>
+    {open && matches.length > 0 && createPortal(<div ref={list} className="picker-options organize-floating-options" id={listId} role="listbox" aria-label={`${label} suggestions`}>
       {matches.map((c, index) => <button type="button" role="option" id={`${listId}-${index}`} tabIndex={-1} key={c.value} aria-selected={active === index || (kind !== "tag" && value === c.value)} onMouseDown={e => e.preventDefault()} onClick={() => choose(c)}><span>{c.label}{c.detail && <small>{c.detail}</small>}</span>{value === c.value && <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4 10 4 4 8-9" /></svg>}</button>)}
       {!matches.length && <p role="status">{kind === "tag" ? "No matching tags. Save to create your typed tags." : `No matching ${kind === "assign" ? "people" : "collections"}.`}</p>}
     </div>, document.body)}

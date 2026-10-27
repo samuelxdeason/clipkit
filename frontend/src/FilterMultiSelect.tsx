@@ -1,5 +1,6 @@
+import { anchorPopover } from "./PopoverPosition";
 import { Button, Chevron } from "./UIControls";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 type Choice = { value: string; label: string; detail?: string };
 export default function FilterMultiSelect({ label, choices, selected, onChange, matchDescription }: {
@@ -9,6 +10,10 @@ export default function FilterMultiSelect({ label, choices, selected, onChange, 
   const [query, setQuery] = useState("");
   const trigger = useRef<HTMLButtonElement>(null);
   const input = useRef<HTMLInputElement>(null);
+  const sheet = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (open && trigger.current && sheet.current) return anchorPopover(trigger.current, sheet.current, 420, 520);
+  }, [open]);
   useEffect(() => { if (open) input.current?.focus(); }, [open]);
   const close = () => { setOpen(false); setQuery(""); trigger.current?.focus(); };
   const matches = choices.filter(c => [c.label, c.value, c.detail].join(" ").toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
@@ -19,7 +24,7 @@ export default function FilterMultiSelect({ label, choices, selected, onChange, 
       {selected.length > 0 && <span className="filter-picker-count">{selected.length}</span>}
       <Chevron/>
     </button>
-    {open && <div className="filter-picker-sheet" role="dialog" aria-modal="true" aria-label={"Choose " + label.toLowerCase()} onKeyDown={e => {
+    {open && <div ref={sheet} className="filter-picker-sheet" role="dialog" aria-modal="true" aria-label={"Choose " + label.toLowerCase()} onKeyDown={e => {
       if (e.key === "Escape") { e.stopPropagation(); close(); }
       if (e.key === "Tab") {
         const nodes = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled)'));

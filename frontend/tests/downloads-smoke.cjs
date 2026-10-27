@@ -3,7 +3,7 @@ const { spawn } = require('node:child_process');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
 (async()=>{
  const root=path.resolve(__dirname,'..'),temp=fs.mkdtempSync(path.join(os.tmpdir(),'clipkit-downloads-'));
- const server=spawn(process.execPath,[path.join(root,'node_modules/vite/bin/vite.js'),'--host','127.0.0.1','--port','5196','--strictPort'],{cwd:root,windowsHide:true,stdio:'pipe'});
+ const server=spawn(process.execPath,[path.join(path.dirname(require.resolve('vite/package.json')), 'bin/vite.js'),'--host','127.0.0.1','--port','5196','--strictPort'],{cwd:root,windowsHide:true,stdio:'pipe'});
  let browser;
  try{
   for(let i=0;i<60;i++){try{if((await fetch('http://127.0.0.1:5196')).ok)break;}catch{}await new Promise(r=>setTimeout(r,100));}
@@ -40,6 +40,13 @@ const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),asse
   await page.locator('.sidebar-manage-disclosure summary').click();await page.locator('[data-section="downloads"]').click();
   const row=name=>page.getByRole('article',{name,exact:true});
   await row('Mountain light').waitFor();
+  const overview=page.getByRole('region',{name:'Queue overview',exact:true});
+  assert.deepEqual(await overview.locator('.download-overview-card>strong').allTextContents(),['1','2','2','1']);
+  assert.equal(await overview.locator('.queue-live-summary strong').nth(1).innerText(),'Coastal trails');
+  await overview.getByRole('button',{name:'Show completed downloads (2)',exact:true}).click();
+  assert.equal(await page.locator('.download-row').count(),2);
+  await overview.getByRole('button',{name:'Show completed downloads (2)',exact:true}).click();
+  assert.equal(await page.locator('.download-row').count(),6,'Clicking active overview filter restores all');
   const beforeSort=queue.map(j=>j.id),beforeWrites=writes.length;
   await page.getByRole('button',{name:'Sort downloads',exact:true}).click();await page.getByRole('menuitemradio',{name:'Title A–Z',exact:true}).click();
   assert.equal(await page.locator('.download-row').first().getAttribute('aria-label'),'A quiet afternoon');
@@ -54,6 +61,7 @@ const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),asse
   await row('Mountain light').getByText('62% downloaded',{exact:true}).waitFor();
   await row('Mountain light').getByText('6.8 MiB/s · 00:18 remaining',{exact:true}).waitFor();
   assert.equal(await page.getByRole('progressbar').getAttribute('aria-valuenow'),'62');
+  assert.match(await overview.locator('.queue-live-summary').innerText(),/62%.*6.8 MiB\/s.*00:18/);
   await page.getByRole('button',{name:'Download filters',exact:true}).click();await page.getByRole('menuitemradio',{name:/^Completed \(/}).click();assert.equal(await page.locator('.download-row').count(),2);
   await page.getByLabel('Search downloads').fill('not present');await page.getByRole('heading',{name:'No matching downloads'}).waitFor();
   await page.getByRole('button',{name:'Clear download search'}).click();
@@ -64,6 +72,7 @@ const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),asse
   await row('City in motion').getByRole('button',{name:'Download next',exact:true}).click();await page.getByRole('alert').getByText(/Mock queue update failed/).waitFor();
   await page.getByRole('button',{name:'Dismiss error'}).click();
   await row('City in motion').getByRole('button',{name:'Download next',exact:true}).click();await row('City in motion').getByText('#1 in queue · Up next · Replacing existing file',{exact:true}).waitFor();
+  assert.equal(await overview.locator('.queue-live-summary strong').nth(1).innerText(),'City in motion','Up next follows queue priority');
   await page.getByRole('button',{name:'Move down: City in motion',exact:true}).click();await row('City in motion').getByText('#2 in queue · Replacing existing file',{exact:true}).waitFor();
   await page.getByRole('button',{name:'Move up: City in motion',exact:true}).click();await row('City in motion').getByText('#1 in queue · Up next · Replacing existing file',{exact:true}).waitFor();
   await page.getByRole('button',{name:'Remove Coastal trails from queue',exact:true}).click();await row('Coastal trails').waitFor({state:'detached'});

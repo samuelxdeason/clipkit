@@ -18,7 +18,6 @@
 .finder-shell .following-sources article { gap: var(--ui-space-4); }
 
 /* Compact toolbars and expanded filter panels use the same inset. */
-.finder-shell :is(.cinema-library>.library-toolbar.video-browser-controls, .photo-library>.library-toolbar.compact-video-toolbar) { padding: var(--ui-space-3) var(--ui-space-4); }
 .finder-shell .video-search-controls .video-filter-menu { padding: var(--ui-space-4); gap: var(--ui-space-4); }
 .finder-shell :is(.sort-menu-trigger, .preview-size-menu>summary, .video-filter-menu .filter-picker-trigger, .sidebar-manage-disclosure>summary, .modal-close, .album-dialog header>button, .photo-import-dialog header>button) { border-radius: var(--ui-radius-control); }
 .finder-shell :is(.manager-modal, .album-dialog, .photo-import-dialog, .profile-editor-dialog) :is(input:not([type=checkbox]):not([type=radio]), textarea, select) { border-radius: var(--ui-radius-control); }
@@ -39,3 +38,116 @@
 }
 
 .finder-shell .profile-editor-dialog .profile-edit { padding: 0; gap: var(--ui-space-4); }
+
+/* Collection headings stay compact; person profiles use a portrait-led hero. */
+.finder-shell .collection-detail>.manager-heading.ui-page-header { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.finder-shell .person-profile[data-card-tone] { padding: 0; border: 0; border-radius: 0; background: transparent; overflow: visible; margin-bottom: var(--ui-space-4); }
+.finder-shell .person-profile .profile-identity { display: grid; grid-template-columns: 240px minmax(0, 1fr); align-items: center; gap: var(--ui-space-6); padding: var(--ui-panel-padding); background: var(--ui-panel); border: 1px solid var(--ui-line); border-radius: var(--ui-radius-panel); }
+.finder-shell .person-profile .profile-avatar { width: 240px; height: 300px; grid-row: auto; border-radius: var(--ui-radius-inset); }
+.finder-shell .person-profile .profile-copy { min-width: 0; }
+.finder-shell .person-profile .profile-stats { gap: var(--ui-space-2); margin-top: var(--ui-space-4); }
+.finder-shell .manager-main.view-profile { padding-top: 20px; }
+.finder-shell .ui-page-header .album-menu { position: relative; }
+.finder-shell .ui-page-header .album-menu>summary { display: flex; align-items: center; justify-content: center; min-width: var(--ui-control-height); min-height: var(--ui-control-height); padding: 0 var(--ui-space-3); box-sizing: border-box; border-radius: var(--ui-radius-control); }
+@media (max-width: 700px) {
+  .finder-shell .person-profile .profile-identity { grid-template-columns: 180px minmax(0, 1fr); gap: var(--ui-space-4); }
+  .finder-shell .person-profile .profile-avatar { width: 180px; height: 240px; }
+}
+@media (max-width: 480px) {
+  .finder-shell .person-profile .profile-identity { grid-template-columns: minmax(0, 1fr); }
+  .finder-shell .person-profile .profile-avatar { width: 100%; height: 300px; }
+}
+
+/* A distinctive profile title without changing directory heading tokens. */
+.finder-shell .person-profile .profile-copy .ui-page-header { align-items: flex-start; margin-bottom: var(--ui-space-4); }
+.finder-shell .person-profile .profile-copy h1 { font-size: clamp(32px, 3.5vw, 52px); line-height: 1.08; letter-spacing: -1.2px; overflow-wrap: anywhere; }
+.finder-shell .person-profile .profile-eyebrow { display: block; color: var(--ui-muted); margin-bottom: var(--ui-space-3); }
+.finder-shell .person-profile .profile-copy .page-primary-actions { margin-left: 0; }
+.finder-shell .person-profile .profile-stats { margin-top: var(--ui-space-6); }
+@media (max-width: 1100px) {
+  .finder-shell .person-profile .profile-copy .ui-page-header { flex-direction: column; align-items: flex-start; }
+}
+
+/* Profile identity is editorial: a localized color wash, clear facts, quiet chrome. */
+.finder-shell .person-profile .profile-identity {
+  position: relative;
+  background: radial-gradient(ellipse at 0 0, var(--card-wash), transparent 70%), linear-gradient(120deg, transparent 45%, var(--ui-field)), var(--ui-panel);
+  box-shadow: var(--ui-surface-shadow);
+  border-top: 2px solid var(--card-tone-line);
+  padding: var(--ui-space-8);
+  gap: var(--ui-space-8);
+}
+.finder-shell .person-profile .profile-eyebrow { color: var(--card-tone); }
+.finder-shell .person-profile .profile-copy .ui-page-header { margin-bottom: var(--ui-space-5); }
+.finder-shell .ui-detail-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--ui-space-4); padding-top: var(--ui-space-5); margin: var(--ui-space-6) 0 0; border-top: 1px solid var(--ui-line); }
+.finder-shell .ui-detail-facts>div { display: flex; flex-direction: column; gap: var(--ui-space-2); min-width: 0; }
+.finder-shell .ui-detail-facts dt { display: flex; align-items: center; gap: var(--ui-icon-gap-small); color: var(--ui-secondary); font-size: var(--ui-type-meta); }
+.finder-shell .ui-detail-facts dt svg { width: var(--ui-icon-small); height: var(--ui-icon-small); }
+.finder-shell .ui-detail-facts dd { margin: 0; color: var(--ui-text); font-size: var(--ui-type-section); font-weight: var(--ui-weight-heading); line-height: var(--ui-leading-heading); font-variant-numeric: tabular-nums; }
+.finder-shell .profile-links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ui-space-2); margin-top: var(--ui-space-5); font-size: var(--ui-type-meta); }
+.finder-shell .profile-links>span { color: var(--ui-muted); margin-right: var(--ui-space-1); }
+.finder-shell .profile-links a { display: inline-flex; align-items: center; gap: var(--ui-space-2); max-width: 100%; overflow-wrap: anywhere; padding: var(--ui-space-2) var(--ui-space-3); color: var(--card-tone); background: var(--ui-field); border: 1px solid var(--ui-line); border-radius: var(--ui-radius-control); text-decoration: none; }
+.finder-shell .profile-links a:hover { background: var(--ui-hover-surface); border-color: var(--card-tone-line); }
+@media (max-width: 900px) { .finder-shell .ui-detail-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .finder-shell .person-profile .profile-identity { padding: var(--ui-panel-padding); gap: var(--ui-space-5); } }
+
+/* Collections share the profile palette and facts, with a landscape cover mosaic. */
+.finder-shell .collection-hero { display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: center; gap: var(--ui-space-8); padding: var(--ui-space-8); margin-bottom: var(--ui-space-4); border: 1px solid var(--ui-line); border-top: 2px solid var(--card-tone-line); border-radius: var(--ui-radius-panel); background: radial-gradient(ellipse at 0 0, var(--card-wash), transparent 70%), linear-gradient(120deg, transparent 45%, var(--ui-field)), var(--ui-panel); box-shadow: var(--ui-surface-shadow); }
+.finder-shell .collection-hero-cover { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: repeat(2,minmax(0,1fr)); gap: 3px; aspect-ratio: 1; overflow: hidden; border-radius: var(--ui-radius-inset); background: var(--ui-field); border: 1px solid var(--card-tone-line); color: var(--card-tone); }
+.finder-shell .collection-hero-cover img { width: 100%; height: 100%; object-fit: cover; min-height: 0; }
+.finder-shell .collection-hero-cover img:first-child { grid-row: 1 / -1; }
+.finder-shell .collection-hero-cover[data-cover-count="1"] img { grid-column: 1 / -1; }
+.finder-shell .collection-hero-cover[data-cover-count="2"] img { grid-row: 1 / -1; }
+.finder-shell .collection-hero-cover>svg { grid-area: 1 / 1 / -1 / -1; place-self: center; width: 48px; height: 48px; }
+.finder-shell .collection-hero-copy { min-width: 0; }
+.finder-shell .collection-hero-eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ui-space-3); color: var(--card-tone); font-size: var(--ui-type-eyebrow); font-weight: var(--ui-weight-label); letter-spacing: 1.2px; margin-bottom: var(--ui-space-3); }
+.finder-shell .collection-hero-eyebrow>span { display: inline-flex; align-items: center; gap: var(--ui-icon-gap-small); color: var(--ui-secondary); letter-spacing: 0; }
+.finder-shell .collection-hero-eyebrow svg { width: var(--ui-icon-small); height: var(--ui-icon-small); }
+.finder-shell .collection-hero .ui-page-header h1 { overflow-wrap: anywhere; }
+.finder-shell .collection-hero-caption { color: var(--ui-secondary); font-size: var(--ui-type-body); line-height: var(--ui-leading-body); margin: 0; }
+@media (max-width: 1100px) {
+  .finder-shell .collection-hero { grid-template-columns: 180px minmax(0,1fr); gap: var(--ui-space-6); }
+  .finder-shell .collection-hero .ui-page-header { flex-wrap: wrap; }
+  .finder-shell .collection-hero .page-primary-actions { margin-left: 0; }
+}
+@media (max-width: 700px) {
+  .finder-shell .collection-hero { grid-template-columns: minmax(0,1fr); padding: var(--ui-panel-padding); gap: var(--ui-space-5); }
+  .finder-shell .collection-hero-cover { width: 100%; aspect-ratio: 16 / 9; max-height: 260px; }
+}
+
+/* Following source hero: the same identity palette and fact hierarchy. */
+.finder-shell .following-source-hero { display: grid; grid-template-columns: 200px minmax(0,1fr); gap: var(--ui-space-8); align-items: center; padding: var(--ui-space-8); margin-bottom: var(--ui-space-4); border: 1px solid var(--ui-line); border-top: 2px solid var(--card-tone-line); border-radius: var(--ui-radius-panel); background: radial-gradient(ellipse at 0 0,var(--card-wash),transparent 70%),linear-gradient(120deg,transparent 45%,var(--ui-field)),var(--ui-panel); box-shadow: var(--ui-surface-shadow); }
+.finder-shell .following-hero-art .following-avatar { width: 200px; height: 250px; border-radius: var(--ui-radius-inset); background: var(--card-wash); color: var(--card-tone); border: 1px solid var(--card-tone-line); box-shadow: 0 0 40px var(--card-wash); font-size: 48px; }
+.finder-shell .following-hero-copy { min-width: 0; }
+.finder-shell .following-hero-eyebrow { display: block; color: var(--card-tone); font-size: var(--ui-type-eyebrow); font-weight: var(--ui-weight-label); letter-spacing: 1.2px; margin-bottom: var(--ui-space-3); }
+.finder-shell .following-hero-title { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: var(--ui-space-4); }
+.finder-shell .following-hero-title h2 { min-width: 0; margin: 0; font-size: var(--ui-type-heading); line-height: 1.15; letter-spacing: -1px; font-weight: 750; color: var(--ui-text); overflow-wrap: anywhere; }
+.finder-shell .following-hero-title .following-source-actions { margin: 0; justify-content: flex-start; }
+.finder-shell .following-hero-meta { color: var(--ui-secondary); font-size: var(--ui-type-body); margin: var(--ui-space-3) 0 0; overflow-wrap: anywhere; }
+.finder-shell .following-hero-url { color: var(--ui-muted); font-size: var(--ui-type-meta); overflow-wrap: anywhere; margin: var(--ui-space-2) 0 0; }
+.finder-shell .following-hero-checked { color: var(--ui-muted); font-size: var(--ui-type-meta); margin: var(--ui-space-4) 0 0; }
+@media (max-width: 1100px) { .finder-shell .following-source-hero { grid-template-columns: 160px minmax(0,1fr); gap: var(--ui-space-6); } .finder-shell .following-hero-art .following-avatar { width: 160px; height: 200px; } }
+@media (max-width: 700px) { .finder-shell .following-source-hero { grid-template-columns: minmax(0,1fr); padding: var(--ui-panel-padding); gap: var(--ui-space-5); } .finder-shell .following-hero-art .following-avatar { width: 140px; height: 175px; } }
+
+/* Downloads use activity blue, leaving cherry for adding and selected controls. */
+.finder-shell .downloads-page .download-hero { background: radial-gradient(ellipse at 0 0,var(--ui-info-surface),transparent 75%),linear-gradient(120deg,transparent 45%,var(--ui-field)),var(--ui-panel); border: 1px solid var(--ui-line); border-top: 2px solid var(--ui-info-line); border-radius: var(--ui-radius-panel); box-shadow: var(--ui-surface-shadow); margin-bottom: var(--ui-space-6); }
+.finder-shell .downloads-page .download-hero .download-add-card { background: transparent; border: 0; margin: 0; box-shadow: none; }
+.finder-shell .download-hero .download-eyebrow { color: var(--ui-info); }
+.finder-shell .queue-overview-panel { padding: 0 var(--ui-panel-padding) var(--ui-panel-padding); }
+.finder-shell .queue-overview-panel .download-overview { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: var(--ui-space-3); margin: 0; }
+.finder-shell .queue-overview-panel .download-overview-card { min-width: 0; padding: var(--ui-space-4); gap: var(--ui-space-2); background: var(--ui-field); border: 1px solid var(--ui-line); border-radius: var(--ui-radius-inset); box-shadow: none; }
+.finder-shell .queue-overview-panel .download-overview-card>strong { font-size: var(--ui-type-section); line-height: var(--ui-leading-heading); }
+.finder-shell .queue-overview-panel .download-overview-card.downloading>strong { color: var(--ui-info); }
+.finder-shell .queue-overview-panel .download-overview-card.completed>strong { color: var(--ui-success); }
+.finder-shell .queue-overview-panel .download-overview-card.error>strong { color: var(--ui-danger); }
+.finder-shell .queue-overview-panel .download-overview-card:hover { background: var(--ui-hover-surface); border-color: var(--ui-hover-line); }
+.finder-shell .queue-overview-panel .download-overview-card[aria-pressed="true"] { background: var(--ui-selection-surface); border-color: var(--ui-selection-line); box-shadow: inset 0 2px var(--ui-accent); }
+.finder-shell .queue-live-summary { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--ui-space-6); padding-top: var(--ui-space-4); margin-top: var(--ui-space-4); border-top: 1px solid var(--ui-line); }
+.finder-shell .queue-live-summary>div { display: flex; flex-direction: column; gap: var(--ui-space-1); min-width: 0; }
+.finder-shell .queue-live-summary span,.finder-shell .queue-live-summary small { color: var(--ui-secondary); font-size: var(--ui-type-meta); line-height: var(--ui-leading-body); }
+.finder-shell .queue-live-summary strong { color: var(--ui-text); font-size: var(--ui-type-body); font-weight: var(--ui-weight-label); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width:700px) { .finder-shell .queue-overview-panel .download-overview { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width:480px) { .finder-shell .queue-live-summary { grid-template-columns: minmax(0,1fr); gap: var(--ui-space-3); } }
+
+/* Do not stretch a short results page away from its pager. */
+.finder-shell .file-area { flex: 0 0 auto; min-height: 0; }

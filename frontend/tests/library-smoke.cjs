@@ -7,7 +7,7 @@ const assert = require('node:assert/strict');
 (async () => {
  const root = path.resolve(__dirname, '..');
  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'clipkit-library-'));
- const server = spawn(process.execPath, [path.join(root, 'node_modules/vite/bin/vite.js'), '--host', '127.0.0.1', '--port', '5199', '--strictPort'], { cwd: root, windowsHide: true, stdio: 'pipe' });
+ const server = spawn(process.execPath, [path.join(path.dirname(require.resolve('vite/package.json')), 'bin/vite.js'), '--host', '127.0.0.1', '--port', '5199', '--strictPort'], { cwd: root, windowsHide: true, stdio: 'pipe' });
  let browser;
  try {
   for (let i = 0; i < 60; i++) { try { if ((await fetch('http://127.0.0.1:5199')).ok) break; } catch {} await new Promise(r => setTimeout(r, 100)); }
@@ -16,7 +16,7 @@ const assert = require('node:assert/strict');
   const errors = []; page.on('pageerror', e => errors.push(e.message));
   const people = [{ name: 'Alex Morgan', nickname: 'Alex', count: 26, thumbnail: 'neutral-1' }, { name: 'Jamie Lee', nickname: 'Jamie', count: 25 }, { name: 'Taylor Reed', count: 0 }];
   const videos = Array.from({ length: 51 }, (_, i) => ({ site: i % 2 ? 'Studio' : 'Local', id: String(i), title: ['Mountain light', 'A quiet afternoon', 'City in motion', 'Coastal trails'][i % 4] + ` ${i + 1}`, filename: `sample-${i}.mp4`, filepath: `sample-${i}.mp4`, thumbnail: i === 2 ? 'broken' : `neutral-${i}`, duration: 600, position: i === 1 ? 590 : i % 3 ? 0 : 120, height: i % 2 ? 720 : 1080, width: 1920, filesize: 90000000, favorite: i === 0, people: [i % 2 ? 'Jamie Lee' : 'Alex Morgan'], labels: [i % 2 ? 'Travel' : 'Nature'], added: new Date(Date.now() - (i===50 ? 120*86400000 : i * 60000)).toISOString() }));
-  let info = { name: 'Alex Morgan', nickname: 'Alex', bio: 'Favorite moments, collected in one place.', links: [], cover: '' };
+  let info = { name: 'Alex Morgan', nickname: 'Alex', bio: 'Favorite moments, collected in one place.', links: [{label:'Website',url:'https://example.com/alex'},{label:'Invalid link',url:'javascript:void(0)'}], cover: '' };
   await page.route('**/api/**', async r => {
    const u = new URL(r.request().url());
    if (u.pathname === '/api/events') return r.fulfill({ contentType: 'text/event-stream', body: ': mock\n\n' });
@@ -41,6 +41,26 @@ const assert = require('node:assert/strict');
   await page.goto('http://127.0.0.1:5199');
   await page.locator('.video-card').first().waitFor();
   assert.equal(await page.locator('.video-card').count(), 50);
+  // Regression: toolbar menus anchor to their controls and stay in small windows.
+  for (const [width,height] of [[1440,900],[390,640],[700,420]]) {
+    await page.setViewportSize({width,height});
+    for (const [triggerSelector,panelSelector] of [
+      ['.video-filter-popover>summary','.video-filter-menu'],
+      ['.preview-size-menu>summary','.preview-size-popover'],
+      ['.video-card-info>summary','.video-card-meta'],
+      ['.browse-query-group>.sort-menu>.sort-menu-trigger','.sort-menu-popover']
+    ]) {
+      const trigger=page.locator(triggerSelector).first();
+      await trigger.click();
+      const panel=page.locator(panelSelector+':visible');
+      await page.waitForFunction(selector=>{const e=[...document.querySelectorAll(selector)].find(e=>e.getBoundingClientRect().height>0);return e&&e.style.position==='fixed';},panelSelector);
+      const box=await panel.first().boundingBox(),anchor=await trigger.boundingBox();
+      assert(box.x>=11&&box.y>=11&&box.x+box.width<=width-11&&box.y+box.height<=height-11,JSON.stringify({width,height,box}));
+      assert(Math.abs(box.y-anchor.y-anchor.height-8)<2||Math.abs(box.y+box.height-anchor.y+8)<3,'Menu anchors below or above its trigger');
+      await page.keyboard.press('Escape');
+    }
+  }
+  await page.setViewportSize({width:1440,height:1000});
   // Browsing stays a grid; density is saved separately for each media kind.
   assert.equal(await page.locator('.video-card .card-select-control:visible').count(), 0);
   await page.locator('.preview-size-menu summary[aria-label="Video thumbnail size"]').click();
@@ -55,14 +75,25 @@ const assert = require('node:assert/strict');
 
   await page.getByRole('button', { name: 'Next →', exact: true }).click();
   await page.waitForFunction(() => document.querySelectorAll('.video-card').length === 1);
+  assert.equal(await page.getByRole('button',{name:'Go to videos page',exact:true}).innerText(),'Page 2 of 2');
+  assert.equal(await page.getByRole('button',{name:'Next →',exact:true}).isDisabled(),true);
+  assert.equal(await page.locator('footer.browse-pagination').count(),1,'Paging remains below the results');
+  assert.equal(await page.locator('.library-toolbar .browse-pagination').count(),0,'Toolbar does not contain pagination');
+  await page.screenshot({path:path.join(temp,'pagination.png')});
+  await page.getByRole('button',{name:'Go to videos page',exact:true}).click();
+  await page.getByRole('menuitemradio',{name:'Page 1 of 2',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelectorAll('.video-card').length===50);
+  await page.getByRole('button',{name:'Go to videos page',exact:true}).click();
+  await page.getByRole('menuitemradio',{name:'Page 2 of 2',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelectorAll('.video-card').length===1);
   await page.getByRole('button', { name: '← Previous', exact: true }).click();
   await page.getByRole('img', { name: '20% watched' }).first().waitFor();
   await page.locator('.video-card-placeholder').waitFor();
   const titleSize = await page.locator('.ui-page-header h1').evaluate(el => getComputedStyle(el).fontSize);
   assert.equal(titleSize, '36px');
-  const controls = await page.locator('.video-search-line .manager-search, .video-filter-popover summary, .media-manage-controls > button').evaluateAll(nodes => nodes.map(el => { const r = el.getBoundingClientRect(); return { center: r.y + r.height / 2, height: r.height }; }));
-  assert(controls.length >= 3);
-  const displayControls = await page.locator('.media-browse-bar .sort-menu-trigger, .preview-size-menu>summary, .media-manage-controls > button').evaluateAll(nodes => nodes.map(el => { const r = el.getBoundingClientRect(); return { center: r.y + r.height / 2, height: r.height }; }));
+  const controls = await page.locator('.video-filter-popover summary, .media-manage-controls > button').evaluateAll(nodes => nodes.map(el => { const r = el.getBoundingClientRect(); return { center: r.y + r.height / 2, height: r.height }; }));
+  assert(controls.length >= 2);
+  const displayControls = await page.locator('.browse-query-group>.sort-menu>.sort-menu-trigger, .preview-size-menu>summary, .media-manage-controls > button').evaluateAll(nodes => nodes.map(el => { const r = el.getBoundingClientRect(); return { center: r.y + r.height / 2, height: r.height }; }));
   assert.equal(displayControls.length, 3);
   assert(displayControls.every(r => Math.abs(r.center - displayControls[0].center) < 1 && Math.abs(r.height - 42) < 1));
   assert.equal(await page.locator('.library-toolbar').getByRole('button', {name:'Manage videos', exact:true}).count(), 1);
@@ -169,6 +200,7 @@ const assert = require('node:assert/strict');
   await page.getByRole('button',{name:'Filter by source',exact:true}).click();
   await page.getByRole('menuitemradio',{name:'Local',exact:true}).click();
   await page.waitForFunction(() => document.querySelectorAll('.video-card').length === 26);
+  assert(await page.locator('.video-filter-chips').evaluate(e=>parseFloat(getComputedStyle(e).paddingTop)>=12),'Chips have space below their divider');
   await page.screenshot({ path: path.join(temp, 'video-filters.png') });
   await page.getByRole('button', { name: 'Reset', exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
@@ -222,6 +254,12 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('.person-profile').getAttribute('data-card-tone'), alexTone);
   await page.locator('.profile-avatar img').waitFor();
   assert((await page.locator('.profile-avatar').boundingBox()).height >= 250);
+  assert.equal(await page.locator('.person-profile .ui-page-header').getByRole('button',{name:'Edit profile',exact:true}).count(),1,'Profile action belongs to shared heading');
+  assert.equal(await page.locator('.person-profile h1').count(),1,'One profile title');
+  assert.equal(await page.locator('.ui-detail-facts>div').count(),4,'Four labeled library facts');
+  assert.equal(await page.locator('.ui-detail-facts>div').first().locator('dd').innerText(),'26');
+  assert.equal(await page.locator('.profile-links').getByRole('link',{name:'Website'}).getAttribute('href'),'https://example.com/alex');
+  assert.equal(await page.getByRole('link',{name:'Invalid link'}).count(),0,'Only HTTP profile links are rendered');
   await page.screenshot({ path: path.join(temp, 'profile-before-edit.png') });
   await page.getByRole('button', { name: 'Edit profile', exact: true }).click();
   await page.getByLabel('Display name', { exact: true }).fill('Alex M.');

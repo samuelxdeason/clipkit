@@ -1,3 +1,4 @@
+import { anchorPopover, useDetailsPopover } from "./PopoverPosition";
 import { Icon } from "./Icons";
 import { Children, isValidElement, type ReactNode, useId, useLayoutEffect, useEffect, useRef, useState, forwardRef, type ButtonHTMLAttributes, type HTMLAttributes } from "react";
 
@@ -35,11 +36,12 @@ export function useThumbnailSize(kind: "videos" | "photos" | "collections") {
 }
 export function ThumbnailSizeControl({ value, onChange, kind }: { value: ThumbnailSize; onChange: (value: ThumbnailSize) => void; kind: "videos" | "photos" | "collections" }) {
   const menu = useRef<HTMLDetailsElement>(null);
+  useDetailsPopover(menu, ".preview-size-popover", 200);
   useEffect(() => { const close = (event: PointerEvent) => { if (menu.current && !menu.current.contains(event.target as Node)) menu.current.open = false; }; document.addEventListener("pointerdown", close); return () => document.removeEventListener("pointerdown", close); }, []);
   const label = kind === "videos" ? "Video thumbnail size" : kind === "photos" ? "Photo thumbnail size" : "Collection thumbnail size";
   return <details ref={menu} className="preview-size-menu" onKeyDown={e => { if(e.key === "Escape") { e.stopPropagation(); e.currentTarget.open = false; e.currentTarget.querySelector("summary")?.focus(); } }}>
     <summary aria-label={label} title={"Preview size: " + value}><Icon name="grid"/><Chevron expanded/></summary>
-    <div className="preview-size-popover" role="group" aria-label={label}><span>Preview size</span>{(["small", "medium", "large"] as const).map(size => <button type="button" key={size} aria-label={size[0].toUpperCase()+size.slice(1)+" previews"} aria-pressed={value===size} onClick={()=>{onChange(size);if(menu.current){menu.current.open=false;menu.current.querySelector("summary")?.focus();}}}><span>{size[0].toUpperCase()+size.slice(1)}</span><span aria-hidden="true">{value===size?"✓":""}</span></button>)}</div>
+    <div className="preview-size-popover ui-choice-popover" role="group" aria-label={label}><span>Preview size</span>{(["small", "medium", "large"] as const).map(size => <button type="button" key={size} aria-label={size[0].toUpperCase()+size.slice(1)+" previews"} aria-pressed={value===size} onClick={()=>{onChange(size);if(menu.current){menu.current.open=false;menu.current.querySelector("summary")?.focus();}}}><span>{size[0].toUpperCase()+size.slice(1)}</span><MenuSelectionMark selected={value===size}/></button>)}</div>
   </details>;
 }
 
@@ -62,12 +64,10 @@ export function SortMenu({label, value, onChange, options, filter=false}: {label
   const root=useRef<HTMLDivElement>(null), trigger=useRef<HTMLButtonElement>(null);
   const id=useId();
   const popup=useRef<HTMLDivElement>(null);
-  const [placement,setPlacement]=useState<{left:number;top:number;width:number;maxHeight:number}>();
-  useLayoutEffect(()=>{
-    if(!open||!filter)return;
-    const position=()=>{const anchor=trigger.current?.getBoundingClientRect();if(!anchor)return;const below=window.innerHeight-anchor.bottom-14,above=anchor.top-14;const height=Math.min(popup.current?.scrollHeight||240,280);const up=below<height&&above>below;const maxHeight=Math.max(60,Math.min(280,up?above:below));const width=Math.min(Math.max(anchor.width,180),window.innerWidth-24);setPlacement({left:Math.max(12,Math.min(anchor.left,window.innerWidth-width-12)),top:up?Math.max(12,anchor.top-Math.min(height,maxHeight)-6):anchor.bottom+6,width,maxHeight});};
-    position();window.addEventListener("resize",position);window.addEventListener("scroll",position,true);return()=>{window.removeEventListener("resize",position);window.removeEventListener("scroll",position,true);};
-  },[open,filter]);
+  useLayoutEffect(() => {
+    if (!open || !trigger.current || !popup.current) return;
+    return anchorPopover(trigger.current, popup.current, filter ? Math.max(trigger.current.getBoundingClientRect().width, 200) : Math.max(trigger.current.getBoundingClientRect().width, 220), 360);
+  }, [open, filter, options.length]);
   const typeahead=useRef({text:"",time:0});
   const buttons=()=>Array.from(root.current?.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]')||[]);
   const close=(restore=false)=>{setOpen(false);if(restore)trigger.current?.focus();};
@@ -75,11 +75,16 @@ export function SortMenu({label, value, onChange, options, filter=false}: {label
   useEffect(()=>{const outside=(e:PointerEvent)=>{if(!root.current?.contains(e.target as Node))setOpen(false);};document.addEventListener("pointerdown",outside);return()=>document.removeEventListener("pointerdown",outside);},[]);
   return <div className={`sort-menu ${filter?"filter-choice-menu":""}`} ref={root} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setOpen(false);}}>
     <button type="button" ref={trigger} className="sort-menu-trigger" aria-label={label} aria-haspopup="menu" aria-expanded={open} aria-controls={open?id:undefined} onClick={()=>setOpen(v=>!v)} onKeyDown={e=>{if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();setOpen(true);}}}>{options.find(o=>o.value===value)?.label||"Sort"}<Chevron expanded/></button>
-    {open&&<div id={id} ref={popup} style={filter?{position:"fixed",...placement}:undefined} className="preview-size-popover sort-menu-popover" role="menu" aria-label={label} onKeyDown={e=>{
+    {open&&<div id={id} ref={popup} className="preview-size-popover sort-menu-popover ui-choice-popover" role="menu" aria-label={label} onKeyDown={e=>{
       const rows=buttons(),index=rows.indexOf(document.activeElement as HTMLButtonElement);
       if(e.key==="Escape"){e.preventDefault();e.stopPropagation();close(true);return;}
       if(["ArrowDown","ArrowUp","Home","End"].includes(e.key)){e.preventDefault();rows[e.key==="Home"?0:e.key==="End"?rows.length-1:(index+(e.key==="ArrowDown"?1:-1)+rows.length)%rows.length]?.focus();}
       else if(e.key.length===1&&!e.ctrlKey&&!e.metaKey&&e.key!==" "){e.preventDefault();const now=Date.now();typeahead.current={text:(now-typeahead.current.time<650?typeahead.current.text:"")+e.key.toLocaleLowerCase(),time:now};const match=options.findIndex(o=>o.label.toLocaleLowerCase().startsWith(typeahead.current.text));if(match>=0)rows[match]?.focus();}
-    }}><span>{filter?label:"Sort by"}</span>{options.map(o=><button type="button" key={o.value} role="menuitemradio" aria-checked={value===o.value} tabIndex={-1} onClick={()=>{onChange(o.value);close(true);}}><span>{o.label}</span><span aria-hidden="true">{value===o.value?"✓":""}</span></button>)}</div>}
+    }}><span>{label}</span>{options.map(o=><button type="button" key={o.value} role="menuitemradio" aria-checked={value===o.value} tabIndex={-1} onClick={()=>{onChange(o.value);close(true);}}><span>{o.label}</span><MenuSelectionMark selected={value===o.value}/></button>)}</div>}
   </div>;
+}
+
+/** Identical selection alignment in sort, filter-choice and preview menus. */
+function MenuSelectionMark({ selected }: { selected: boolean }) {
+  return <span className="menu-selection-mark" aria-hidden="true">{selected && <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="m4 10 4 4 8-8"/></svg>}</span>;
 }

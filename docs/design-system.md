@@ -2,11 +2,14 @@
 
 ## Source of truth
 
-- `frontend/src/tokens.css`: the single owner of global colors, typography, spacing, radii, icon sizes and responsive token values.
+- `frontend/src/browse-layout.css`: browsing toolbar, chips, dropdown surfaces and paging layout.
+- `frontend/src/PopoverPosition.ts`: shared viewport-aware positioning and top-layer lifecycle.
+
+- `packages/design-tokens/tokens.css`: the single owner of global colors, typography, spacing, radii, icon sizes and responsive token values.
 - `frontend/src/app-theme.css`: the ordered stylesheet entry shared by the app, component preview and browser harness.
 - `frontend/src/ui-system.css`: component sizing, page typography and state treatments using those tokens.
 - `frontend/src/typography.css`: shared typography roles and mappings for section headings, labels, and supporting text; loaded after component styles.
-- `frontend/src/UIControls.tsx`: `Button`, `ActionGroup`, and Primary button gradients meet 4.5:1 contrast for white text in normal and hover states.
+- `frontend/src/UIControls.tsx`: `Button`, `ActionGroup`, `SortMenu`, `FilterMenu`, and `ThumbnailSizeControl`.
 - `frontend/src/WorkspaceUI.tsx`: `PageHeader`, `LibraryToolbar`, `EmptyState`, `LoadState`, `ActivityIndicator` and `DialogHeader`.
 - `frontend/src/after-hours.css`: media layouts and decorative theme treatments.
 
@@ -16,15 +19,15 @@ Specialized layout sheets remain for media ratios, responsive grids and page-spe
 
 ## Page action placement
 
-The top navigation bar owns location/breadcrumbs on the left and the primary page action on the right: Add videos, Add photos, New collection/New folder, or New person. Use `PageActionsProvider`, `PageActionsSlot`, and `PageActions` for child-owned actions; their event handlers and dialog state stay in the page. Never duplicate these primary actions beside the page heading. Empty-state recovery actions and contextual item menus can remain next to their content.
+Main pages have no top bar: the sidebar identifies the current destination. `PageHeader` places the title/description on the left and its `actions` in a labeled group on the right (below the title on narrow windows). Add videos, Add photos, New collection/New folder, and New person belong here. Pages own their action handlers directly; no portal or shared action target is needed. Keep empty-state recovery actions and item menus next to their content. Collection/folder and person details show breadcrumbs above the header, preserving ancestor navigation and collection drop targets. A compact mobile navigation button remains available above the heading on narrow screens.
 
 Use `BrowseToolbar` for collections, people, tags, Following and the download queue. Source/queue status filters use the shared dropdown with live counts; bulk actions stay in the organizing group. Display sorting must not change queue priority or lose source selections. It provides search, display controls, an optional organizing group and a result summary; omit controls that do not apply rather than rendering empty groups. Keep search refs connected so Ctrl+K continues to work.
 
-Browsing controls belong in the content toolbar: search and filters first, then sort and preview size. Manage stays in a separate group with a divider. Applied filter chips sit below the row, followed by the result count. On narrow screens the display/Manage row wraps beneath search; buttons retain their shared target sizes. Filter triggers use the same sliders icon and show a selected treatment whenever filters are active.
+Browsing uses full-width search above the results/control row. Counts sit on the left; filters, sort, preview size and Manage sit alongside them. Active chips follow with vertical padding; a divider connects the toolbar to the grid. Pagination stays below results. Narrow layouts wrap groups without changing behavior. Filter triggers show active counts and cherry selected states.
 
 ## Making changes
 
-- Change shared values in `tokens.css`, including narrow-screen values. Identity palette values also live in tokens.css; card scope maps the stable identity tone to these tokens.
+- Change shared values in `packages/design-tokens/tokens.css`, including narrow-screen values. Identity palette values also live in the token package; card scope maps the stable identity tone to these tokens.
 - Import `app-theme.css` rather than assembling a page-specific stylesheet stack.
 - Reuse `EmptyState` for empty results and `LoadState` for loading/error recovery. Keep messages and action callbacks in the caller.
 - Reuse `DialogHeader` inside `DetailDialog`; preserve the caller's busy/close behavior and accessible label.
@@ -35,9 +38,9 @@ Run `node frontend/tests/style-contracts.cjs` to check token ownership and theme
 
 ## Typography and spacing
 
-Use `PageHeader` for top-level pages. Titles are 36px desktop / 28px at widths up to 700px, weight 750, line-height 1.15, letter-spacing -1px. Descriptions are 14px with 1.6 line-height and a 4px gap below the title. Ordinary page headers start 20px below the top bar and leave 16px before the next section. Profile and collection detail heroes retain their padded layouts but share the title typography. Section titles are 22px / 20px.
+Use `PageHeader` for top-level pages. Titles are 36px desktop / 28px at widths up to 700px, weight 750, line-height 1.15, letter-spacing -1px. Descriptions are 14px with 1.6 line-height and a 4px gap below the title. Ordinary page headers start 20px below the workspace edge and leave 16px before the next section. Profile and collection detail heroes retain their padded layouts but share the title typography. Section titles are 22px / 20px.
 
-Keep header typography and spacing in `ui-system.css`; page styles should only handle layout, wrapping, and intentional hero padding. The top bar keeps a 60px minimum row height with 8px vertical padding on narrow windows so action buttons do not shift page headings. `frontend/tests/headers-smoke.cjs` checks the rendered header contract across nine pages at desktop, tablet, and phone widths.
+Keep header typography and spacing in `ui-system.css`; page styles should only handle layout, wrapping, and intentional hero padding. Heading actions wrap below the title at widths up to 700px; mobile navigation occupies a separate compact row. `frontend/tests/headers-smoke.cjs` checks the rendered header contract across nine pages at desktop, tablet, and phone widths.
 
 Controls use 13px text and a 42px minimum height. Compact buttons are explicitly 32px; use them only in dense supporting surfaces, never to squeeze a main toolbar. Text may wrap and increase height rather than clip. Use 4, 8, 12, 16, 24, and 32px spacing tokens; the shared action gap is 10px. Action groups wrap, align centers, and own no external margins. Containers own layout and spacing between groups.
 
@@ -61,7 +64,7 @@ The component preview includes these roles. The header smoke suite also checks t
 
 ## Surface geometry
 
-`surface-system.css` is the final geometry contract. Use tokens rather than introducing new local radii or container insets. It maps existing cards, settings, source/download panels, menus and content dialogs to these roles.
+`surface-system.css` owns general geometry; `browse-layout.css` follows it and owns browsing controls and paging. Use tokens rather than introducing new local radii or container insets. It maps existing cards, settings, source/download panels, menus and content dialogs to these roles.
 
 | Role | Corner radius | Content inset |
 | --- | --- | --- |
@@ -81,7 +84,7 @@ Rendered smoke checks cover card/control radii, responsive panel padding, deskto
 `interaction-system.css` owns shared interaction treatments; state values live in `tokens.css`. Keep native `disabled`, `aria-pressed`, `aria-checked` and the existing selected classes connected to application state. Styling does not replace disabled behavior or accessible state attributes.
 
 - Hover: neutral raised surface and shared border for ordinary actions and menu choices. Primary and destructive actions retain their semantic palettes. Hover must not erase selection.
-- Selected: cherry selection surface, border and text. A selected menu choice uses the selection-hover token when hovered; selected media retains its selection surface and accent outline. Identity colors remain decorative, never selection indicators.
+- Selected: cherry identifies selected/active state. Choice popovers use a neutral field fill with a cherry border/checkmark; other selected controls use shared selection tokens. Selected media retains its accent outline. Identity colors remain decorative, never selection indicators.
 - Focus: a separate 2px cherry keyboard ring with 3px offset. Card faces and menu rows use an inset ring to prevent clipping. Search wrappers show the focus treatment around the entire field, with no second ring around the inner input.
 - Disabled: native disabled controls, including controls in disabled fieldsets, use the same opacity and unavailable cursor. They do not lift, brighten or receive keyboard focus. Do not use opacity alone to disable an action.
 - Motion: short color/border transitions; reduced-motion preferences disable them. Existing media hover motion remains separately scoped to fine pointers and respects reduced motion.
@@ -203,3 +206,70 @@ Viewer chrome uses charcoal panels around a true-black media stage. ViewerHeader
 - **Priority:** selected cards and keyboard focus use shared cherry states even on identity-colored cards. Hover alone uses the identity border or a neutral border. Do not add brand-colored shadows to every card.
 
 Global values belong in `tokens.css`; component selectors consume semantic roles. Change palette values there rather than adding per-page hex overrides. Primary-button text must retain at least 4.5:1 contrast, as must supporting and status text on their intended surfaces.
+
+
+### Nested detail pages
+
+Collection details use an unboxed `PageHeader` below the breadcrumb row. Person profiles use a portrait-led hero with the name and editing action inside it; collection creation and its options menu belong beside the title. Collection pin/rename/move/delete remain in that menu; item selection stays in the browsing toolbar. The person hero combines a large portrait, expressive 32–52px title, bio and statistics on a neutral panel, with identity glow confined to the portrait. Keep one h1 and shared action controls; on narrow screens the portrait stacks above the identity and editing action.
+
+
+The person hero now carries its stable identity wash across the header, with a faint accent along its top edge and a colored eyebrow. Warm-white title and numeric facts remain readable on charcoal; cherry stays reserved for actions and selections. Four labeled facts summarize videos, favorites, total video runtime and distinct video sources from loaded library records. Saved HTTP(S) profile links are optional and open separately; never invent biographical information. At narrow widths facts use two columns and the portrait stacks above the text.
+
+
+### Collection heroes
+
+`CollectionHeader` owns the collection detail hero: a decorative cover mosaic with broken-image fallback, shared page heading/actions, and shared `ui-detail-facts`. Its identity tone is keyed to the collection ID, so renaming and filtering do not change its color. Counts come from collection metadata, independent of the filtered result count below. The hero shows pinned/locked state when applicable. Keep collection options and New folder in the heading, and item selection in the browsing toolbar. Menus must be able to extend outside the hero without clipping. The collection directory retains its compact heading.
+
+
+### Following source heroes
+
+`FollowingSourceHeader` uses the shared identity palette, charcoal gradient and `ui-detail-facts` for source totals. Linked people retain their existing identity tone; unlinked sources use their source URL. Display site/handle/type, last checked and unfiltered source/download counts; loading or failed enumeration must not imply zero results. Header actions keep their existing callbacks, while bulk download controls remain in the browsing toolbar. The local portrait or initials provide a preview without fetching remote media.
+
+
+### Downloads overview
+
+The download hero combines link/import actions with `DownloadQueueOverview`, using informational blue over charcoal. Four filter buttons summarize active, waiting, completed (including already saved) and failed jobs across the full queue. Clicking the selected count returns to All. Active-download details and Up next derive from actual queue order, independent of display sorting/search. Progress, speed and ETA refer to the displayed active job, never an estimated whole-queue completion. Preserve per-job controls below and label status colors explicitly.
+
+
+### Toolbar and pagination rhythm
+
+Search, filters and browsing controls form a flat rail above the grid. Applied filter chips occupy a dedicated row when needed. A subtle divider introduces the result count beneath the controls. `BrowsePagination` remains a footer below the results, with the visible range and selection count on the left and Previous / page picker / Next on the right. The toolbar and footer align to the grid edges and sit directly on the canvas, without enclosing cards.
+
+Videos (50), photos (60) and collection items (60) share this component. The page picker uses `SortMenu` for consistent dark styling and keyboard navigation; single-page results hide the navigation controls. Narrow layouts wrap paging below the count. Page changes return to the browsing area, and existing filter resets and selection behavior remain with the page. Following keeps Show more and Downloads remains an unpaginated live queue.
+
+Browsing layout and footer styles are owned by `frontend/src/browse-layout.css`. Search uses `--ui-field` and `--ui-line`; quiet controls use shared secondary-text and hover tokens. Cherry indicates active states. Do not add page-specific toolbar backgrounds or resurrect the retired browse-control palette.
+
+Video and photo browsing (including person libraries) use `BrowseQueryGroup` as layout slots: search above a results rail, with the count left and filter, sort, preview and Manage controls right. The rail and bottom pagination frame the grid with matching neutral dividers. Use shared field, line, secondary-text and hover tokens; reserve cherry surfaces for active states. On narrow screens filter and sort wrap together below the count and display controls. Filter panels float; pagination stays below the results.
+
+Collections, people and tags opt into `BrowseToolbar layout="results"`: full-width search, then count and quiet browsing controls above a neutral grid divider. Collection media-type filters belong with sorting and preview controls. Collection paging stays below the media grid.
+
+Following (directory and source content) and Downloads use the same results layout. At narrower widths, bulk actions and filter/sort controls wrap below the summary; source checks, queue operations, and live progress retain their existing behavior. Following keeps Show more; Downloads remains a live unpaginated queue.
+
+Filter popovers use neutral panel/field surfaces, with cherry borders on selected fields. `ActiveFilterChips` provides the shared caption and group semantics; chips use quiet panel backgrounds and cherry removal icons. Keep choice menus floating and preserve immediate filtering, reset, Escape and focus-return behavior.
+
+Sort, preview-size and filter-choice menus share `ui-choice-popover`: a labelled charcoal surface, 42px option rows, a reserved checkmark column and neutral selected rows with cherry borders. Keep existing menu roles, keyboard navigation, viewport placement and focus return.
+
+Popover positioning is owned by `PopoverPosition.ts`: measured trigger anchoring, 12px viewport gutters, 8px gap, flipping and scrollable height limits. Details-based filter/preview menus and SortMenu share it, including the bottom page picker. Do not use fixed top offsets for these menus.
+
+Collection action menus, file info, recycling information, multi-select filters and organizing suggestions also use the shared anchor helper. Supported browsers place these in the top layer to avoid clipping by cards/dialogs. In-page disclosures remain in document flow. Active filter rows use 12px vertical padding.
+
+## Implementation recipes
+
+Use the shared structure; keep API calls, selection and filter state in the page:
+
+```tsx
+<PageHeader title="People" description="Browse your library’s people." actions={createAction} />
+<BrowseToolbar
+  layout="results"
+  label="People browsing controls"
+  search={searchField}
+  controls={<SortMenu label="Sort people" value={sort} onChange={setSort} options={sortOptions} />}
+  summary={`${matches.length} people`}
+/>
+```
+
+For media pages use the existing BrowseQueryGroup and ActiveFilterChips pattern in Manager/PhotoBrowser. Reuse BrowsePagination after the results; keep page size and reset behavior with the page. Do not move the footer back into the toolbar.
+
+Before adding a component, identify its semantic role, keyboard behavior, loading/error/disabled states and narrow-width layout. Prefer composing Button, IconButton, DialogHeader, EmptyState and LoadState over copying their markup. Avoid embedding app transport or generated model types in a new generic component.
+
+When changing a token, list which roles use it and check normal, hover, focus, selected and disabled states. When changing positioning, use PopoverPosition and test near all window edges, inside cards/dialogs and with nested menus. Screenshots should use synthetic content.

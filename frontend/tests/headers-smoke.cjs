@@ -3,7 +3,7 @@ const { spawn } = require('node:child_process');
 const path = require('node:path'), assert = require('node:assert/strict');
 (async () => {
  const root = path.resolve(__dirname, '..');
- const server = spawn(process.execPath, [path.join(root, 'node_modules/vite/bin/vite.js'), '--host', '127.0.0.1', '--port', '5189', '--strictPort'], { cwd: root, windowsHide: true, stdio: 'pipe' });
+ const server = spawn(process.execPath, [path.join(path.dirname(require.resolve('vite/package.json')), 'bin/vite.js'), '--host', '127.0.0.1', '--port', '5189', '--strictPort'], { cwd: root, windowsHide: true, stdio: 'pipe' });
  let browser;
  try {
   for (let i=0;i<60;i++) { try { if ((await fetch('http://127.0.0.1:5189')).ok) break; } catch {} await new Promise(r=>setTimeout(r,100)); }
@@ -98,8 +98,21 @@ const path = require('node:path'), assert = require('node:assert/strict');
       await page.locator('[data-section="'+section+'"]').evaluate(e=>e.click());
       await page.getByRole('heading',{name:({videos:'Your video library',photos:'Your photo library',collections:'Collections',people:'People',tags:'Tags',following:'Following',downloads:'Downloads',settings:'Settings'})[section],exact:true}).waitFor();
       const actionName=({videos:'Add videos',photos:'Add photos',collections:'New collection',people:'New person'})[section];
-      if(actionName){const action=page.getByRole('group',{name:'Page actions'}).getByRole('button',{name:actionName,exact:true});await action.waitFor();assert.equal(await action.isVisible(),true,section+' top bar action');if(width===1440){await action.click();await page.getByRole('dialog',{name:actionName,exact:true}).waitFor();await page.keyboard.press('Escape');assert.equal(await page.getByRole('dialog').count(),0,'Page action dialog closes');}assert.equal(await page.locator('.ui-page-header button').count(),0,'No duplicate header actions');}
+      if(actionName){const action=page.getByRole('group',{name:'Page actions'}).getByRole('button',{name:actionName,exact:true});await action.waitFor();assert.equal(await action.isVisible(),true,section+' heading action');if(width===1440){await action.click();await page.getByRole('dialog',{name:actionName,exact:true}).waitFor();await page.keyboard.press('Escape');assert.equal(await page.getByRole('dialog').count(),0,'Page action dialog closes');}assert.equal(await page.locator('.ui-page-header .page-primary-actions button').count(),1,'One heading action');}
       if(['collections','people','tags'].includes(section)){const toolbar=page.locator('.directory-browse-toolbar');assert.equal(await toolbar.count(),1);assert.equal(await toolbar.getByRole('textbox').count(),1);if(section!=='collections')assert.equal(await toolbar.locator('.sort-menu-trigger').count(),1);assert.equal(await page.locator('.content-search-row').count(),0,'No detached directory search');}
+      assert.equal(await page.locator('.manager-topbar').count(),0,'No redundant top bar');
+      assert.equal(await page.getByRole('navigation',{name:'Breadcrumb',exact:true}).count(),0,'Root pages do not duplicate location');
+      assert.equal(await page.getByRole('button',{name:'Toggle navigation',exact:true}).isVisible(),width<=760,'Mobile navigation remains available');
+      for(const toolbar of await page.locator('.library-toolbar.compact-video-toolbar').all()) {
+        assert.deepEqual(await toolbar.evaluate(e=>{const s=getComputedStyle(e);return [s.backgroundColor,s.padding,s.borderTopWidth,s.borderRadius];}),['rgba(0, 0, 0, 0)','0px','0px','0px'],'Flat browsing surface');
+      }
+      for(const search of await page.locator('.compact-video-toolbar .manager-search,.compact-video-toolbar .queue-search').all()) {
+        assert.equal(await search.evaluate(e=>getComputedStyle(e).backgroundColor),await search.evaluate(e=>e.closest('.browse-query-group,.results-rail-toolbar')?'rgb(18, 17, 20)':'rgb(36, 34, 38)'),'Search remains visible on the flat canvas');
+      }
+      for(const group of await page.locator('.browse-query-group').all()) {
+        const widths=await group.evaluate(e=>[e.querySelector('.manager-search').getBoundingClientRect().width,e.closest('.library-toolbar').getBoundingClientRect().width]);
+        assert(Math.abs(widths[0]-widths[1])<2,'Media search spans the entire toolbar');
+      }
       const current=await page.evaluate(metrics);
       if(!reference)reference=current;
       assert.equal(current.size,width<=700?'28px':'36px',section+' size');

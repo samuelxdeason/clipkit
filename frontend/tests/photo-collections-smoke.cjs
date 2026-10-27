@@ -3,7 +3,7 @@ const { spawn } = require('node:child_process');
 const fs = require('node:fs'), path = require('node:path'), os = require('node:os'), assert = require('node:assert/strict');
 (async () => {
  const root = path.resolve(__dirname, '..'), temp = fs.mkdtempSync(path.join(os.tmpdir(), 'clipkit-photos-'));
- const server = spawn(process.execPath, [path.join(root, 'node_modules/vite/bin/vite.js'), '--host', '127.0.0.1', '--port', '5197', '--strictPort'], { cwd: root, windowsHide: true, stdio: 'pipe' });
+ const server = spawn(process.execPath, [path.join(path.dirname(require.resolve('vite/package.json')), 'bin/vite.js'), '--host', '127.0.0.1', '--port', '5197', '--strictPort'], { cwd: root, windowsHide: true, stdio: 'pipe' });
  let browser;
  try {
   for (let i=0;i<60;i++) { try { if ((await fetch('http://127.0.0.1:5197')).ok) break; } catch {} await new Promise(r=>setTimeout(r,100)); }
@@ -48,8 +48,8 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
   await page.locator('.media-tile-placeholder').waitFor();
   assert.equal(await page.locator('.ui-page-header h1').evaluate(el=>getComputedStyle(el).fontSize),'36px');
   assert.equal(await page.getByRole('navigation',{name:'Photo views'}).count(),0);
-  const toolbarCenters=await page.locator('.photo-browser-controls .manager-search, .photo-browser-controls .video-filter-popover>summary, .photo-browser-controls .media-display-controls .sort-menu-trigger, .photo-browser-controls .preview-size-menu>summary, .photo-browser-controls .photo-selection-controls>button').evaluateAll(nodes=>nodes.map(e=>{const r=e.getBoundingClientRect();return r.y+r.height/2;}));
-  assert.equal(toolbarCenters.length,5);assert(toolbarCenters.every(y=>Math.abs(y-toolbarCenters[0])<1));
+  const toolbarCenters=await page.locator('.photo-browser-controls .video-filter-popover>summary, .photo-browser-controls .browse-query-group>.sort-menu>.sort-menu-trigger, .photo-browser-controls .preview-size-menu>summary, .photo-browser-controls .photo-selection-controls>button').evaluateAll(nodes=>nodes.map(e=>{const r=e.getBoundingClientRect();return r.y+r.height/2;}));
+  assert.equal(toolbarCenters.length,4);assert(toolbarCenters.every(y=>Math.abs(y-toolbarCenters[0])<1));
   await page.locator('.video-filter-popover summary').click();
   await page.getByRole('button',{name:'Photo date added',exact:true}).click();
   await page.getByRole('menuitemradio',{name:'Last 7 days',exact:true}).click();
@@ -144,10 +144,26 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
   await page.getByRole('button',{name:'Open folder Weekend trips',exact:true}).click();
   await page.getByRole('button',{name:'Open folder Mountain mornings',exact:true}).waitFor();
   assert.equal(await page.locator('.featured-collection').count(),0);
+  const trail=page.getByRole('navigation',{name:'Breadcrumb',exact:true});
+  await trail.getByRole('button',{name:'Collections',exact:true}).click();
+  await page.getByRole('heading',{name:'Collections',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Open folder Weekend trips',exact:true}).click();
+  assert.equal(await trail.locator('[aria-current=page]').innerText(),'Weekend trips');
   await page.getByRole('group',{name:'Page actions'}).getByRole('button',{name:'New folder',exact:true}).click();await page.getByRole('heading',{name:'New subfolder',exact:true}).waitFor();await page.keyboard.press('Escape');
+  const detailHeading=page.locator('.collection-hero .ui-page-header');
+  assert.equal(await detailHeading.evaluate(e=>getComputedStyle(e).padding),'0px','Hero title uses shared heading spacing');
+  const collectionTone=await page.locator('.collection-hero').getAttribute('data-card-tone');
+  assert.equal(await page.locator('.collection-hero .ui-detail-facts dd').allTextContents().then(v=>v.join(',')),'12,10,2,1');
+  await page.waitForFunction(()=>document.querySelector('.collection-hero-cover').dataset.coverCount==='3');
+  await detailHeading.getByLabel('Collection options',{exact:true}).click();
+  for(const label of ['Rename','Move collection…','Delete collection…']) assert.equal(await detailHeading.getByRole('button',{name:label,exact:true}).isVisible(),true);
+  await detailHeading.getByRole('button',{name:'Rename',exact:true}).click();
+  await page.getByRole('dialog').waitFor();await page.keyboard.press('Escape');
   await page.screenshot({path:path.join(temp,'collection-detail.png')});
   await page.getByRole('button',{name:'Videos',exact:true}).last().click();
   await page.getByRole('heading',{name:'No matching media',exact:true}).waitFor();
+  assert.equal(await page.locator('.collection-hero').getAttribute('data-card-tone'),collectionTone);
+  assert.equal(await page.locator('.collection-hero .ui-detail-facts dd').first().innerText(),'12','Hero totals do not follow media filters');
   await page.getByRole('button',{name:'Photos',exact:true}).last().click();
   await page.locator('.mixed-media-tile').first().waitFor();
   await page.getByRole('button',{name:'Select items',exact:true}).click();await page.locator('.media-tile-select').first().click();

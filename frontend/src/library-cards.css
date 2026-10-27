@@ -49,10 +49,10 @@
 .finder-shell .library-card .mixed-media-kind svg { width: 14px; height: 14px; flex-shrink: 0; }
 
 /* Decorative identity palettes, never status colors or positional nth-child rules. */
-.finder-shell :is(.library-card, .person-profile)[data-card-tone="plum"] { --card-tone: var(--ui-identity-plum); --card-wash: var(--ui-identity-plum-wash); --card-tone-line: var(--ui-identity-plum-line); }
-.finder-shell :is(.library-card, .person-profile)[data-card-tone="rose"] { --card-tone: var(--ui-identity-rose); --card-wash: var(--ui-identity-rose-wash); --card-tone-line: var(--ui-identity-rose-line); }
-.finder-shell :is(.library-card, .person-profile)[data-card-tone="midnight"] { --card-tone: var(--ui-identity-midnight); --card-wash: var(--ui-identity-midnight-wash); --card-tone-line: var(--ui-identity-midnight-line); }
-.finder-shell :is(.library-card, .person-profile)[data-card-tone="amber"] { --card-tone: var(--ui-identity-amber); --card-wash: var(--ui-identity-amber-wash); --card-tone-line: var(--ui-identity-amber-line); }
+.finder-shell :is(.library-card, .person-profile, .collection-hero, .following-source-hero)[data-card-tone="plum"] { --card-tone: var(--ui-identity-plum); --card-wash: var(--ui-identity-plum-wash); --card-tone-line: var(--ui-identity-plum-line); }
+.finder-shell :is(.library-card, .person-profile, .collection-hero, .following-source-hero)[data-card-tone="rose"] { --card-tone: var(--ui-identity-rose); --card-wash: var(--ui-identity-rose-wash); --card-tone-line: var(--ui-identity-rose-line); }
+.finder-shell :is(.library-card, .person-profile, .collection-hero, .following-source-hero)[data-card-tone="midnight"] { --card-tone: var(--ui-identity-midnight); --card-wash: var(--ui-identity-midnight-wash); --card-tone-line: var(--ui-identity-midnight-line); }
+.finder-shell :is(.library-card, .person-profile, .collection-hero, .following-source-hero)[data-card-tone="amber"] { --card-tone: var(--ui-identity-amber); --card-wash: var(--ui-identity-amber-wash); --card-tone-line: var(--ui-identity-amber-line); }
 .finder-shell .library-card.person-tile[data-card-tone] .person-tile-art { background: radial-gradient(ellipse at 50% 90%, var(--card-wash), transparent 85%), var(--ui-field); }
 .finder-shell .library-card.person-tile[data-card-tone] .person-avatar { color: var(--card-tone); border-color: var(--card-tone-line); background: var(--card-wash); }
 .finder-shell .library-card.library-card.tag-directory-card[data-card-tone] { background: radial-gradient(ellipse at 0 0, var(--card-wash), transparent 85%), var(--ui-panel); }

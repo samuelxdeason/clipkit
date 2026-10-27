@@ -3,7 +3,7 @@ const {spawn}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
 (async()=>{
  const root=path.resolve(__dirname,'..'),temp=fs.mkdtempSync(path.join(os.tmpdir(),'clipkit-following-'));
- const server=spawn(process.execPath,[path.join(root,'node_modules/vite/bin/vite.js'),'--host','127.0.0.1','--port','5195','--strictPort'],{cwd:root,windowsHide:true,stdio:'pipe'});let browser;
+ const server=spawn(process.execPath,[path.join(path.dirname(require.resolve('vite/package.json')), 'bin/vite.js'),'--host','127.0.0.1','--port','5195','--strictPort'],{cwd:root,windowsHide:true,stdio:'pipe'});let browser;
  try{
   for(let i=0;i<60;i++){try{if((await fetch('http://127.0.0.1:5195')).ok)break;}catch{}await new Promise(r=>setTimeout(r,100));}
   browser=await chromium.launch({headless:true,channel:process.env.PLAYWRIGHT_CHANNEL||'msedge'});
@@ -36,6 +36,11 @@ const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),asse
   await card.getByRole('button',{name:'Browse',exact:true}).click();await page.locator('.following-media-item').first().waitFor();
   assert(calls.some(c=>c.path==='/api/enumerate'&&c.refresh==='0'));
   assert.equal(await page.locator('.following-media-item').count(),100);
+  const hero=page.locator('.following-source-hero'),facts=hero.locator('.ui-detail-facts dd');
+  const tone=await hero.getAttribute('data-card-tone');
+  assert.deepEqual(await facts.allTextContents(),['104','1','101','2']);
+  assert.match(await hero.locator('.following-hero-meta').innerText(),/example.test.*@alex.*channel/);
+  assert.equal(await hero.getByRole('link',{name:'Open source ↗',exact:true}).getAttribute('href'),source);
   await page.getByRole('button',{name:'Show more (100 of 104)'}).click();assert.equal(await page.locator('.following-media-item').count(),104);
   await page.getByRole('button',{name:'Source item status',exact:true}).click();await page.getByRole('menuitemradio',{name:/^In progress \(/}).click();assert.equal(await page.locator('.following-media-item').count(),2);
   await page.getByRole('button',{name:'Source item status',exact:true}).click();await page.getByRole('menuitemradio',{name:/^Downloaded \(/}).click();assert.equal(await page.locator('.following-media-item').count(),1);
@@ -45,10 +50,12 @@ const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),asse
   await page.getByRole('checkbox',{name:'Select Landscape 003'}).check();await page.getByRole('button',{name:'Download selected (1)'}).click();await page.getByText('1 downloads added to the queue.',{exact:false}).waitFor();
   assert.deepEqual(calls.find(c=>c.path==='/api/enqueue/many').body.urls,['https://example.test/item/3']);
   await page.getByLabel('Search source content').fill('Landscape 004');await page.locator('.following-media-item').first().waitFor();assert.equal(await page.locator('.following-media-item').count(),1);
+  assert.deepEqual(await facts.allTextContents(),['104','1','100','3'],'Search does not change source totals; queue updates do');
+  assert.equal(await hero.getAttribute('data-card-tone'),tone);
   await page.getByRole('button',{name:'Clear content search'}).click();
   await page.getByRole('button',{name:'Source item status',exact:true}).click();await page.getByRole('menuitemradio',{name:/^All \(/}).click();
   await page.locator('.manager-main').evaluate(e=>e.scrollTo(0,0));await page.screenshot({path:path.join(temp,'source.png')});
-  failRefresh=true;await page.getByRole('button',{name:'Check for updates',exact:true}).click();await page.getByRole('alert').waitFor();await page.getByRole('alert').getByRole('button',{name:'Retry',exact:true}).click();await page.locator('.following-media-item').first().waitFor();
+  failRefresh=true;await page.getByRole('button',{name:'Check for updates',exact:true}).click();await page.getByRole('alert').waitFor();assert.deepEqual(await facts.allTextContents(),['—','—','—','—'],'Failed checks do not display false zero counts');await page.getByRole('alert').getByRole('button',{name:'Retry',exact:true}).click();await page.locator('.following-media-item').first().waitFor();
   assert(calls.some(c=>c.path==='/api/enumerate'&&c.refresh==='1'));
   await page.getByRole('button',{name:'Download available (100)'}).click();await page.getByText('100 downloads added to the queue.',{exact:false}).waitFor();
   const batch=calls.filter(c=>c.path==='/api/enqueue/many').at(-1).body.urls;assert.equal(batch.length,100);assert(!batch.includes(items[0].url));assert(!batch.includes(items[1].url));assert(!batch.includes(items[2].url));assert(!batch.includes(items[3].url));

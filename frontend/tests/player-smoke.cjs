@@ -9,7 +9,7 @@ const assert = require('node:assert/strict');
  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'clipkit-player-'));
  const video=path.join(temp,'sample.mp4');
  execFileSync(path.resolve(root,'../resources/ffmpeg/ffmpeg.exe'),['-v','error','-f','lavfi','-i','color=c=0x294552:s=160x90:r=12','-t','60','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',video],{windowsHide:true});
- const server=spawn(process.execPath,[path.join(root,'node_modules/vite/bin/vite.js'),'--host','127.0.0.1','--port','5198','--strictPort'],{cwd:root,windowsHide:true,stdio:'pipe'});
+ const server=spawn(process.execPath,[path.join(path.dirname(require.resolve('vite/package.json')), 'bin/vite.js'),'--host','127.0.0.1','--port','5198','--strictPort'],{cwd:root,windowsHide:true,stdio:'pipe'});
  let browser;
  try {
   for(let i=0;i<60;i++){try{if((await fetch('http://127.0.0.1:5198/tests/player-harness.html')).ok)break;}catch{} await new Promise(r=>setTimeout(r,100));}

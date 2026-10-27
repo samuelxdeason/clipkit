@@ -1,0 +1,26 @@
+{
+  "name": "clipkit-repository",
+  "private": true,
+  "version": "0.0.0",
+  "description": "ClipKit npm workspace and repository commands",
+  "scripts": {
+    "dev": "npm run dev --workspace frontend",
+    "build": "npm run build --workspace frontend",
+    "check:docs": "node scripts/check-docs.cjs",
+    "check:styles": "node frontend/tests/style-contracts.cjs",
+    "test:unit": "node scripts/test.cjs unit",
+    "test:ui": "node scripts/test.cjs ui",
+    "test:go": "go test ./...",
+    "check": "npm run check:docs && npm run check:styles && npm run test:unit && npm run test:tokens && npm run build",
+    "build:desktop": "npm run build && wails build -s",
+    "test:tokens": "node scripts/test-tokens.cjs"
+  },
+  "packageManager": "npm@12.0.2",
+  "workspaces": [
+    "frontend",
+    "packages/*"
+  ],
+  "allowScripts": {
+    "esbuild@0.15.18": true
+  }
+}

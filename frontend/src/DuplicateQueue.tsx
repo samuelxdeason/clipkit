@@ -1,3 +1,4 @@
+import { useDetailsPopover } from "./PopoverPosition";
 import { Button, ActionGroup } from "./UIControls";
 import { LoadState } from "./WorkspaceUI";
 import { useEffect, useRef, useState } from "react";
@@ -12,6 +13,8 @@ export default function DuplicateQueue({ version, media, onChanged, onPlay }: {
   onPlay: (v: library.Video, list: library.Video[]) => void;
 }) {
   const [groups, setGroups] = useState<api.DuplicateGroup[]>([]);
+  const recycleInfo = useRef<HTMLDetailsElement>(null);
+  useDetailsPopover(recycleInfo, ":scope > div", 330);
   const [activeID, setActiveID] = useState<number | null>(null);
   const [drafts, setDrafts] = useState<Record<number, string[]>>({});
   const [recycleFolder, setRecycleFolder] = useState("");
@@ -64,7 +67,7 @@ export default function DuplicateQueue({ version, media, onChanged, onPlay }: {
   };
   if (loading) return <LoadState title="Loading potential duplicates…" message="Preparing your review queue." busy />;
   return <section className="duplicate-queue" aria-label="Potential duplicate review queue" aria-busy={busy}>
-    <div className="dq-intro"><div><span className="dq-eyebrow">REVIEW YOUR LIBRARY</span><p>Compare the copies. Choose what stays.</p><small>Check the details, preview each version, then save your decision.</small></div><details className="dq-recycle-info"><summary><Icon name="folder" />About recycling</summary><div><strong>Your files stay on this drive</strong><p>Recycled videos leave your library and move here. Delete them manually later to free space.</p><code>{recycleFolder || "Folder unavailable"}</code></div></details></div>
+    <div className="dq-intro"><div><span className="dq-eyebrow">REVIEW YOUR LIBRARY</span><p>Compare the copies. Choose what stays.</p><small>Check the details, preview each version, then save your decision.</small></div><details ref={recycleInfo} className="dq-recycle-info"><summary><Icon name="folder" />About recycling</summary><div><strong>Your files stay on this drive</strong><p>Recycled videos leave your library and move here. Delete them manually later to free space.</p><code>{recycleFolder || "Folder unavailable"}</code></div></details></div>
     {notice && <div className="dq-notice" role="status">{notice}<button aria-label="Dismiss message" onClick={() => setNotice("")}><Icon name="x" /></button></div>}
     {error && <div className="manager-alert" role="alert">{error}<button disabled={busy} onClick={() => setRetry(n => n + 1)}>Refresh queue</button></div>}
     {group ? <>

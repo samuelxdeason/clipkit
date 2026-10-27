@@ -1,10 +1,9 @@
-import { createContext, useContext, useState } from "react";
-import { createPortal } from "react-dom";
-import { Button, MediaBrowseBar } from "./UIControls";
+import { useRef } from "react";
+import { Button, MediaBrowseBar, SortMenu } from "./UIControls";
 import type { ReactNode, HTMLAttributes } from "react";
 
 export function PageHeader({ title, description, actions }: { title: string; description?: string; actions?: ReactNode }) {
-  return <div className="manager-heading ui-page-header"><div><h1>{title}</h1>{description && <p>{description}</p>}</div>{actions}</div>;
+  return <div className="manager-heading ui-page-header"><div><h1>{title}</h1>{description && <p>{description}</p>}</div>{actions && <div className="page-primary-actions" role="group" aria-label="Page actions">{actions}</div>}</div>;
 }
 
 export function LibraryToolbar({ children, label, className = "" }: { children: ReactNode; label: string; className?: string }) {
@@ -33,26 +32,41 @@ export function DialogHeader({ title, onClose, disabled = false, closeLabel = "C
   return <header className="ui-dialog-header"><h2>{title}</h2><button type="button" disabled={disabled} onClick={onClose} aria-label={closeLabel}>{closeIcon}</button></header>;
 }
 
-const PageActionsContext = createContext<{ target: HTMLDivElement | null; setTarget: (node: HTMLDivElement | null) => void } | null>(null);
-export function PageActionsProvider({ children }: { children: ReactNode }) {
-  const [target, setTarget] = useState<HTMLDivElement | null>(null);
-  return <PageActionsContext.Provider value={{ target, setTarget }}>{children}</PageActionsContext.Provider>;
-}
-/** One top-bar destination; the page keeps ownership of its action handlers. */
-export function PageActionsSlot({ children }: { children?: ReactNode }) {
-  const context = useContext(PageActionsContext);
-  return <div className="page-primary-actions" role="group" aria-label="Page actions" ref={context?.setTarget}>{children}</div>;
-}
-export function PageActions({ children }: { children: ReactNode }) {
-  const context = useContext(PageActionsContext);
-  return context?.target ? createPortal(children, context.target) : null;
-}
-
 /** Shared browse row: search, display preferences, optional organizing actions, results. */
-export function BrowseToolbar({ label, search, controls, actions, summary, className = "" }: { label: string; search: ReactNode; controls: ReactNode; actions?: ReactNode; summary: ReactNode; className?: string }) {
-  return <LibraryToolbar label={label} className={`compact-video-toolbar directory-browse-toolbar ${className}`}>
+export function BrowseToolbar({ label, search, controls, actions, summary, layout = "compact", className = "" }: { layout?: "compact" | "results"; label: string; search: ReactNode; controls: ReactNode; actions?: ReactNode; summary: ReactNode; className?: string }) {
+  return <LibraryToolbar label={label} className={`compact-video-toolbar directory-browse-toolbar ${layout === "results" ? "results-rail-toolbar" : ""} ${className}`}>
     <div className="video-search-line">{search}</div>
     <MediaBrowseBar actions={actions}>{controls}</MediaBrowseBar>
-    <div className="video-result-scope" role="status">{summary}</div>
+    <div className="video-result-scope">{summary}</div>
   </LibraryToolbar>;
+}
+
+
+/** Shared paging footer follows the results, on the same page canvas. */
+export function BrowsePagination({ page, pageSize, total, noun, selected = 0, onPage }: {
+  page: number; pageSize: number; total: number; noun: string; selected?: number; onPage: (page: number) => void;
+}) {
+  const root = useRef<HTMLElement>(null);
+  const go = (next: number) => { onPage(next); root.current?.closest(".manager-main")?.scrollTo({top: 0}); };
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  const current = Math.min(Math.max(0, page), pages - 1);
+  return <footer ref={root} className="browse-pagination">
+    <div className="browse-pagination-summary" role="status"><span className="browse-result-range">{total ? `${(current * pageSize + 1).toLocaleString()}–${Math.min((current + 1) * pageSize, total).toLocaleString()} of ${total.toLocaleString()} ${noun}` : `0 ${noun}`}</span>{selected > 0 && <span>{selected.toLocaleString()} selected</span>}</div>
+    {pages > 1 && <nav aria-label={`${noun} pagination`}>
+      <Button variant="quiet" size="compact" disabled={current === 0} onClick={() => go(current - 1)}>← Previous</Button>
+      <SortMenu label={`Go to ${noun} page`} value={String(current)} onChange={value => go(Number(value))} options={Array.from({length:pages},(_,index)=>({value:String(index),label:`Page ${index + 1} of ${pages.toLocaleString()}`}))}/>
+      <Button variant="quiet" size="compact" disabled={current >= pages - 1} onClick={() => go(current + 1)}>Next →</Button>
+    </nav>}
+  </footer>;
+}
+
+
+/** Shared layout slots for search and the results browsing rail. */
+export function BrowseQueryGroup({ children }: { children: ReactNode }) {
+  return <div className="video-search-line browse-query-group" role="group" aria-label="Search, filter and sort">{children}</div>;
+}
+
+/** Shared active-filter rail; removal and reset behavior stay with the caller. */
+export function ActiveFilterChips({ children, label = "Applied filters" }: { children: ReactNode; label?: string }) {
+  return <div className="video-filter-chips" role="group" aria-label={label}><span className="active-filter-caption">Active filters</span>{children}</div>;
 }

@@ -1,0 +1,16 @@
+# Documentation map
+
+Start here for current context. Source code and tests establish actual behavior; design-system.md establishes intended UI conventions. Resolve discrepancies explicitly instead of copying historical prose.
+
+| Need | Read |
+| --- | --- |
+| What users can do and terminology | [Product](product.md) |
+| Entry points, data flow, ownership | [Architecture](architecture.md) |
+| Colors, typography, components, layouts | [Design system](design-system.md) |
+| Reproduce bugs and find owners | [Troubleshooting](troubleshooting.md) |
+| Commands and test selection | [Testing](testing.md) |
+| Future apps and reusable packages | [Repository evolution](repository-evolution.md) |
+| Why these choices were made | [Decision index](decisions/README.md) |
+| Agent/contributor instructions | [Root instructions](../AGENTS.md) |
+
+Maintenance: update the owning guide in the same change as behavior. Label proposals as proposals. Keep commands executable from the repository root. Prefer links to code owners over line numbers that become stale. Historical descriptions are in [the archived README](history/legacy-readme.md); they are not current requirements.
