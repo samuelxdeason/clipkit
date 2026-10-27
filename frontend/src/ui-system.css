@@ -118,3 +118,50 @@
 .finder-shell .storage-summary>div:first-child { background: var(--ui-panel); border-color: var(--ui-line); }
 .finder-shell .storage-summary>div:first-child strong { color: var(--ui-text); }
 .finder-shell .manager-main.file-view:not(.view-profile) { padding-top: 24px; }
+
+/* Utility color roles: identity palettes live separately in library-cards.css. */
+.finder-shell {
+  --ui-chart-1: #b1abb7;
+  --ui-chart-2: #847e8b;
+  --ui-chart-3: #635e6c;
+  --ui-chart-4: #484450;
+}
+.finder-shell :is(.settings-section-heading, .downloads-page .download-add-card, .following-add, .dq-intro) { background: var(--ui-panel); border-color: var(--ui-line); }
+.finder-shell :is(.settings-eyebrow, .profile-eyebrow, .following-eyebrow, .download-eyebrow, .dq-eyebrow) { color: var(--ui-muted); }
+.finder-shell .settings-page .setting-icon,
+.finder-shell :is(.account-row .setting-icon, .download-add-icon, .empty-icon) { color: var(--ui-secondary); background: var(--ui-field); border-color: var(--ui-line); }
+.finder-shell .settings-navigation button:not(.active) svg { color: var(--ui-muted); }
+.finder-shell .profile-stats span:nth-child(n) b { color: var(--ui-text); }
+.finder-shell :is(.video-card-people>svg, .video-list-table .person-cell, .video-list-table .file-name small>span, .following-source-stats b, .download-url, .dq-highlight) { color: var(--ui-secondary); }
+.finder-shell .dq-table td small.dq-highlight { color: var(--ui-text); font-weight: 600; }
+.finder-shell .manager-sidebar .manager-nav:not(.active) .nav-count { color: var(--ui-secondary); background: var(--ui-field); border-color: var(--ui-line); }
+.finder-shell .video-filter-popover summary>svg,
+.finder-shell .video-actions>.m-button:not([aria-pressed="true"])>svg { color: var(--ui-secondary); }
+.finder-shell :is(.filter-picker-clear, .filter-picker-empty button, .video-filter-menu-heading .clear-filters) { color: var(--ui-secondary); }
+.finder-shell .manager-empty:not(.is-error):not(.is-loading) { background: var(--ui-panel); }
+.finder-shell .workspace-load-state:not(.is-error) .state-symbol { color: var(--ui-secondary); background: var(--ui-field); border-color: var(--ui-line); }
+.finder-shell .workspace-load-state.is-loading { background: var(--ui-panel); }
+.finder-shell .state-spinner { border-top-color: var(--ui-accent); }
+
+/* One selected treatment, whether a layout switch, tab, folder, or picker. */
+.finder-shell :is(.view-switch .chosen, .utility-tabs button.active, .utility-tabs button.chosen, .folder-tree-tools button[aria-pressed="true"], .wo-tabs button[aria-pressed="true"], .watch-organize-bar button[aria-pressed="true"], .album-picker-list>div.chosen, .filter-picker-options>label.is-selected) { background: var(--ui-selection-surface); border-color: var(--ui-selection-line); color: var(--ui-selection-text); }
+.finder-shell .settings-navigation button.active,
+.finder-shell .manager-sidebar .manager-nav.active,
+.finder-shell .manager-sidebar .manager-nav.active:hover,
+.finder-shell .collection-tree-row.active { background: var(--ui-selection-surface); border-color: var(--ui-selection-line); color: var(--ui-text); }
+.finder-shell .video-search-controls .manager-search:focus-within { border-color: var(--ui-focus); box-shadow: 0 0 0 2px var(--ui-selected); }
+.finder-shell .library-toolbar .video-search-controls .video-filter-popover[open] summary { background: var(--ui-selection-surface); border-color: var(--ui-selection-line); color: var(--ui-selection-text); }
+.finder-shell .dq-choice label.is-kept,
+.finder-shell .dq-status.keep { background: var(--ui-selection-surface); border-color: var(--ui-selection-line); color: var(--ui-selection-text); }
+.finder-shell .dq-choice label.is-recycled,
+.finder-shell .dq-status.recycle { background: var(--ui-warning-surface); border-color: var(--ui-line); color: var(--ui-warning); }
+.finder-shell .dq-decision-bar { background: var(--ui-panel); border-color: var(--ui-line); }
+.finder-shell .dq-play { background: var(--ui-field); color: var(--ui-text); border-color: var(--ui-line); }
+.finder-shell .connection-state.connected { color: var(--ui-success); background: var(--ui-success-surface); border-color: var(--ui-line); }
+
+/* Legacy action elements share the Button primary palette during migration. */
+.finder-shell :is(.m-button.primary, .m-button.library-add) { background: linear-gradient(115deg, var(--ui-primary-start), var(--ui-primary-end)); color: var(--ui-on-primary); border-color: transparent; box-shadow: none; }
+.finder-shell :is(.m-button.primary, .m-button.library-add):hover:not(:disabled) { background: linear-gradient(115deg, var(--ui-primary-hover-start), var(--ui-primary-hover-end)); color: var(--ui-on-primary); }
+.finder-shell .following-source-stats .has-new { color: var(--ui-secondary); }
+/* Underlined profile tabs keep their geometry; only their semantic accent changes. */
+.finder-shell .profile-tabs button.active { background: transparent; color: var(--ui-selection-text); border-bottom-color: var(--ui-accent); }

@@ -1,4 +1,5 @@
-import { useState, type MouseEvent } from "react";
+import { type MouseEvent } from "react";
+import { CardImage, CardSelection } from "./LibraryCards";
 import { library } from "../wailsjs/go/models";
 import { Icon } from "./App";
 import { useCollectionDrag } from "./CollectionDnd";
@@ -6,7 +7,6 @@ import type { CollectionDrag } from "./collectionDrag";
 
 export default function VideoCard({ video: v, selected, selectionMode, thumbnail, people, onSelect, onPlay, onTag, dragData }: { video: library.Video; selected: boolean; selectionMode: boolean; thumbnail: string; people: string[]; onSelect: (shift: boolean) => void; onPlay: () => void; onTag: (tag: string) => void; dragData?: CollectionDrag }) {
   const drag=useCollectionDrag(dragData);
-  const [failedThumbnail, setFailedThumbnail] = useState("");
   const progress = v.duration && v.position && v.duration > 0 && v.position > 0 ? Math.min(100, v.position / v.duration * 100) : 0;
   const title = v.title || v.filename || "Untitled video";
   const activate = (e: MouseEvent<HTMLButtonElement>) => {
@@ -24,15 +24,13 @@ export default function VideoCard({ video: v, selected, selectionMode, thumbnail
     ? v.filesize >= 1073741824 ? `${(v.filesize / 1073741824).toFixed(1)} GB` : `${Math.max(1, Math.round(v.filesize / 1048576))} MB`
     : "";
 
-  return <article {...drag} className={`video-card ${portrait ? "is-portrait" : ""} ${selected ? "is-selected" : ""} ${selectionMode ? "is-selecting" : ""}`}>
+  return <article {...drag} className={`library-card library-card--video video-card ${portrait ? "is-portrait" : ""} ${selected ? "is-selected" : ""} ${selectionMode ? "is-selecting" : ""}`}>
     <div className="video-card-frame">
       <button className="video-card-play" aria-label={`${selectionMode ? "Toggle selection for" : "Play"} ${title}`} aria-pressed={selectionMode ? selected : undefined} onClick={activate} onDoubleClick={doubleClick}>
-        {thumbnail && failedThumbnail !== thumbnail ? <img draggable={false} src={thumbnail} alt="" loading="lazy" onError={() => setFailedThumbnail(thumbnail)} /> : <span className="video-card-placeholder"><Icon name="film" /><span>No preview</span></span>}
+        <CardImage src={thumbnail} kind="video" fallbackClass="video-card-placeholder" />
         <span className="video-card-play-symbol"><Icon name={selectionMode ? "check" : "play-fill"} /></span>
       </button>
-      <button className="video-card-select" aria-label={`Select ${title}`} aria-pressed={selected} onClick={e => onSelect(e.shiftKey)}>
-        <span className="card-selection-mark" aria-hidden="true">{selected && <svg viewBox="0 0 20 20"><path d="m4 10 4 4 8-9" /></svg>}</span>
-      </button>
+      <CardSelection className="video-card-select" label={`Select ${title}`} selected={selected} onClick={e => onSelect(e.shiftKey)} />
       {seconds > 0 && <span className="video-card-duration">{duration}</span>}
       {portrait && <span className="video-card-format">Portrait</span>}
       {v.favorite && <span className="video-card-liked" role="img" aria-label="Favorite"><Icon name="heart-fill" /></span>}

@@ -23,6 +23,13 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
       return ['--ui-primary-start', '--ui-primary-end', '--ui-primary-hover-start', '--ui-primary-hover-end'].map(t => 1.05 / (lum(css.getPropertyValue(t)) + .05));
     });
     assert(contrast.every(r => r >= 4.5), JSON.stringify(contrast));
+    assert.equal(await page.locator('.library-card').count(), 5);
+    await page.getByRole('button', { name: 'Play An afternoon in the hills', exact: true }).click();
+    await page.getByText('Video playback action', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Open Mountain light.jpg', exact: true }).click();
+    await page.getByText('Photo viewer action', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Select Mountain light.jpg', exact: true }).click();
+    assert.equal(await page.getByRole('button', { name: 'Deselect Mountain light.jpg', exact: true }).getAttribute('aria-pressed'), 'true');
     await page.screenshot({ path: path.join(temp, 'desktop.png'), fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);

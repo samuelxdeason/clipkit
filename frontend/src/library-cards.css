@@ -1,0 +1,73 @@
+.finder-shell {
+  --ui-card-radius: 16px;
+  --ui-card-padding: 16px;
+  --ui-card-title: 16px;
+  --ui-card-overlay: #100e13e6;
+  --ui-card-overlay-line: #ffffff38;
+}
+
+/* Shared card family: surfaces/states are common; each kind owns its silhouette. */
+.finder-shell .library-card.library-card:is(.video-card, .mixed-media-tile, .person-tile, .tag-directory-card) { min-width: 0; border: 1px solid var(--ui-line); border-radius: var(--ui-card-radius); background: var(--ui-panel); box-shadow: none; overflow: hidden; transition: border-color .16s, background-color .16s; }
+.finder-shell .library-card.library-card:is(.video-card, .mixed-media-tile, .person-tile, .tag-directory-card):hover { border-color: var(--ui-selection-line); background: var(--ui-panel); box-shadow: 0 8px 24px #0003; }
+.finder-shell .library-card.library-card:is(.is-selected, :focus-within) { border-color: var(--ui-accent); }
+.finder-shell .library-card.library-card.is-selected { background: var(--ui-selection-surface); }
+.finder-shell .library-card .card-image-fallback { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; width: 100%; height: 100%; background: var(--ui-field); color: var(--ui-muted); font-size: var(--ui-type-meta); }
+.finder-shell .library-card .card-image-fallback>svg { width: 32px; height: 32px; opacity: .6; }
+.finder-shell .library-card .card-select-control { position: absolute; z-index: 3; top: 12px; left: 12px; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid var(--ui-card-overlay-line); border-radius: 10px; background: var(--ui-card-overlay); color: var(--ui-text); opacity: .85; }
+.finder-shell .library-card .card-select-control .card-selection-mark { display: grid; place-items: center; width: 100%; height: 100%; border: 0; border-radius: inherit; background: transparent; }
+.finder-shell .library-card .card-select-control svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; }
+.finder-shell .library-card .card-select-control[aria-pressed="true"] { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-ink); opacity: 1; }
+.finder-shell .library-card .card-select-control:hover { opacity: 1; }
+
+/* Video: a cinematic frame with a structured, compact information panel. */
+.finder-shell .library-card.video-card .video-card-frame { aspect-ratio: 16 / 9; border-radius: 0; background: var(--ui-field); }
+.finder-shell .library-card.video-card .video-card-play img { width: 100%; height: 100%; object-fit: cover; }
+.finder-shell .library-card.video-card.is-portrait .video-card-play img { object-fit: contain; }
+.finder-shell .library-card.video-card .video-card-body { padding: var(--ui-card-padding); }
+.finder-shell .library-card.video-card .video-card-title { height: 44px; min-height: 44px; font-size: var(--ui-card-title); line-height: 22px; font-weight: 650; letter-spacing: -.2px; }
+.finder-shell .library-card.video-card .video-card-people { margin-top: 8px; color: var(--ui-secondary); font-size: 12px; }
+.finder-shell .library-card.video-card .tag-list { margin: 12px 0; min-height: 23px; }
+.finder-shell .library-card.video-card .video-card-meta { margin: 0; padding: 12px 0 0; border-top: 1px solid var(--ui-line); font-size: 11px; }
+.finder-shell .library-card.video-card .video-card-source>span:first-child { background: var(--ui-muted); }
+.finder-shell .library-card.video-card :is(.video-card-duration, .video-card-format) { background: var(--ui-card-overlay); color: var(--ui-text); border: 1px solid var(--ui-card-overlay-line); border-radius: 6px; font-size: 11px; }
+.finder-shell .library-card.video-card .video-card-progress { height: 3px; }
+.finder-shell .library-card.video-card .video-card-play-symbol { width: 48px; height: 48px; background: var(--ui-card-overlay); border-color: var(--ui-card-overlay-line); box-shadow: none; }
+
+/* Photos: a portrait contact sheet, with no forced crop of the source image. */
+.finder-shell .library-card.mixed-media-tile>.photo-tile { display: flex; flex-direction: column; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 0!important; background: transparent; box-shadow: none; }
+.finder-shell .library-card.mixed-media-tile .photo-tile-frame { width: 100%; height: auto; aspect-ratio: 4 / 5; border-radius: 0; background: var(--ui-field); }
+.finder-shell .library-card.mixed-media-tile.library-card--video .photo-tile-frame { aspect-ratio: 16 / 9; }
+.finder-shell .library-card.mixed-media-tile .photo-tile-frame img { width: 100%; height: 100%; object-fit: contain; }
+.finder-shell .library-card.mixed-media-tile .photo-tile>strong { width: 100%; box-sizing: border-box; margin: 0; padding: 14px var(--ui-card-padding) 0; font-size: var(--ui-card-title); line-height: 22px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.finder-shell .library-card.mixed-media-tile .photo-tile>small { width: 100%; box-sizing: border-box; margin: 0; padding: 6px var(--ui-card-padding) 16px; font-size: 12px; color: var(--ui-secondary); }
+.finder-shell .library-card .mixed-media-kind { display: inline-flex; align-items: center; gap: 6px; top: 12px; right: 12px; width: auto; height: 28px; padding: 0 9px; border-radius: 7px; border: 1px solid var(--ui-card-overlay-line); background: var(--ui-card-overlay); color: var(--ui-text); font-size: 11px; }
+
+/* Collections keep their mosaic; people keep a portrait; tags stay typographic. */
+.finder-shell .library-card.featured-collection>.album-card { border-radius: var(--ui-card-radius)!important; border-color: var(--ui-line); background: var(--ui-panel); }
+.finder-shell .library-card.featured-collection .compact-folder-copy { padding: var(--ui-card-padding); }
+.finder-shell .library-card.featured-collection .compact-folder-copy strong { font-size: var(--ui-card-title); line-height: 22px; letter-spacing: -.2px; }
+.finder-shell .library-card.featured-collection .collection-card-stats { padding: 12px var(--ui-card-padding); border-top: 1px solid var(--ui-line); color: var(--ui-secondary); }
+.finder-shell .library-card.person-tile .person-tile-art { background: radial-gradient(ellipse at 50% 100%, var(--ui-selection-surface), transparent), var(--ui-field); }
+.finder-shell .library-card.person-tile .person-tile-copy { padding: var(--ui-card-padding); }
+.finder-shell .library-card.person-tile .person-tile-copy strong { font-size: var(--ui-card-title); line-height: 22px; font-weight: 650; }
+.finder-shell .library-card.person-tile .person-tile-count { padding-top: 12px; border-top: 1px solid var(--ui-line); }
+.finder-shell .library-card.tag-directory-card { background: linear-gradient(140deg, var(--ui-tag-surface), transparent), var(--ui-panel); padding: 24px; min-height: 200px; }
+.finder-shell .library-card.tag-directory-card .tag-directory-symbol { background: var(--ui-tag-surface); color: var(--ui-tag-text); border-color: var(--ui-tag-line); }
+.finder-shell .library-card.tag-directory-card .tag-directory-copy strong { font-size: 22px; line-height: 1.25; }
+@media (prefers-reduced-motion: reduce) { .finder-shell .library-card.library-card { transition: none; } }
+.finder-shell .library-card .card-select-control:not([aria-pressed="true"]) .card-selection-mark { width: 14px; height: 14px; border: 1px solid var(--ui-secondary); border-radius: 4px; }
+.finder-shell .library-card .mixed-media-kind svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* Decorative identity palettes, never status colors or positional nth-child rules. */
+.finder-shell :is(.library-card, .person-profile)[data-card-tone="plum"] { --card-tone: #c7a6dc; --card-wash: #9672b52b; --card-tone-line: #c7a6dc30; }
+.finder-shell :is(.library-card, .person-profile)[data-card-tone="rose"] { --card-tone: #dca5b7; --card-wash: #a84f702b; --card-tone-line: #dca5b730; }
+.finder-shell :is(.library-card, .person-profile)[data-card-tone="midnight"] { --card-tone: #a2b4d5; --card-wash: #526b9b2b; --card-tone-line: #a2b4d530; }
+.finder-shell :is(.library-card, .person-profile)[data-card-tone="amber"] { --card-tone: #d7bd96; --card-wash: #9c78442b; --card-tone-line: #d7bd9630; }
+.finder-shell .library-card.person-tile[data-card-tone] .person-tile-art { background: radial-gradient(ellipse at 50% 90%, var(--card-wash), transparent 85%), var(--ui-field); }
+.finder-shell .library-card.person-tile[data-card-tone] .person-avatar { color: var(--card-tone); border-color: var(--card-tone-line); background: var(--card-wash); }
+.finder-shell .library-card.library-card.tag-directory-card[data-card-tone] { background: radial-gradient(ellipse at 0 0, var(--card-wash), transparent 85%), var(--ui-panel); }
+.finder-shell .library-card.tag-directory-card[data-card-tone] .tag-directory-symbol { color: var(--card-tone); background: var(--card-wash); border-color: var(--card-tone-line); }
+
+/* Identity color stays local to the portrait; the header uses neutral surfaces. */
+.finder-shell .person-profile[data-card-tone] { background: var(--ui-panel); border-color: var(--ui-line); }
+.finder-shell .person-profile[data-card-tone] .profile-avatar { background: radial-gradient(ellipse at 50% 20%, var(--card-wash), transparent), var(--ui-field); border-color: var(--ui-line); color: var(--ui-text); box-shadow: 0 0 40px 8px var(--card-wash), 0 12px 28px #0003; }

@@ -55,3 +55,23 @@ Build with `npm run build --prefix frontend`. Existing mocked browser suites in 
 The library smoke suite also checks equal page-title sizes and the toolbar's control centerlines, so the original drift is caught during future design changes.
 
 `ViewSwitcher` owns accessible list/grid toggles for videos and photos. Pass the current layout and an onChange callback; persistence stays with the page. Primary button gradients meet 4.5:1 contrast for white text in both normal and hover states.
+
+## Library card family
+
+`LibraryCards.tsx` supplies CardImage (lazy/async image loading and missing-image fallback), CardSelection (the shared accessible selection control), PersonCard, and TagCard. VideoCard, MediaTile, and CollectionFolderCard keep their playback, viewer, organization, and drag/drop behavior. The directory pages supply data and callbacks rather than rebuilding card markup.
+
+`library-cards.css`, loaded after `ui-system.css`, owns the card family. All types share a 16px radius, 16px content inset, semantic surfaces/borders, keyboard focus treatment, and selection state. Use the `--ui-card-*` tokens to tune this family.
+
+- VideoCard: 16:9 preview, duration and watch progress, title/people/tags/specifications. Portrait videos use contain instead of cropping.
+- MediaTile: photos use a 4:5 frame with contain, preserving the entire photo; collection video tiles use 16:9. Keep selection separate from the open action.
+- CollectionFolderCard: mosaic cover plus item counts; compact subfolders retain their row layout.
+- PersonCard: portrait/avatar and identity, with a distinct count footer.
+- TagCard: typographic discovery card using the semantic lavender metadata colors.
+
+Use real button semantics without nesting buttons. Cards must support long titles, absent images, keyboard focus, touch selection, reduced motion, and existing drag/drop. The interactive design-system preview includes all five variants using synthetic artwork.
+
+People and tag cards use four muted decorative tones (plum, dusty rose, midnight blue, warm amber), defined together in `library-cards.css`. `cardTone` hashes a normalized identity instead of using position. People use their canonical saved name, so display-name edits do not recolor them; tags use their name. Colors are deterministic across sorting, filtering, remounts, and restarts without extra storage. Names and counts remain neutral and selection/focus retain the stronger global pink. These tones do not indicate status. Renaming a canonical identity or tag may assign a different tone.
+
+Person profiles share the directory card's tone through `identityTone.ts`, keyed by the canonical saved person name. Only the portrait backing and soft surrounding glow use the identity wash; the header surface and borders stay neutral. Photographs are not color-filtered. Profile typography, controls, and focus states retain their global semantic colors.
+
+The utility color pass uses neutral icons, page eyebrows, metadata, profile counts, and settings surfaces. Storage charts use `--ui-chart-1` through `--ui-chart-4`, a separate labeled neutral series palette rather than borrowing success/selection colors. Layout switches, navigation, tabs, and pickers use shared selection tokens. Duplicate keep choices are selections (pink), not completed operations (green); recycle choices remain labeled amber. Connection success, completed downloads, and errors retain their semantic colors. People/tag identity tones and portrait glows are intentionally excluded from these utility overrides.
