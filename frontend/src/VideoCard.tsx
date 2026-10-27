@@ -1,8 +1,11 @@
 import type { MouseEvent } from "react";
 import { library } from "../wailsjs/go/models";
 import { Icon } from "./App";
+import { useCollectionDrag } from "./CollectionDnd";
+import type { CollectionDrag } from "./collectionDrag";
 
-export default function VideoCard({ video: v, selected, selectionMode, thumbnail, people, onSelect, onPlay, onTag }: { video: library.Video; selected: boolean; selectionMode: boolean; thumbnail: string; people: string[]; onSelect: (shift: boolean) => void; onPlay: () => void; onTag: (tag: string) => void }) {
+export default function VideoCard({ video: v, selected, selectionMode, thumbnail, people, onSelect, onPlay, onTag, dragData }: { video: library.Video; selected: boolean; selectionMode: boolean; thumbnail: string; people: string[]; onSelect: (shift: boolean) => void; onPlay: () => void; onTag: (tag: string) => void; dragData?: CollectionDrag }) {
+  const drag=useCollectionDrag(dragData);
   const title = v.title || v.filename || "Untitled video";
   const activate = (e: MouseEvent<HTMLButtonElement>) => {
     if (selectionMode || e.shiftKey || e.ctrlKey || e.metaKey) onSelect(e.shiftKey);
@@ -19,10 +22,10 @@ export default function VideoCard({ video: v, selected, selectionMode, thumbnail
     ? v.filesize >= 1073741824 ? `${(v.filesize / 1073741824).toFixed(1)} GB` : `${Math.max(1, Math.round(v.filesize / 1048576))} MB`
     : "";
 
-  return <article className={`video-card ${portrait ? "is-portrait" : ""} ${selected ? "is-selected" : ""} ${selectionMode ? "is-selecting" : ""}`}>
+  return <article {...drag} className={`video-card ${portrait ? "is-portrait" : ""} ${selected ? "is-selected" : ""} ${selectionMode ? "is-selecting" : ""}`}>
     <div className="video-card-frame">
       <button className="video-card-play" aria-label={`${selectionMode ? "Toggle selection for" : "Play"} ${title}`} aria-pressed={selectionMode ? selected : undefined} onClick={activate} onDoubleClick={doubleClick}>
-        {thumbnail ? <img src={thumbnail} alt="" loading="lazy" /> : <Icon name="film" />}
+        {thumbnail ? <img draggable={false} src={thumbnail} alt="" loading="lazy" /> : <Icon name="film" />}
         <span className="video-card-play-symbol"><Icon name={selectionMode ? "check" : "play-fill"} /></span>
       </button>
       <button className="video-card-select" aria-label={`Select ${title}`} aria-pressed={selected} onClick={e => onSelect(e.shiftKey)}>

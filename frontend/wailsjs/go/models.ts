@@ -81,6 +81,13 @@ export namespace library {
 	    locked: boolean;
 	    count: number;
 	    created: string;
+	    parentId: number;
+	    photoCount: number;
+	    videoCount: number;
+	    albumCount: number;
+	    inheritedHidden: boolean;
+	    inheritedLocked: boolean;
+	    covers: string[];
 	
 	    static createFrom(source: any = {}) {
 	        return new Collection(source);
@@ -94,6 +101,13 @@ export namespace library {
 	        this.locked = source["locked"];
 	        this.count = source["count"];
 	        this.created = source["created"];
+	        this.parentId = source["parentId"];
+	        this.photoCount = source["photoCount"];
+	        this.videoCount = source["videoCount"];
+	        this.albumCount = source["albumCount"];
+	        this.inheritedHidden = source["inheritedHidden"];
+	        this.inheritedLocked = source["inheritedLocked"];
+	        this.covers = source["covers"];
 	    }
 	}
 	export class LabelCount {

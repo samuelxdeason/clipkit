@@ -54,6 +54,9 @@ func (db *DB) TrashMedia(videos []VideoKey, photos []string) error {
 		if _, err := tx.Exec(`DELETE FROM photos WHERE id=?`, id); err != nil {
 			return err
 		}
+		if _, err := tx.Exec(`DELETE FROM collection_photos WHERE photo_id=?`, id); err != nil {
+			return err
+		}
 		// A photo used as a person's cover must not leave a broken image.
 		if _, err := tx.Exec(`UPDATE model_info SET cover=NULL WHERE cover=?`, path); err != nil {
 			return err

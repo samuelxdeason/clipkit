@@ -31,6 +31,26 @@ lives in a hidden `.trove/` folder inside the vault; media files live under
 
 The sidebar separates Videos and Photos. Videos contains All videos, Recently
 added, Favorites, and Needs organizing views in its own navigation.
+Photos have direct selection circles in grid and list views, Shift-click range
+selection, and bulk **Assign person**, **Add to collection**, and **Move to trash**
+actions. Assigning a person replaces the selected photos' current person and
+makes them available in that person's Photos tab.
+
+**Collections** brings the former video collections and named photo albums together.
+Collections can contain photos, videos, and nested folders. Use the expandable
+sidebar tree, breadcrumbs, and the **+** beside a folder to create subfolders.
+Drag one item or a selected batch from Photos or Videos onto a folder to add it.
+Dragging between collection folders moves items; hold **Ctrl** to keep them in
+both folders. You can also use **Move to folder** or **Add to collection** on a
+selection. Drag folders onto other folders to nest them, or onto the sidebar's
+**Folders** heading to move them to the top level. Invalid circular moves are blocked.
+Use **F2** to rename the open collection and **Ctrl+Shift+N** to create a folder.
+The collection options menu also supports renaming, moving, and pinning folders.
+These are library memberships, so organizing does not duplicate or relocate media
+files on disk. **Remove from collection** leaves the file in the library; deleting
+a collection preserves media and moves its subfolders up one level. Hidden status
+applies to media in descendant collections.
+
 The default workspace is a dark video file manager with restrained charcoal surfaces,
 warm whites, muted blush actions, and locally bundled Nunito for rounded,
 readable type. Subtle gray selections mark the current location, while compact
@@ -74,7 +94,7 @@ missing tags into actionable queues with completion counts. Recently added
 groups videos by arrival date and supports 7-, 30-, and 90-day periods.
 Locked collections retain their opening prompt.
 
-Photos is available in the main navigation, with album filtering, scoped search,
+Photos is available in the main navigation, with collection filtering, scoped search,
 local/gallery-link imports, and a keyboard-accessible viewer. Person profiles
 include Photos and Accounts tabs; accounts can be viewed, connected by URL or
 from unassigned accounts, and disconnected directly from the profile.

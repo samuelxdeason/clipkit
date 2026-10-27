@@ -1,25 +1,41 @@
 package library
 
-import "time"
+import (
+	"fmt"
+	"strings"
+	"time"
+)
 
 // Collection is a user-defined grouping of videos. A hidden collection's members
 // are kept out of the normal library/search/model views (see notHidden); a locked
 // collection is meant to require a gate in the UI before its page opens. Both
 // flags exist to keep sensitive content (e.g. adult media) separate and private.
 type Collection struct {
-	ID      int64  `json:"id"`
-	Name    string `json:"name"`
-	Hidden  bool   `json:"hidden"`
-	Locked  bool   `json:"locked"`
-	Count   int    `json:"count"` // number of member videos
-	Created string `json:"created"`
+	ID              int64    `json:"id"`
+	Name            string   `json:"name"`
+	Hidden          bool     `json:"hidden"`
+	Locked          bool     `json:"locked"`
+	Count           int      `json:"count"` // number of member videos
+	Created         string   `json:"created"`
+	ParentID        int64    `json:"parentId"`
+	PhotoCount      int      `json:"photoCount"`
+	VideoCount      int      `json:"videoCount"`
+	AlbumCount      int      `json:"albumCount"`
+	InheritedHidden bool     `json:"inheritedHidden"`
+	InheritedLocked bool     `json:"inheritedLocked"`
+	Covers          []string `json:"covers"`
 }
 
 // Collections lists every collection with its member count, newest first.
 func (db *DB) Collections() ([]Collection, error) {
 	rows, err := db.sql.Query(`
 SELECT c.id, c.name, c.hidden, c.locked, COALESCE(c.created,''),
-       (SELECT COUNT(*) FROM collection_items ci WHERE ci.collection_id = c.id)
+       (SELECT COUNT(*) FROM collection_items ci JOIN videos v ON v.site=ci.site AND v.id=ci.video_id WHERE ci.collection_id = c.id),
+       c.parent_id,
+       (SELECT COUNT(*) FROM collection_photos cp JOIN photos p ON p.id=cp.photo_id WHERE cp.collection_id=c.id),
+       (SELECT COUNT(*) FROM collections child WHERE child.parent_id=c.id),
+       EXISTS(SELECT 1 FROM collection_ancestors a JOIN collections p ON p.id=a.ancestor_id WHERE a.album_id=c.id AND p.id<>c.id AND p.hidden=1),
+       EXISTS(SELECT 1 FROM collection_ancestors a JOIN collections p ON p.id=a.ancestor_id WHERE a.album_id=c.id AND p.id<>c.id AND p.locked=1)
 FROM collections c
 ORDER BY c.created DESC, c.id DESC`)
 	if err != nil {
@@ -30,17 +46,53 @@ ORDER BY c.created DESC, c.id DESC`)
 	for rows.Next() {
 		var c Collection
 		var hidden, locked int
-		if err := rows.Scan(&c.ID, &c.Name, &hidden, &locked, &c.Created, &c.Count); err != nil {
+		if err := rows.Scan(&c.ID, &c.Name, &hidden, &locked, &c.Created, &c.VideoCount, &c.ParentID, &c.PhotoCount, &c.AlbumCount, &c.InheritedHidden, &c.InheritedLocked); err != nil {
 			return nil, err
 		}
 		c.Hidden, c.Locked = hidden == 1, locked == 1
+		c.Count = c.VideoCount + c.PhotoCount
 		out = append(out, c)
 	}
-	return out, rows.Err()
+	err = rows.Err()
+	rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	for i := range out {
+		out[i].Covers = []string{}
+		if out[i].Locked || out[i].InheritedLocked || out[i].Hidden || out[i].InheritedHidden {
+			continue
+		}
+		covers, err := db.sql.Query(`SELECT path FROM (
+ SELECT p.filepath AS path FROM collection_photos cp JOIN photos p ON p.id=cp.photo_id WHERE cp.collection_id=? AND `+strings.ReplaceAll(photoNotHidden, "photos.id", "p.id")+`
+ UNION ALL SELECT v.thumbnail AS path FROM collection_items ci JOIN videos v ON v.site=ci.site AND v.id=ci.video_id WHERE ci.collection_id=? AND `+strings.ReplaceAll(notHidden, "videos.", "v.")+`
+ ) WHERE path IS NOT NULL AND path<>'' LIMIT 4`, out[i].ID, out[i].ID)
+		if err != nil {
+			return nil, err
+		}
+		for covers.Next() {
+			var path string
+			if err := covers.Scan(&path); err != nil {
+				covers.Close()
+				return nil, err
+			}
+			out[i].Covers = append(out[i].Covers, db.abs(path))
+		}
+		err = covers.Err()
+		covers.Close()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return out, nil
 }
 
 // CreateCollection makes a new collection and returns its id.
 func (db *DB) CreateCollection(name string, hidden bool) (int64, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return 0, fmt.Errorf("give the album a name")
+	}
 	res, err := db.sql.Exec(`INSERT INTO collections (name, hidden, created) VALUES (?,?,?)`,
 		name, b2i(hidden), time.Now().Format("2006-01-02 15:04:05"))
 	if err != nil {
@@ -51,6 +103,10 @@ func (db *DB) CreateCollection(name string, hidden bool) (int64, error) {
 
 // RenameCollection changes a collection's name.
 func (db *DB) RenameCollection(id int64, name string) error {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return fmt.Errorf("give the album a name")
+	}
 	_, err := db.sql.Exec(`UPDATE collections SET name=? WHERE id=?`, name, id)
 	return err
 }
@@ -69,11 +125,25 @@ func (db *DB) SetCollectionLocked(id int64, locked bool) error {
 
 // DeleteCollection removes a collection and its memberships (the videos remain).
 func (db *DB) DeleteCollection(id int64) error {
-	if _, err := db.sql.Exec(`DELETE FROM collection_items WHERE collection_id=?`, id); err != nil {
+	tx, err := db.sql.Begin()
+	if err != nil {
 		return err
 	}
-	_, err := db.sql.Exec(`DELETE FROM collections WHERE id=?`, id)
-	return err
+	defer tx.Rollback()
+	if err := requireAlbum(tx, id); err != nil {
+		return err
+	}
+	// Keep subalbums and all media when deleting their container.
+	for _, query := range []string{`UPDATE collections SET parent_id=(SELECT parent_id FROM collections WHERE id=?) WHERE parent_id=?`, `DELETE FROM collection_items WHERE collection_id=?`, `DELETE FROM collection_photos WHERE collection_id=?`, `DELETE FROM collections WHERE id=?`} {
+		args := []any{id}
+		if strings.HasPrefix(query, "UPDATE") {
+			args = append(args, id)
+		}
+		if _, err := tx.Exec(query, args...); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 // AddToCollection adds a video (site+id) to a collection. Idempotent.

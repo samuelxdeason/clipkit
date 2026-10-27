@@ -65,6 +65,18 @@ func (s *Server) Handler() http.Handler {
 
 func (s *Server) routes(ui fs.FS) {
 	m := s.mux
+	post(m, "/api/collections/transfer", func(b body) (any, error) {
+		return ok, s.core.TransferCollectionItems(b.SourceID, b.ID64, b.Videos, b.Photos, b.Copy)
+	})
+	post(m, "/api/photos/assign", func(b body) (any, error) { return ok, s.core.AssignPhotos(b.Photos, b.Name) })
+	post(m, "/api/albums/create", func(b body) (any, error) {
+		id, err := s.core.CreateAlbum(b.Name, b.ParentID)
+		return map[string]int64{"id": id}, err
+	})
+	post(m, "/api/albums/move", func(b body) (any, error) { return ok, s.core.MoveAlbum(b.ID64, b.ParentID) })
+	post(m, "/api/albums/add", func(b body) (any, error) { return ok, s.core.UpdateAlbumItems(b.ID64, b.Videos, b.Photos, false) })
+	post(m, "/api/albums/remove", func(b body) (any, error) { return ok, s.core.UpdateAlbumItems(b.ID64, b.Videos, b.Photos, true) })
+	m.HandleFunc("GET /api/albums/photos", j(func(r *http.Request) (any, error) { return s.core.PhotosByCollection(qInt(r, "id")) }))
 	post(m, "/api/media/trash", func(b body) (any, error) { return ok, s.core.TrashMedia(b.Videos, b.Photos) })
 	m.HandleFunc("GET /api/duplicates/recycle-folder", j(func(_ *http.Request) (any, error) { return s.core.DuplicateRecycleFolder(), nil }))
 	m.HandleFunc("GET /api/duplicates", j(func(_ *http.Request) (any, error) { return s.core.DuplicateGroups() }))
@@ -232,6 +244,9 @@ func (s *Server) routes(ui fs.FS) {
 
 // body is the union of every POST payload; each handler reads the fields it needs.
 type body struct {
+	SourceID  int64               `json:"sourceId"`
+	Copy      bool                `json:"copy"`
+	ParentID  int64               `json:"parentId"`
 	Photos    []string            `json:"photos"`
 	Videos    []library.VideoKey  `json:"videos"`
 	Keep      []library.VideoKey  `json:"keep"`

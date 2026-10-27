@@ -238,6 +238,10 @@ func Open(path, root string) (*DB, error) {
 	_, _ = sqlDB.Exec(`CREATE INDEX IF NOT EXISTS idx_videos_modelname ON videos(model)`)
 	_, _ = sqlDB.Exec(`CREATE INDEX IF NOT EXISTS idx_videos_source ON videos(source_platform, source_handle)`)
 	db := &DB{sql: sqlDB, root: root}
+	if err := db.migrateAlbums(); err != nil {
+		sqlDB.Close()
+		return nil, fmt.Errorf("album migration: %w", err)
+	}
 	db.relativize()           // convert any legacy absolute paths to relative (idempotent)
 	db.migrateModelsToArray() // single-value model -> JSON array (idempotent)
 	db.migrateStatePrefix()   // legacy state-dir paths (.keepsake\, .xxx\) -> .trove\ (idempotent)
@@ -706,12 +710,29 @@ func (db *DB) PhotoExists(id string) bool {
 }
 
 func (db *DB) AddPhoto(p Photo) error {
-	_, err := db.sql.Exec(`
+	tx, err := db.sql.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	_, err = tx.Exec(`
 INSERT INTO photos (id,model,album,filepath,filename,added) VALUES (?,?,?,?,?,?)
-ON CONFLICT(id) DO UPDATE SET model=excluded.model, album=excluded.album,
+ON CONFLICT(id) DO UPDATE SET model=CASE WHEN photos.person_assigned=1 THEN photos.model ELSE excluded.model END, album=excluded.album,
   filepath=excluded.filepath, filename=excluded.filename`,
 		p.ID, p.Model, p.Album, db.rel(p.Filepath), p.Filename, p.Added)
-	return err
+	if err != nil {
+		return err
+	}
+	if strings.TrimSpace(p.Album) != "" {
+		id, err := importedPhotoAlbum(tx, p.Album)
+		if err != nil {
+			return err
+		}
+		if _, err := tx.Exec(`INSERT OR IGNORE INTO collection_photos(collection_id,photo_id,added) VALUES(?,?,?)`, id, p.ID, p.Added); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 // PhotosByModel returns a model's photos, album-grouped then newest first
@@ -725,7 +746,7 @@ func (db *DB) AllPhotos(limit, offset int, query string) ([]Photo, error) {
 	}
 	pattern := "%" + query + "%"
 	rows, err := db.sql.Query(`SELECT id,COALESCE(model,''),COALESCE(album,''),filepath,filename,added FROM photos
-		WHERE COALESCE(model,'') LIKE ? OR COALESCE(album,'') LIKE ? OR filename LIKE ?
+		WHERE (`+photoNotHidden+`) AND (COALESCE(model,'') LIKE ? OR COALESCE(album,'') LIKE ? OR filename LIKE ?)
 		ORDER BY added DESC, id DESC LIMIT ? OFFSET ?`, pattern, pattern, pattern, limit, offset)
 	if err != nil {
 		return nil, err
@@ -746,7 +767,7 @@ func (db *DB) AllPhotos(limit, offset int, query string) ([]Photo, error) {
 func (db *DB) PhotosByModel(model string) ([]Photo, error) {
 	rows, err := db.sql.Query(
 		`SELECT id,model,COALESCE(album,''),filepath,filename,added FROM photos
-		 WHERE COALESCE(model,'')=? ORDER BY COALESCE(album,''), added DESC`, model)
+		 WHERE COALESCE(model,'')=? AND `+photoNotHidden+` ORDER BY COALESCE(album,''), added DESC`, model)
 	if err != nil {
 		return nil, err
 	}
@@ -841,7 +862,7 @@ const cols = `videos.id,videos.site,videos.title,videos.uploader,videos.model,vi
 // out of the normal library, search, and model grids — but a hidden collection's
 // own page (VideosByCollection) deliberately omits it so you can still see it.
 const notHidden = `NOT EXISTS (
-  SELECT 1 FROM collection_items ci JOIN collections c ON c.id = ci.collection_id
+  SELECT 1 FROM collection_items ci JOIN collection_ancestors a ON a.album_id=ci.collection_id JOIN collections c ON c.id=a.ancestor_id
   WHERE c.hidden = 1 AND ci.site = videos.site AND ci.video_id = videos.id)`
 
 func nint(n sql.NullInt64) *int {

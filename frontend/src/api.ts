@@ -49,7 +49,15 @@ export const ContinueWatching = () => getJSON<Video[]>("/api/continue");
 export const Stats = () => getJSON<library.Stats>("/api/stats");
 export const CookieStatus = () => getJSON<{ x: boolean; pornhub: boolean }>("/api/cookiestatus");
 export const MediaRootPath = () => getJSON<string>("/api/mediaroot");
-export const Collections = () => getJSON<library.Collection[]>("/api/collections");
+export type Album = library.Collection & { parentId: number; photoCount: number; videoCount: number; albumCount: number; inheritedHidden: boolean; inheritedLocked: boolean; covers: string[] };
+export const Collections = () => getJSON<Album[]>("/api/collections");
+export const CreateAlbum = async (name: string, parentId = 0) => (await postJSON<{ id: number }>("/api/albums/create", { name, parentId })).id;
+export const MoveAlbum = (id64: number, parentId: number) => postJSON("/api/albums/move", { id64, parentId });
+export const TransferCollectionItems = (sourceId: number, id64: number, videos: {site: string; id: string}[], photos: string[], copy = false) => postJSON("/api/collections/transfer", { sourceId, id64, videos, photos, copy });
+export const PhotosByCollection = (id: number) => getJSON<library.Photo[]>("/api/albums/photos" + qs({ id }));
+export const AssignPhotos = (photos: string[], name: string) => postJSON("/api/photos/assign", { photos, name });
+export const AddAlbumItems = (id64: number, videos: { site: string; id: string }[], photos: string[]) => postJSON("/api/albums/add", { id64, videos, photos });
+export const RemoveAlbumItems = (id64: number, videos: { site: string; id: string }[], photos: string[]) => postJSON("/api/albums/remove", { id64, videos, photos });
 export const Queue = () => getJSON<downloader.Job[]>("/api/queue");
 
 // AllVideos pages through the whole library (the browse-everything timeline).

@@ -1,0 +1,122 @@
+.album-browser { padding-bottom: 100px; }
+.album-actions, .album-toolbar, .album-section-heading { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.album-toolbar { margin: 8px 0 26px; }
+.album-toolbar .manager-search { flex: 1; min-width: 180px; }
+.finder-shell .album-toolbar .view-switch { flex-shrink: 0; }
+.finder-shell .album-toolbar .view-switch button { width: auto; min-width: 42px; padding: 7px 10px; }
+.album-toolbar select { border: 1px solid var(--ui-line); border-radius: 8px; padding: 9px; background: var(--ui-panel); }
+.album-section-heading { justify-content: space-between; margin: 24px 0 14px; }
+.album-section-heading h2 { font-size: 14px; font-weight: 650; }
+.album-section-heading>span, .album-muted { color: var(--ui-secondary); font-size: 12px; }
+.album-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(205px,1fr)); gap: 18px; }
+.album-card { display: flex; flex-direction: column; text-align: left; border: 1px solid var(--ui-line); border-radius: 12px!important; background: var(--ui-panel); padding: 8px; overflow: hidden; }
+.album-card:hover { border-color: var(--ui-dialog-line); background: var(--ui-raised); }
+.album-cover { display: flex; position: relative; align-items: center; justify-content: center; width: 100%; height: 154px; border-radius: 7px; overflow: hidden; background: linear-gradient(145deg,#34333a,#202025); color: #aaa4b1; }
+.album-cover.is-collage { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; }
+.album-cover[data-count="2"] { grid-template-rows: 1fr; }
+.album-cover[data-count="3"]>img:first-child { grid-row: span 2; }
+.album-cover>img { width: 100%; height: 100%; min-height: 0; object-fit: cover; }
+.album-cover-badge { position: absolute; bottom: 9px; left: 9px; display: grid; place-items: center; width: 29px; height: 26px; border-radius: 6px; background: #17171ccd; color: #e7e1dd; }
+.album-card>strong { padding: 12px 5px 5px; font-size: 14px; overflow-wrap: anywhere; }
+.album-card>small { padding: 0 5px 7px; font-size: 11px; color: var(--ui-secondary); }
+.album-menu { position: relative; }
+.album-menu>summary { list-style: none; cursor: pointer; }
+.album-menu>div { position: absolute; right: 0; z-index: 5; min-width: 165px; display: grid; padding: 6px; border: 1px solid var(--ui-line); border-radius: 8px; background: var(--ui-panel); box-shadow: 0 14px 30px #0006; }
+.album-menu>div>button { text-align: left; padding: 10px; border-radius: 5px; font-size: 12px; }
+.album-menu>div>button:hover { background: var(--ui-raised); }
+.album-dialog .detail-window { width: min(540px,calc(100vw - 32px)); padding: 24px; display: flex; flex-direction: column; gap: 18px; max-height: 90vh; overflow-y: auto; }
+.album-dialog header, .album-dialog footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.album-dialog footer { justify-content: flex-end; }
+.album-dialog h2 { font-size: 20px; font-weight: 650; }
+.album-dialog p { font-size: 13px; line-height: 1.6; color: var(--ui-secondary); }
+.album-dialog fieldset { border: 0; padding: 0; min-width: 0; }
+.album-dialog input { width: 100%; padding: 11px 12px; border: 1px solid var(--ui-line); border-radius: 8px; background: var(--ui-panel); color: inherit; }
+.album-create-inline { margin-top: 18px; }
+.album-create-inline summary { font-size: 12px; cursor: pointer; margin-bottom: 12px; }
+.album-create-inline>.m-button { margin-top: 10px; }
+.album-picker-path { display: flex; flex-wrap: wrap; gap: 4px; margin: 13px 0; font-size: 12px; }
+.album-picker-path button { color: var(--ui-secondary); overflow-wrap: anywhere; }
+.album-picker-list { max-height: 235px; overflow-y: auto; display: grid; gap: 4px; margin: 8px 0; }
+.album-picker-list>div { display: flex; border: 1px solid transparent; border-radius: 8px; }
+.album-picker-list>div.chosen { background: var(--ui-raised); border-color: var(--ac); }
+.album-picker-list>div>button { display: flex; align-items: center; gap: 12px; padding: 11px; text-align: left; min-width: 0; }
+.album-picker-list>div>button:first-child { flex: 1; }
+.album-picker-list span { flex: 1; font-size: 13px; overflow-wrap: anywhere; }
+.album-picker-list small { display: block; margin-top: 4px; font-size: 11px; color: var(--ui-secondary); }
+.mixed-media-tile { position: relative; min-width: 0; }
+.mixed-media-tile>.photo-tile { width: 100%; height: 100%; }
+.mixed-media-tile.is-selected>.photo-tile { outline: 2px solid var(--ac); outline-offset: -2px; }
+.mixed-media-tile .media-tile-select { position: absolute; top: 15px; left: 15px; background: #202025e8; border-color: #b9b4bb; z-index: 2; }
+.mixed-media-kind { position: absolute; top: 14px; right: 14px; pointer-events: none; background: #202025d9; border-radius: 5px; padding: 5px; color: #e5e0df; }
+.mixed-media-tile .photo-tile-frame { display: grid; place-items: center; }
+.collection-tree { min-height: 0; overflow-y: auto; padding: 6px 0; flex: 1; }
+.collection-tree-heading { display: flex; align-items: center; gap: 6px; padding: 4px 9px 8px; font-size: 11px; color: var(--ui-secondary); }
+.collection-tree-heading>button:nth-child(2) { flex: 1; text-align: left; }
+.collection-tree-heading>button { padding: 5px; }
+.collection-tree-row { display: flex; align-items: center; min-height: 35px; border-radius: 6px; margin: 2px 5px; gap: 2px; padding-right: 5px; }
+.collection-tree-row:hover, .collection-tree-row.active { background: var(--ui-raised); }
+.folder-expand { width: 18px; flex-shrink: 0; font-size: 17px; color: var(--ui-secondary); }
+.folder-open { min-width: 0; flex: 1; display: flex; align-items: center; gap: 7px; padding: 7px 0; font-size: 12px; text-align: left; }
+.folder-open svg { width: 15px; height: 15px; flex-shrink: 0; color: #b6a6aa; }
+.folder-open span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.folder-new { padding: 5px; font-size: 15px; opacity: 0; }
+.collection-tree-row:hover .folder-new, .collection-tree-row:focus-within .folder-new { opacity: 1; }
+.folder-empty { padding: 10px 16px; color: var(--ui-secondary); font-size: 12px; text-align: left; }
+.collection-drop-target { display: inline-flex; border-radius: 5px; }
+.is-drop-target { outline: 2px solid #d9acb9!important; outline-offset: -2px; background-color: #d9acb921!important; }
+.album-browser.is-drop-target { outline-style: dashed!important; border-radius: 10px; }
+.folder-card-shell { position: relative; border-radius: 12px; }
+.folder-card-shell>.album-card { width: 100%; height: 100%; }
+.folder-card-new { position: absolute; right: 15px; top: 15px; width: 29px; height: 29px; background: #242127ed; color: #eee1e5; border-radius: 7px!important; font-size: 19px; }
+.folder-card-new:hover { background: #574049; }
+.collection-organize-hint { color: var(--ui-secondary); font-size: 12px; margin: -10px 0 20px; line-height: 1.6; }
+.collection-drag-status { position: fixed; top: 74px; right: 20px; z-index: 180; max-width: min(430px,calc(100vw - 40px)); display: flex; gap: 15px; align-items: center; padding: 12px 16px; border: 1px solid #ffffff25; border-radius: 10px; background: #302a30f5; color: #f0e4e8; box-shadow: 0 8px 25px #0005; font-size: 13px; pointer-events: none; }
+.collection-drag-status button { pointer-events: auto; font-size: 20px; }
+.collection-drag-status.is-error { border-color: #d88787; }
+.album-dialog form>footer { margin-top: 18px; }
+@media(hover:none) { .folder-new { opacity: 1; } }
+@media(max-width:600px) { .album-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; } .album-cover { height: 115px; } .album-dialog .detail-window { padding: 18px; } .album-card>small { font-size: 10px; } }
+.collection-pointer-badge { position: fixed; z-index: 200; pointer-events: none; padding: 10px 16px; border-radius: 8px; background: #ecd0da; color: #30232a; box-shadow: 0 5px 20px #0005; font: 600 13px sans-serif; }
+[data-collection-draggable] { cursor: grab; }
+.collection-dragging, .collection-dragging * { cursor: grabbing!important; user-select: none!important; }
+/* Compact folders keep the media and the current location in view. */
+.album-browser .album-grid { grid-template-columns: repeat(auto-fill,minmax(240px,1fr)); gap: 10px; }
+.compact-folder>.album-card { flex-direction: row; align-items: center; gap: 12px; padding: 14px 46px 14px 14px; min-height: 82px; }
+.compact-folder-icon { width: 44px; height: 44px; border-radius: 9px; flex-shrink: 0; display: grid; place-items: center; background: var(--ui-raised); color: #c8adb7; overflow: hidden; }
+.compact-folder-icon svg { width: 25px; height: 25px; }
+.compact-folder-icon img { width: 100%; height: 100%; object-fit: cover; }
+.compact-folder-copy { min-width: 0; display: grid; gap: 5px; }
+.compact-folder-copy strong { font-size: 13px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.compact-folder-copy small { font-size: 11px; color: var(--ui-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.compact-folder .folder-card-new { top: 50%; right: 10px; transform: translateY(-50%); background: transparent; opacity: 0; }
+.compact-folder:hover .folder-card-new, .compact-folder:focus-within .folder-card-new { opacity: 1; }
+.album-browser .album-toolbar { margin-bottom: 10px; gap: 8px; }
+.collection-up { flex-shrink: 0; }
+.collection-help { color: var(--ui-secondary); font-size: 11px; margin-bottom: 18px; }
+.collection-help summary { cursor: pointer; width: fit-content; padding: 5px 0; }
+.collection-help p { max-width: 650px; line-height: 1.7; padding: 6px 0; }
+.folder-tree-tools { display: flex; align-items: center; gap: 2px; margin: 0 10px 8px; border: 1px solid var(--ui-line); border-radius: 7px; background: var(--ui-field); }
+.folder-tree-tools input { width: 100%; min-width: 0; padding: 8px; background: transparent; font-size: 11px; outline-offset: -2px; }
+.folder-tree-tools button { flex-shrink: 0; padding: 6px; font-size: 16px; color: var(--ui-secondary); }
+.folder-tree-tools button[aria-pressed="true"] { color: var(--ac); background: var(--ui-raised); border-radius: 5px; }
+.folder-search-path { display: block; margin: -3px 16px 8px 48px; font-size: 10px; color: var(--ui-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.collection-more { position: relative; }
+.collection-more summary { padding: 8px 12px; cursor: pointer; border-radius: 6px; list-style: none; }
+.collection-more summary::after { content: ' ⋯'; }
+.collection-more[open] summary, .collection-more summary:hover { background: #ffffff0b; }
+.collection-more>div { position: absolute; right: 0; bottom: calc(100% + 14px); min-width: 215px; padding: 6px; display: grid; background: var(--ui-panel,#252329); border: 1px solid var(--ui-line,#ffffff25); border-radius: 10px; box-shadow: 0 12px 36px #0005; }
+.collection-more>div>button { text-align: left; padding: 11px 12px; white-space: nowrap; }
+.collection-selection-bar { gap: 8px; max-width: calc(100vw - 32px); }
+.collection-selection-bar>strong { padding: 0 9px; }
+@media(hover:none) { .compact-folder .folder-card-new { opacity: 1; } }
+@media(max-width:600px) { .album-browser .album-grid { grid-template-columns: 1fr; } .album-toolbar .manager-search { min-width: 150px; } .collection-selection-bar { flex-wrap: wrap; justify-content: center; } }
+.finder-shell .manager-sidebar .manager-nav { min-height: 34px; padding-top: 7px; padding-bottom: 7px; }
+.finder-shell .manager-sidebar .sidebar-divider { margin-top: 5px; margin-bottom: 5px; }
+.finder-shell .manager-sidebar .nav-label { margin-top: 12px; margin-bottom: 6px; }
+.finder-shell .collection-tree { min-height: 170px; }
+@media(max-height:650px) { .finder-shell .manager-sidebar { overflow-y: auto; } .finder-shell .collection-tree { flex-shrink: 0; max-height: 240px; } }
+.finder-shell .collection-tree { display: flex; flex-direction: column; overflow: hidden; }
+.collection-tree-heading, .folder-tree-tools { flex-shrink: 0; }
+.collection-tree-scroll { min-height: 0; overflow-y: auto; flex: 1; padding-bottom: 5px; }
+.sidebar-manage-disclosure>summary { padding: 10px 12px; color: var(--ui-secondary); font-size: 12px; cursor: pointer; border-radius: 7px; }
+.sidebar-manage-disclosure>summary:hover { background: var(--ui-raised); }
