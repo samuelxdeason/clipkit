@@ -38,7 +38,7 @@ function Preview() {
     <section style={{ marginBottom: 32 }}><h2>Page typography</h2><PageHeader title="Your video library" description="Page titles share the same typography across all library destinations."/><span className="tag-pill">Metadata tag</span></section>
     <section style={{ marginBottom: 32 }}><h2>Library card family</h2><p role="status">{cardStatus}</p><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))", gap: 24, alignItems: "start" }}>
       <VideoCard video={sampleVideo} thumbnail={artwork} people={["Alex"]} selected={cardSelected} selectionMode={false} onSelect={() => setCardSelected(!cardSelected)} onPlay={() => setCardStatus("Video playback action")} onTag={tag => setCardStatus(`Browse tag ${tag}`)} />
-      <MediaTile title="Mountain light.jpg" subtitle="Alex" thumbnail={artwork} kind="photo" selected={cardSelected} selectionMode={false} onSelect={() => setCardSelected(!cardSelected)} onOpen={() => setCardStatus("Photo viewer action")} />
+      <MediaTile title="Mountain light.jpg" subtitle="Alex" subtitleIcon="people" thumbnail={artwork} kind="photo" selected={cardSelected} selectionMode={false} onSelect={() => setCardSelected(!cardSelected)} onOpen={() => setCardStatus("Photo viewer action")} />
       <CollectionFolderCard folder={sampleCollection} featured media={path => path} onOpen={() => setCardStatus("Browse collection action")} onCreate={() => setCardStatus("Create subfolder action")} />
       <PersonCard name="Alex" count={12} thumbnail={artwork} onOpen={() => setCardStatus("Open person action")} />
       <TagCard name="Travel" count={12} onOpen={() => setCardStatus("Browse tag action")} />

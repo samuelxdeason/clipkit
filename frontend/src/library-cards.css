@@ -82,3 +82,28 @@
   .finder-shell .ui-chevron, .finder-shell .library-card, .finder-shell .library-card img { transition: none!important; }
   .finder-shell .library-card:hover, .finder-shell .library-card:hover img { transform: none!important; }
 }
+
+/* Video browsing: preview first, compact identity, optional file details. */
+.finder-shell .library-card.video-card .video-card-body { position: relative; padding: 12px 14px; }
+.finder-shell .library-card.video-card .video-card-title { height: auto; min-height: 22px; max-height: 44px; }
+.finder-shell .library-card.video-card .video-card-people { margin-top: 5px; }
+.finder-shell .video-card-secondary { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; min-height: 24px; }
+.finder-shell .library-card.video-card .tag-list { margin: 0; min-height: 0; flex-wrap: nowrap; overflow: hidden; }
+.finder-shell .video-card-secondary .tag-pill { max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.finder-shell .video-card-info { flex-shrink: 0; }
+.finder-shell .video-card-info>summary { list-style: none; cursor: pointer; color: var(--ui-muted); font-size: 11px; padding: 4px 0 4px 6px; border-radius: 5px; }
+.finder-shell .video-card-info>summary::-webkit-details-marker { display: none; }
+.finder-shell .video-card-info>summary:hover, .finder-shell .video-card-info[open]>summary { color: var(--ui-text); }
+.finder-shell .library-card.video-card .video-card-info .video-card-meta { position: absolute; z-index: 5; bottom: 42px; right: 12px; left: 12px; margin: 0; padding: 14px; border: 1px solid var(--ui-line); border-radius: 10px; background: var(--ui-panel); box-shadow: 0 8px 24px #0008; }
+.finder-shell .video-card-quality { position: absolute; bottom: 12px; left: 12px; pointer-events: none; padding: 3px 6px; border-radius: 5px; background: var(--ui-card-overlay); color: var(--ui-text); font-size: 10px; border: 1px solid var(--ui-card-overlay-line); }
+.finder-shell .video-card-format { display: none; }
+
+.finder-shell .library-card.mixed-media-tile .photo-tile>.media-tile-subtitle { display: flex; align-items: center; gap: 6px; text-align: left; }
+.finder-shell .media-tile-subtitle>svg { width: 13px; height: 13px; flex-shrink: 0; color: var(--ui-secondary); }
+.finder-shell .media-tile-subtitle>span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* Metadata must not inherit legacy photo-title span padding or weight. */
+.finder-shell .video-card-people, .finder-shell .library-card .media-tile-subtitle { font-size: 12px; font-weight: 400; line-height: 20px; gap: 6px; }
+.finder-shell .photo-tile .media-tile-subtitle>span { padding: 0; margin: 0; font-size: inherit; font-weight: inherit; line-height: inherit; }
+.finder-shell .media-tile-subtitle>svg { width: 14px; height: 14px; }
+.finder-shell .media-tile-subtitle[data-icon="people"]>svg { color: var(--ui-lilac); }

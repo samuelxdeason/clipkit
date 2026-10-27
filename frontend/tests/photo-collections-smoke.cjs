@@ -10,7 +10,7 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
   browser = await chromium.launch({ headless: true, channel: process.env.PLAYWRIGHT_CHANNEL || 'msedge' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const errors=[], writes=[]; page.on('pageerror',e=>errors.push(e.message));
-  const photos=Array.from({length:61},(_,i)=>({id:String(i),filename:`Landscape ${String(i+1).padStart(2,'0')}.jpg`,filepath:i===2?'broken':`neutral-${i}`,model:i%2?'Jamie':'Alex',album:i%2?'City walks':'Weekend trips',added:new Date(Date.now()-i*60000).toISOString()}));
+  const photos=Array.from({length:61},(_,i)=>({id:String(i),filename:`Landscape ${String(i+1).padStart(2,'0')}.jpg`,filepath:i===2?'broken':`neutral-${i}`,model:i%2?'Jamie':'Alex',album:i%2?'City walks':'Weekend trips',added:new Date(Date.now()-(i===60?120*86400000:i*60000)).toISOString()}));
   const albums=[{id:1,name:'Weekend trips',parentId:0,count:12,photoCount:10,videoCount:2,albumCount:1,covers:['neutral-0']},{id:2,name:'City walks',parentId:0,count:8,photoCount:8,videoCount:0,albumCount:0,covers:['neutral-1']},{id:3,name:'Mountain mornings',parentId:1,count:0,photoCount:0,videoCount:0,albumCount:0,covers:[]},{id:4,name:'Watch later',parentId:0,count:0,photoCount:0,videoCount:0,albumCount:0,covers:[]}];
   albums[0].covers=['neutral-0','broken','neutral-1','neutral-3'];
   await page.route('**/api/**',async r=>{
@@ -42,6 +42,25 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
   await page.getByRole('button',{name:'← Previous',exact:true}).click();
   await page.locator('.media-tile-placeholder').waitFor();
   assert.equal(await page.locator('.ui-page-header h1').evaluate(el=>getComputedStyle(el).fontSize),'36px');
+  assert.equal(await page.getByRole('navigation',{name:'Photo views'}).count(),0);
+  const toolbarCenters=await page.locator('.photo-browser-controls .manager-search, .photo-browser-controls .video-filter-popover>summary, .photo-browser-controls .media-display-controls .sort-menu-trigger, .photo-browser-controls .preview-size-menu>summary, .photo-browser-controls .photo-selection-controls>button').evaluateAll(nodes=>nodes.map(e=>{const r=e.getBoundingClientRect();return r.y+r.height/2;}));
+  assert.equal(toolbarCenters.length,5);assert(toolbarCenters.every(y=>Math.abs(y-toolbarCenters[0])<1));
+  await page.locator('.video-filter-popover summary').click();
+  await page.getByRole('button',{name:'Photo date added',exact:true}).click();
+  await page.getByRole('menuitemradio',{name:'Last 7 days',exact:true}).click();
+  await page.keyboard.press('Escape');
+  assert.match(await page.locator('.video-result-scope').innerText(),/60 photos/);
+  await page.getByRole('button',{name:'Remove photo date filter',exact:true}).click();
+  assert.match(await page.locator('.video-result-scope').innerText(),/61 photos/);
+  await page.locator('.video-filter-popover summary').click();
+  await page.getByRole('button',{name:'Photo date added',exact:true}).click();
+  await page.getByRole('menuitemradio',{name:'Last 30 days',exact:true}).click();
+  await page.getByRole('button',{name:'Photo collection',exact:true}).click();
+  await page.getByRole('menuitemradio',{name:'Weekend trips',exact:true}).click();
+  await page.keyboard.press('Escape');
+  assert.match(await page.locator('.video-result-scope').innerText(),/30 photos/);
+  await page.getByRole('button',{name:'Clear search & filters',exact:true}).click();
+  assert.match(await page.locator('.video-result-scope').innerText(),/61 photos/);
   await page.screenshot({path:path.join(temp,'photos.png')});
   await page.locator('.video-filter-popover summary').click();
   await page.getByRole('button',{name:'Photo collection',exact:true}).click();

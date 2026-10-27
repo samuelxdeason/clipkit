@@ -116,3 +116,33 @@
 .finder-shell .video-filter-menu .is-active .sort-menu-trigger { background: var(--ui-selection-surface); color: var(--ui-selection-text); border-color: var(--ui-selection-line); }
 
 .finder-shell .library-toolbar .video-search-controls .video-filter-menu, .finder-shell .library-toolbar .filter-picker-sheet { background: var(--ui-panel); border-color: var(--ui-line); box-shadow: 0 12px 32px #0008; }
+
+/* Reduce chrome above the video library without shrinking interaction targets. */
+.finder-shell .cinema-library { padding-top: 20px; }
+.finder-shell .cinema-library>.ui-page-header { margin-bottom: 16px; }
+.finder-shell .cinema-library>.ui-page-header p { margin-top: 4px; }
+.finder-shell .cinema-library>.video-library-tabs { margin-top: 0; margin-bottom: 16px; }
+.finder-shell .cinema-library>.library-toolbar.video-browser-controls { padding: 12px 14px; row-gap: 10px; margin-bottom: 12px; }
+.finder-shell .cinema-library>.media-browse-bar { margin-bottom: 16px; }
+.finder-shell .cinema-library .manager-grid.browse-media-grid { gap: 20px; }
+
+/* A single library toolbar; chips and result count live below the control row. */
+.finder-shell .library-toolbar.compact-video-toolbar { display: grid; grid-template-columns: minmax(240px,1fr) auto; gap: 10px 12px; align-items: start; }
+.finder-shell .compact-video-toolbar>.video-search-controls { display: contents; }
+.finder-shell .compact-video-toolbar .video-search-line { grid-column: 1; grid-row: 1; min-width: 0; }
+.finder-shell .compact-video-toolbar>.media-browse-bar { grid-column: 2; grid-row: 1; flex-wrap: nowrap; margin: 0; padding: 0; gap: 14px; }
+.finder-shell .compact-video-toolbar .media-display-controls .toolbar-right { flex-wrap: nowrap; }
+.finder-shell .compact-video-toolbar .video-filter-chips { grid-column: 1 / -1; grid-row: 2; margin: 0; padding-top: 2px; }
+.finder-shell .compact-video-toolbar>.video-result-scope { grid-column: 1 / -1; grid-row: auto; margin: 0; padding: 0; border: 0; min-height: 0; }
+.finder-shell .video-filter-menu .filter-section-label { grid-column: 1 / -1; font-size: 11px; font-weight: 600; color: var(--ui-muted); padding: 4px 0 0; }
+.finder-shell .video-filter-menu .video-actions { margin: 0; justify-content: flex-start; }
+@media(max-width: 1000px) {
+  .finder-shell .library-toolbar.compact-video-toolbar { grid-template-columns: minmax(0,1fr); }
+  .finder-shell .compact-video-toolbar .video-search-line { grid-column: 1; }
+  .finder-shell .compact-video-toolbar>.media-browse-bar { grid-column: 1; grid-row: 2; flex-wrap: wrap; }
+  .finder-shell .compact-video-toolbar .video-filter-chips { grid-row: 3; }
+}
+
+.finder-shell .photo-library>.ui-page-header { margin-bottom: 16px; }
+.finder-shell .photo-library>.library-toolbar.compact-video-toolbar { padding: 12px 14px; margin-bottom: 12px; }
+.finder-shell .photo-library>.ui-button { margin-bottom: 12px; }
