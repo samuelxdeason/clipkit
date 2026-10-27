@@ -1,3 +1,4 @@
+import { Button } from "./UIControls";
 import { useState } from "react";
 import { Redownload } from "./api";
 
@@ -23,9 +24,9 @@ export default function RedownloadControl({ site, id, source, disabled }: { site
     {source?.trim() ? <>
       {confirm ? <>
         <p>Download the best available quality and replace this file? Favorites, tags and collections are kept.</p>
-        <button className="m-button primary" disabled={disabled || pending} onClick={submit}>{pending ? "Queuing…" : "Replace file"}</button>
-        <button className="m-button" disabled={pending} onClick={() => setConfirm(false)}>Cancel</button>
-      </> : <button className="m-button" disabled={disabled || pending} onClick={() => { setConfirm(true); setMessage(""); setError(""); }}>Re-download in best quality</button>}
+        <Button variant="primary" disabled={disabled || pending} onClick={submit}>{pending ? "Queuing…" : "Replace file"}</Button>
+        <Button variant="neutral" disabled={pending} onClick={() => setConfirm(false)}>Cancel</Button>
+      </> : <Button variant="neutral" disabled={disabled || pending} onClick={() => { setConfirm(true); setMessage(""); setError(""); }}>Re-download in best quality</Button>}
       {message && <p role="status">{message}</p>}
       {error && <p role="alert">{error}</p>}
     </> : <p>Re-download unavailable: this video has no saved source link.</p>}

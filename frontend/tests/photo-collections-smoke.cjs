@@ -41,6 +41,7 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
   await page.waitForFunction(()=>document.querySelectorAll('.mixed-media-tile').length===1);
   await page.getByRole('button',{name:'← Previous',exact:true}).click();
   await page.locator('.media-tile-placeholder').waitFor();
+  assert.equal(await page.locator('.ui-page-header h1').evaluate(el=>getComputedStyle(el).fontSize),'36px');
   await page.screenshot({path:path.join(temp,'photos.png')});
   await page.locator('.video-filter-popover summary').click();
   await page.getByLabel('Photo collection',{exact:true}).selectOption('City walks');
@@ -77,6 +78,7 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
   await page.getByRole('button',{name:'Dismiss organization message'}).click();
   await page.locator('[data-section="collections"]').click();
   await page.locator('.featured-collection').first().waitFor();
+  assert.equal(await page.locator('.ui-page-header h1').evaluate(el=>getComputedStyle(el).fontSize),'36px');
   await page.screenshot({path:path.join(temp,'collections.png')});
   await page.waitForFunction(()=>document.querySelectorAll('.featured-collection .collection-cover-mosaic img').length===3 && [...document.querySelectorAll('.featured-collection .collection-cover-mosaic img')].every(img=>img.complete&&img.naturalWidth>0));
   await page.getByLabel('Search collection',{exact:true}).fill('Mountain');

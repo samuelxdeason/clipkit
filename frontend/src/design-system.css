@@ -7,38 +7,12 @@
   font-display: swap;
 }
 .finder-shell {
-  --ui-canvas: #191819;
-  --ui-panel: #222123;
-  --ui-raised: #343134;
-  --ui-field: #201e20;
-  --ui-text: #f1ece7;
-  --ui-secondary: #bfb7b9;
-  --ui-muted: #a89fa3;
-  --ui-line: #f1ece718;
-  --ui-hover: #e4c7c00b;
-  --ui-selected: #d8b2b917;
-  --ui-accent: #d8b2b9;
-  --ui-accent-ink: #2d2528;
-  --ui-foam: #bccabd;
-  --ui-mist: #cbbdc7;
-  --ui-rose: #d8b2b9;
-  --ui-lilac: #c2b7cf;
-  --ui-butter: #d8c6ad;
-  --ui-peach: #d5b19e;
   --line: var(--ui-line);
   --surface: var(--ui-canvas);
   --raised: var(--ui-raised);
   --text: var(--ui-text);
   --secondary: var(--ui-secondary);
   --accent: var(--ui-accent);
-  --ui-radius: 10px;
-  --ui-panel-radius: 14px;
-  --ui-dialog: #2b282b;
-  --ui-search: #201e20;
-  --ui-segment: #1a1718;
-  --ui-segment-active: #372f32;
-  --ui-dialog-line: #f1ece72b;
-  --ui-dialog-shadow: 0 24px 80px #0008, inset 0 1px 0 #ffffff08;
   color: var(--ui-text);
 }
 .finder-shell :is(button, input, select, textarea) { font-family: inherit; }

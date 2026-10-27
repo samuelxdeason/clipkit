@@ -1,3 +1,4 @@
+import { Button } from "./UIControls";
 import { useEffect, useState } from "react";
 import * as api from "./api";
 import { library } from "../wailsjs/go/models";
@@ -38,9 +39,9 @@ export default function MediaOrganizeDialog({ kind, photos = [], videos = [], so
     <p>{photos.length+videos.length} selected {kind!=="assign"?(kind==="move"?"items will move out of this folder into the destination folder.":"items will stay in your library and any other collections."):"items will appear on this person’s profile."}{kind==="assign"&&photos.length>0&&" This replaces the current person on selected photos."}</p>
     <fieldset disabled={busy||loading}>
       {kind!=="assign"?<AlbumPicker albums={albums} disabledId={kind==="move"?sourceId:0} value={album} onChange={setAlbum}/>:<><OrganizePicker key={people.length} kind="assign" choices={people.map(p=>({value:p.name,label:p.nickname||p.name}))} value={person} onChange={setPerson}/>{person&&<p className="album-muted">Person: {people.find(p=>p.name===person)?.nickname||person}</p>}</>}
-      <details className="album-create-inline"><summary>{kind!=="assign"?"Create a collection":"Create a person"}</summary><input aria-label={kind!=="assign"?"New collection name":"New person name"} value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Name"/>{kind!=="assign"&&album!==null&&<p className="album-muted">The new collection will be inside the selected collection.</p>}<button className="m-button" disabled={!newName.trim()} onClick={create}>Create</button></details>
+      <details className="album-create-inline"><summary>{kind!=="assign"?"Create a collection":"Create a person"}</summary><input aria-label={kind!=="assign"?"New collection name":"New person name"} value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Name"/>{kind!=="assign"&&album!==null&&<p className="album-muted">The new collection will be inside the selected collection.</p>}<Button variant="neutral" disabled={!newName.trim()} onClick={create}>Create</Button></details>
     </fieldset>
     {error&&<p role="alert" className="modal-error">{error}</p>}
-    <footer><button className="m-button" disabled={busy} onClick={onClose}>Cancel</button><button className="m-button primary" disabled={busy||loading||(kind!=="assign"?album===null:!person)} onClick={save}>{busy?"Saving…":kind==="move"?"Move to folder":kind==="album"?"Add to collection":"Assign person"}</button></footer>
+    <footer><Button variant="neutral" disabled={busy} onClick={onClose}>Cancel</Button><Button variant="primary" disabled={busy||loading||(kind!=="assign"?album===null:!person)} onClick={save}>{busy?"Saving…":kind==="move"?"Move to folder":kind==="album"?"Add to collection":"Assign person"}</Button></footer>
   </DetailDialog>;
 }

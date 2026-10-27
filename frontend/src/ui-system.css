@@ -1,0 +1,120 @@
+/* Shared component contracts. Load after legacy page styles. */
+.finder-shell {
+  --ui-canvas: #0c0b0e;
+  --ui-panel: #161419;
+  --ui-raised: #2c252e;
+  --ui-field: #100e13;
+  --ui-text: #faf4f6;
+  --ui-secondary: #c4b5bf;
+  --ui-muted: #a798a4;
+  --ui-line: #f4dae61a;
+  --ui-hover: #ff426914;
+  --ui-selected: #ff426921;
+  --ui-accent: #ff6b88;
+  --ui-accent-ink: #210810;
+  --ui-rose: #ff6b88;
+  --ui-lilac: #d5a9ed;
+  --ui-mist: #d5a9ed;
+  --ui-foam: #9ccbb3;
+  --ui-butter: #e4bc84;
+  --ui-peach: #e9a393;
+  --ui-dialog: #1d171f;
+  --ui-search: #100e13;
+  --ui-segment: #100e13;
+  --ui-segment-active: #36202d;
+  --ui-dialog-line: #f4dae62b;
+  --ui-dialog-shadow: 0 28px 100px #000b;
+  --ui-radius: 8px;
+  --ui-panel-radius: 14px;
+  --ac: var(--ui-accent);
+  font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
+  font-weight: 400;
+  background: var(--ui-canvas);
+}
+
+.finder-shell {
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 12px;
+  --ui-space-4: 16px;
+  --ui-space-6: 24px;
+  --ui-space-8: 32px;
+  --ui-action-gap: 10px;
+  --ui-control-height: 42px;
+  --ui-control-compact: 32px;
+  --ui-type-heading: 36px;
+  --ui-type-section: 22px;
+  --ui-type-body: 14px;
+  --ui-type-control: 13px;
+  --ui-type-meta: 12px;
+  --ui-primary-start: #d92550;
+  --ui-primary-end: #bb1c45;
+  --ui-primary-hover-start: #db2854;
+  --ui-primary-hover-end: #c91e49;
+  --ui-on-primary: #fff;
+  --ui-selection-text: #ffc4d2;
+  --ui-selection-surface: #291521;
+  --ui-selection-line: #ff6b8850;
+  --ui-tag-text: #d5bddf;
+  --ui-tag-surface: #d5a9ed10;
+  --ui-tag-line: #d5a9ed20;
+  --ui-success: #9ccbb3;
+  --ui-success-surface: #9ccbb310;
+  --ui-warning: #e4bc84;
+  --ui-warning-surface: #e4bc8410;
+  --ui-danger: #ffb1bc;
+  --ui-danger-surface: #ff6b8810;
+  --ui-danger-line: #ff9fa638;
+  --ui-toolbar-surface: #141017;
+  --ui-focus: var(--ui-accent);
+  --ui-foam: var(--ui-success);
+  --ui-butter: var(--ui-warning);
+}
+
+/* Page titles never depend on nesting or page-specific selectors. */
+.finder-shell .manager-heading.ui-page-header { align-items: center; gap: var(--ui-space-4); margin: 0 0 var(--ui-space-6); min-height: 0; }
+.finder-shell .manager-heading.ui-page-header h1 { margin: 0; font-size: var(--ui-type-heading); line-height: 1.15; font-weight: 750; letter-spacing: -1px; color: var(--ui-text); }
+.finder-shell .manager-heading.ui-page-header p { margin: var(--ui-space-2) 0 0; font-size: var(--ui-type-body); line-height: 1.6; color: var(--ui-secondary); }
+.finder-shell :is(.settings-section-heading, .queue-section-title, .download-add-heading, .album-section-heading) h2 { font-size: var(--ui-type-section); line-height: 1.3; letter-spacing: -.4px; }
+
+/* Components own their dimensions; page CSS owns placement, never button sizing.
+   Important protects this contract while remaining legacy rules are retired. */
+.finder-shell .ui-button { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: var(--ui-space-2); min-height: var(--ui-control-height)!important; height: auto!important; padding: 9px 14px!important; font-size: var(--ui-type-control)!important; line-height: 22px; font-weight: 600; border-radius: var(--ui-radius)!important; border: 1px solid var(--ui-line); text-align: center; }
+.finder-shell .ui-button--compact { min-height: var(--ui-control-compact)!important; padding: 4px 10px!important; }
+.finder-shell .ui-button--neutral { background: var(--ui-panel)!important; color: var(--ui-text)!important; border-color: var(--ui-line)!important; box-shadow: none!important; }
+.finder-shell .ui-button--quiet { background: transparent!important; color: var(--ui-secondary)!important; border-color: transparent!important; box-shadow: none!important; }
+.finder-shell :is(.ui-button--neutral, .ui-button--quiet):hover:not(:disabled) { background: var(--ui-raised)!important; }
+.finder-shell .ui-button--primary { background: linear-gradient(115deg, var(--ui-primary-start), var(--ui-primary-end))!important; color: var(--ui-on-primary)!important; border-color: transparent!important; box-shadow: none!important; }
+.finder-shell .ui-button--primary:hover:not(:disabled) { background: linear-gradient(115deg, var(--ui-primary-hover-start), var(--ui-primary-hover-end))!important; }
+.finder-shell .ui-button--danger { background: var(--ui-danger-surface)!important; color: var(--ui-danger)!important; border-color: var(--ui-danger-line)!important; box-shadow: none!important; }
+.finder-shell .ui-button--danger:hover:not(:disabled) { background: var(--ui-selection-surface)!important; }
+.finder-shell .ui-button.ui-button:is([aria-pressed="true"], .pressed) { background: var(--ui-selection-surface)!important; border-color: var(--ui-selection-line)!important; color: var(--ui-selection-text)!important; }
+.finder-shell .ui-button:disabled { opacity: .45; cursor: default; }
+.finder-shell :is(.ui-button, button, summary, select, input, textarea, a):focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
+.finder-shell .ui-action-group { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ui-action-gap); margin: 0; }
+.finder-shell .toolbar-right { margin-bottom: 0; align-items: center; gap: var(--ui-action-gap); }
+.finder-shell :is(.album-toolbar, .following-toolbar, .download-queue-toolbar, .following-directory-toolbar, .directory-heading, .tag-directory-heading, .people-directory-toolbar, .tags-directory-toolbar) { align-items: center; gap: var(--ui-action-gap); }
+.finder-shell :is(.album-toolbar, .following-toolbar, .download-queue-toolbar, .following-directory-toolbar, .directory-heading, .tag-directory-heading, .people-directory-toolbar, .tags-directory-toolbar, .library-toolbar) :is(select, .manager-search, .queue-search, .view-switch) { box-sizing: border-box; height: var(--ui-control-height); min-height: var(--ui-control-height); font-size: var(--ui-type-control); }
+.finder-shell :is(.album-toolbar, .library-toolbar) .view-switch { align-items: center; }
+.finder-shell :is(.tag-pill, .tag-pill:nth-child(n)) { background: var(--ui-tag-surface); color: var(--ui-tag-text); border-color: var(--ui-tag-line); }
+.finder-shell :is(.manager-alert, .modal-error, .profile-error, .wo-error) { color: var(--ui-danger); border-color: var(--ui-danger-line); }
+.finder-shell .workspace-load-state.is-error .state-symbol { color: var(--ui-danger); background: var(--ui-danger-surface); border-color: var(--ui-danger-line); }
+.finder-shell .manager-notice { color: var(--ui-success); background: var(--ui-success-surface); }
+@media (max-width: 700px) {
+  .finder-shell { --ui-type-heading: 28px; --ui-type-section: 20px; }
+  .finder-shell .manager-heading.ui-page-header { flex-wrap: wrap; }
+}
+.finder-shell .downloads-page .download-status.done { color: var(--ui-success); background: var(--ui-success-surface); }
+.finder-shell .downloads-page .download-status.error { color: var(--ui-danger); background: var(--ui-danger-surface); }
+.finder-shell .downloads-page .download-status.downloading { color: var(--ui-selection-text); background: var(--ui-selected); }
+.finder-shell .downloads-page .download-status.queued { color: var(--ui-secondary); background: var(--ui-panel); }
+/* Progress is active work, not a success state; green is reserved for done. */
+.finder-shell .downloads-page .download-row.is-running { background: var(--ui-panel); border-color: var(--ui-selection-line); box-shadow: inset 3px 0 var(--ui-accent); }
+.finder-shell .downloads-page .download-progress>span { background: var(--ui-accent); box-shadow: none; }
+.finder-shell .downloads-page .is-running .download-meta>span:first-child,
+.finder-shell .download-overview-card.downloading>strong,
+.finder-shell .download-file-icon.downloading { color: var(--ui-selection-text); }
+.finder-shell .download-overview-card.error>strong { color: var(--ui-danger); }
+.finder-shell .storage-summary>div:first-child { background: var(--ui-panel); border-color: var(--ui-line); }
+.finder-shell .storage-summary>div:first-child strong { color: var(--ui-text); }
+.finder-shell .manager-main.file-view:not(.view-profile) { padding-top: 24px; }

@@ -365,3 +365,7 @@ The final After Hours consistency pass unifies selected rows, grid selection,
 filter chips, pressed controls, bulk actions, and drag/drop highlights. All eight
 isolated UI smoke suites passed against the completed theme, including playback,
 organization, download controls, Settings, duplicates, and error recovery.
+
+The Videos page now has visible All videos / Unplayed / In progress / Finished controls, based on saved playback position (Finished starts at 95%). The expanded responsive filter panel combines people, any/all tag matching, missing-people/missing-tags organization filters, source, duration, and resolution, with a live result count. Removable chips and Clear search & filters make recovery easy without changing sorting or the current library scope. The library smoke test covers combinations, playback status, missing metadata, tag matching, keyboard reset recovery, and mobile layouts alongside existing organization workflows.
+
+Shared UI foundations now live in `frontend/src/ui-system.css`, with reusable Button, ActionGroup, ViewSwitcher, and PageHeader components. The main library pages, utility pages, and editing dialogs use shared typography, action sizing, and semantic colors. See [the design-system guide](docs/design-system.md) for usage rules and the local `/design-system.html` component reference. `frontend/tests/design-system-smoke.cjs` checks keyboard/disabled states, responsive typography, and primary-button contrast; library checks also guard toolbar centerlines and page-title consistency.

@@ -1,8 +1,9 @@
+import { Button } from "./UIControls";
 import { useEffect, useRef, useState } from "react";
 
 type Choice = { value: string; label: string; detail?: string };
-export default function FilterMultiSelect({ label, choices, selected, onChange }: {
-  label: string; choices: Choice[]; selected: string[]; onChange: (values: string[]) => void;
+export default function FilterMultiSelect({ label, choices, selected, onChange, matchDescription }: {
+  label: string; choices: Choice[]; selected: string[]; onChange: (values: string[]) => void; matchDescription?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -33,7 +34,7 @@ export default function FilterMultiSelect({ label, choices, selected, onChange }
         {matches.map(c => <label key={c.value} className={selected.includes(c.value) ? "is-selected" : ""}><input type="checkbox" checked={selected.includes(c.value)} onChange={() => onChange(selected.includes(c.value) ? selected.filter(v => v !== c.value) : [...selected, c.value])} /><span className="filter-picker-check" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="m3 8 3 3 7-7" /></svg></span><span className="filter-picker-option-text">{c.label}{c.detail && <small>{c.detail}</small>}</span></label>)}
         {!matches.length && <div className="filter-picker-empty"><strong>No {label.toLowerCase()} found</strong><span>{query ? "Try a different name or spelling." : "Options will appear when added to your videos."}</span>{query && <button type="button" onClick={() => { setQuery(""); input.current?.focus(); }}>Clear search</button>}</div>}
       </div>
-      <div className="filter-picker-footer"><div><strong aria-live="polite">{selected.length} selected</strong><span>{label === "Tags" ? "Matches every selected tag" : "Matches any selected person"}</span></div><button type="button" className="m-button" onClick={close}>Done</button></div>
+      <div className="filter-picker-footer"><div><strong aria-live="polite">{selected.length} selected</strong><span>{matchDescription || (label === "Tags" ? "Matches every selected tag" : "Matches any selected person")}</span></div><Button type="button" variant="neutral" onClick={close}>Done</Button></div>
     </div>}
   </div>;
 }
