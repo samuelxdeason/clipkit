@@ -1,6 +1,6 @@
 /* Shared card family: surfaces/states are common; each kind owns its silhouette. */
 .finder-shell .library-card.library-card:is(.video-card, .mixed-media-tile, .person-tile, .tag-directory-card) { min-width: 0; border: 1px solid var(--ui-line); border-radius: var(--ui-card-radius); background: var(--ui-panel); box-shadow: none; overflow: hidden; transition: border-color .16s, background-color .16s; }
-.finder-shell .library-card.library-card:is(.video-card, .mixed-media-tile, .person-tile, .tag-directory-card):hover { border-color: var(--ui-selection-line); background: var(--ui-panel); box-shadow: 0 8px 24px #0003; }
+.finder-shell .library-card.library-card:is(.video-card, .mixed-media-tile, .person-tile, .tag-directory-card):hover { border-color: var(--card-tone-line, var(--ui-hover-line)); background: var(--ui-panel); box-shadow: 0 8px 24px #0003; }
 
 .finder-shell .library-card.library-card.is-selected { background: var(--ui-selection-surface); }
 .finder-shell .library-card .card-image-fallback { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; width: 100%; height: 100%; background: var(--ui-field); color: var(--ui-muted); font-size: var(--ui-type-meta); }
@@ -49,10 +49,10 @@
 .finder-shell .library-card .mixed-media-kind svg { width: 14px; height: 14px; flex-shrink: 0; }
 
 /* Decorative identity palettes, never status colors or positional nth-child rules. */
-.finder-shell :is(.library-card, .person-profile)[data-card-tone="plum"] { --card-tone: #c7a6dc; --card-wash: #9672b52b; --card-tone-line: #c7a6dc30; }
-.finder-shell :is(.library-card, .person-profile)[data-card-tone="rose"] { --card-tone: #dca5b7; --card-wash: #a84f702b; --card-tone-line: #dca5b730; }
-.finder-shell :is(.library-card, .person-profile)[data-card-tone="midnight"] { --card-tone: #a2b4d5; --card-wash: #526b9b2b; --card-tone-line: #a2b4d530; }
-.finder-shell :is(.library-card, .person-profile)[data-card-tone="amber"] { --card-tone: #d7bd96; --card-wash: #9c78442b; --card-tone-line: #d7bd9630; }
+.finder-shell :is(.library-card, .person-profile)[data-card-tone="plum"] { --card-tone: var(--ui-identity-plum); --card-wash: var(--ui-identity-plum-wash); --card-tone-line: var(--ui-identity-plum-line); }
+.finder-shell :is(.library-card, .person-profile)[data-card-tone="rose"] { --card-tone: var(--ui-identity-rose); --card-wash: var(--ui-identity-rose-wash); --card-tone-line: var(--ui-identity-rose-line); }
+.finder-shell :is(.library-card, .person-profile)[data-card-tone="midnight"] { --card-tone: var(--ui-identity-midnight); --card-wash: var(--ui-identity-midnight-wash); --card-tone-line: var(--ui-identity-midnight-line); }
+.finder-shell :is(.library-card, .person-profile)[data-card-tone="amber"] { --card-tone: var(--ui-identity-amber); --card-wash: var(--ui-identity-amber-wash); --card-tone-line: var(--ui-identity-amber-line); }
 .finder-shell .library-card.person-tile[data-card-tone] .person-tile-art { background: radial-gradient(ellipse at 50% 90%, var(--card-wash), transparent 85%), var(--ui-field); }
 .finder-shell .library-card.person-tile[data-card-tone] .person-avatar { color: var(--card-tone); border-color: var(--card-tone-line); background: var(--card-wash); }
 .finder-shell .library-card.library-card.tag-directory-card[data-card-tone] { background: radial-gradient(ellipse at 0 0, var(--card-wash), transparent 85%), var(--ui-panel); }
@@ -64,7 +64,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .finder-shell .library-card { transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
-  .finder-shell .library-card.library-card:is(.video-card, .mixed-media-tile, .person-tile, .tag-directory-card, .folder-card-shell):hover { transform: translateY(-3px); border-color: var(--ui-selection-line); box-shadow: 0 12px 28px #0005, 0 0 0 1px var(--ui-selection-line); }
+  .finder-shell .library-card.library-card:is(.video-card, .mixed-media-tile, .person-tile, .tag-directory-card, .folder-card-shell):hover { transform: translateY(-3px); border-color: var(--card-tone-line, var(--ui-hover-line)); box-shadow: 0 12px 28px #0005, 0 0 0 1px var(--card-tone-line, var(--ui-hover-line)); }
   .finder-shell .library-card :is(.video-card-frame img, .photo-tile-frame img, .compact-folder-icon img, .person-tile-art img) { transition: transform .25s ease, filter .25s ease; }
   .finder-shell .library-card:hover :is(.video-card-frame img, .photo-tile-frame img, .compact-folder-icon img, .person-tile-art img) { transform: scale(1.025); filter: brightness(1.06); }
 }
@@ -97,3 +97,5 @@
 .finder-shell .photo-tile .media-tile-subtitle>span { padding: 0; margin: 0; font-size: inherit; font-weight: inherit; line-height: inherit; }
 .finder-shell .media-tile-subtitle>svg { width: 14px; height: 14px; }
 .finder-shell .media-tile-subtitle[data-icon="people"]>svg { color: var(--ui-lilac); }
+
+.finder-shell .library-card.tag-directory-card[data-card-tone]:hover .tag-directory-arrow { color: var(--card-tone); border-color: var(--card-tone-line); }

@@ -44,6 +44,23 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
       return ['--ui-primary-start', '--ui-primary-end', '--ui-primary-hover-start', '--ui-primary-hover-end'].map(t => 1.05 / (lum(css.getPropertyValue(t)) + .05));
     });
     assert(contrast.every(r => r >= 4.5), JSON.stringify(contrast));
+    const roleContrast = await page.locator('.finder-shell').evaluate(el => {
+      const css=getComputedStyle(el);
+      const lum=token=>{
+        const c=css.getPropertyValue(token).trim().slice(1).match(/../g).slice(0,3).map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);
+        return c[0]*.2126+c[1]*.7152+c[2]*.0722;
+      };
+      return ['--ui-text','--ui-secondary','--ui-muted','--ui-info','--ui-success','--ui-warning','--ui-danger',...['plum','rose','midnight','amber'].map(t=>'--ui-identity-'+t)].map(t=>[t,(lum(t)+.05)/(lum('--ui-panel')+.05)]);
+    });
+    assert(roleContrast.every(([,ratio])=>ratio>=4.5),JSON.stringify(roleContrast));
+    for (const selector of ['.person-tile','.tag-directory-card']) {
+      const card=page.locator(selector); await card.hover();
+      const expected=await card.evaluate(e=>{
+        const probe=document.createElement('span');e.append(probe);probe.style.border='1px solid var(--card-tone-line)';
+        const color=getComputedStyle(probe).borderTopColor;probe.remove();return color;
+      });
+      assert.equal((await style(card)).border,expected,'Identity hover retains its own palette');
+    }
     assert.equal(await page.locator('.library-card').count(), 5);
     await page.getByRole('button', { name: 'Play An afternoon in the hills', exact: true }).click();
     await page.getByText('Video playback action', { exact: true }).waitFor();
@@ -59,6 +76,6 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
     assert.equal(await page.locator('.ui-page-header h1').first().evaluate(el => getComputedStyle(el).fontSize), '28px');
     await page.screenshot({ path: path.join(temp, 'phone.png'), fullPage: true });
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({ passed: true, screenshots: temp, checks: ['keyboard toggle and focus ring', 'selected hover persistence', 'disabled and fieldset states', 'search focus', 'menu keyboard selection and focus return', 'reduced motion', 'primary text contrast', 'responsive typography', 'narrow overflow'] }));
+    console.log(JSON.stringify({ passed: true, screenshots: temp, checks: ['keyboard toggle and focus ring', 'selected hover persistence', 'disabled and fieldset states', 'search focus', 'menu keyboard selection and focus return', 'reduced motion', 'primary and semantic text contrast', 'identity hover colors', 'responsive typography', 'narrow overflow'] }));
   } finally { if (browser) await browser.close(); server.kill(); }
 })().catch(e => { console.error(e); process.exitCode = 1; });

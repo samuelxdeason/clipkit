@@ -33,14 +33,14 @@
 }
 .finder-shell .downloads-page .download-status.done { color: var(--ui-success); background: var(--ui-success-surface); }
 .finder-shell .downloads-page .download-status.error { color: var(--ui-danger); background: var(--ui-danger-surface); }
-.finder-shell .downloads-page .download-status.downloading { color: var(--ui-selection-text); background: var(--ui-selected); }
+.finder-shell .downloads-page .download-status.downloading { color: var(--ui-info); background: var(--ui-info-surface); }
 .finder-shell .downloads-page .download-status.queued { color: var(--ui-secondary); background: var(--ui-panel); }
 /* Progress is active work, not a success state; green is reserved for done. */
-.finder-shell .downloads-page .download-row.is-running { background: var(--ui-panel); border-color: var(--ui-selection-line); box-shadow: inset 3px 0 var(--ui-accent); }
-.finder-shell .downloads-page .download-progress>span { background: var(--ui-accent); box-shadow: none; }
+.finder-shell .downloads-page .download-row.is-running { background: var(--ui-panel); border-color: var(--ui-info-line); box-shadow: inset 3px 0 var(--ui-info); }
+.finder-shell .downloads-page .download-progress>span { background: var(--ui-info); box-shadow: none; }
 .finder-shell .downloads-page .is-running .download-meta>span:first-child,
 .finder-shell .download-overview-card.downloading>strong,
-.finder-shell .download-file-icon.downloading { color: var(--ui-selection-text); }
+.finder-shell .download-file-icon.downloading { color: var(--ui-info); }
 .finder-shell .download-overview-card.error>strong { color: var(--ui-danger); }
 .finder-shell .storage-summary>div:first-child { background: var(--ui-panel); border-color: var(--ui-line); }
 .finder-shell .storage-summary>div:first-child strong { color: var(--ui-text); }
@@ -72,7 +72,7 @@
 .finder-shell .video-search-controls .manager-search:focus-within { border-color: var(--ui-focus); box-shadow: 0 0 0 2px var(--ui-selected); }
 .finder-shell .library-toolbar .video-search-controls .video-filter-popover[open] summary { background: var(--ui-selection-surface); border-color: var(--ui-selection-line); color: var(--ui-selection-text); }
 .finder-shell .dq-choice label.is-kept,
-.finder-shell .dq-status.keep { background: var(--ui-selection-surface); border-color: var(--ui-selection-line); color: var(--ui-selection-text); }
+.finder-shell .dq-status.keep { background: var(--ui-success-surface); border-color: var(--ui-line); color: var(--ui-success); }
 .finder-shell .dq-choice label.is-recycled,
 .finder-shell .dq-status.recycle { background: var(--ui-warning-surface); border-color: var(--ui-line); color: var(--ui-warning); }
 .finder-shell .dq-decision-bar { background: var(--ui-panel); border-color: var(--ui-line); }

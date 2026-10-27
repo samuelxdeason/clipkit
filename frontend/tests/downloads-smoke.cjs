@@ -40,6 +40,13 @@ const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),asse
   await page.locator('.sidebar-manage-disclosure summary').click();await page.locator('[data-section="downloads"]').click();
   const row=name=>page.getByRole('article',{name,exact:true});
   await row('Mountain light').waitFor();
+  const beforeSort=queue.map(j=>j.id),beforeWrites=writes.length;
+  await page.getByRole('button',{name:'Sort downloads',exact:true}).click();await page.getByRole('menuitemradio',{name:'Title A–Z',exact:true}).click();
+  assert.equal(await page.locator('.download-row').first().getAttribute('aria-label'),'A quiet afternoon');
+  assert.deepEqual(queue.map(j=>j.id),beforeSort);assert.equal(writes.length,beforeWrites,'Display sort must not reorder queue');
+  assert.equal(await row('Coastal trails').getByRole('button',{name:'Download next',exact:true}).isDisabled(),true);
+  await page.getByRole('button',{name:'Sort downloads',exact:true}).click();await page.getByRole('menuitemradio',{name:'Queue order',exact:true}).click();
+  assert.equal(await page.locator('.download-row').first().getAttribute('aria-label'),'Mountain light');
   assert.equal(await page.getByRole('progressbar').getAttribute('aria-valuenow'),'37.2');
   await page.screenshot({path:path.join(temp,'downloads.png')});
   const updated={...queue[0],percent:62,speed:'6.8 MiB/s',eta:'00:18'};queue[0]=updated;
@@ -47,10 +54,10 @@ const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),asse
   await row('Mountain light').getByText('62% downloaded',{exact:true}).waitFor();
   await row('Mountain light').getByText('6.8 MiB/s · 00:18 remaining',{exact:true}).waitFor();
   assert.equal(await page.getByRole('progressbar').getAttribute('aria-valuenow'),'62');
-  await page.getByRole('navigation',{name:'Download filters'}).getByRole('button',{name:/Completed/}).click();assert.equal(await page.locator('.download-row').count(),2);
+  await page.getByRole('button',{name:'Download filters',exact:true}).click();await page.getByRole('menuitemradio',{name:/^Completed \(/}).click();assert.equal(await page.locator('.download-row').count(),2);
   await page.getByLabel('Search downloads').fill('not present');await page.getByRole('heading',{name:'No matching downloads'}).waitFor();
   await page.getByRole('button',{name:'Clear download search'}).click();
-  await page.getByRole('navigation',{name:'Download filters'}).getByRole('button',{name:/All/}).click();
+  await page.getByRole('button',{name:'Download filters',exact:true}).click();await page.getByRole('menuitemradio',{name:/^All \(/}).click();
   await row('A quiet afternoon').locator('summary').click();await row('A quiet afternoon').getByText('Connection timed out. Please retry.',{exact:true}).waitFor();
   assert.equal(await row('Coastal trails').getByRole('button',{name:'Download next',exact:true}).isDisabled(),true);
   assert.equal(await page.getByRole('button',{name:'Move down: City in motion',exact:true}).isDisabled(),true);

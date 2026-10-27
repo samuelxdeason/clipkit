@@ -18,13 +18,13 @@ Specialized layout sheets remain for media ratios, responsive grids and page-spe
 
 The top navigation bar owns location/breadcrumbs on the left and the primary page action on the right: Add videos, Add photos, New collection/New folder, or New person. Use `PageActionsProvider`, `PageActionsSlot`, and `PageActions` for child-owned actions; their event handlers and dialog state stay in the page. Never duplicate these primary actions beside the page heading. Empty-state recovery actions and contextual item menus can remain next to their content.
 
-Use `BrowseToolbar` for collections, people and tags. It provides search, display controls, an optional organizing group and a result summary; omit controls that do not apply rather than rendering empty groups. Keep search refs connected so Ctrl+K continues to work.
+Use `BrowseToolbar` for collections, people, tags, Following and the download queue. Source/queue status filters use the shared dropdown with live counts; bulk actions stay in the organizing group. Display sorting must not change queue priority or lose source selections. It provides search, display controls, an optional organizing group and a result summary; omit controls that do not apply rather than rendering empty groups. Keep search refs connected so Ctrl+K continues to work.
 
 Browsing controls belong in the content toolbar: search and filters first, then sort and preview size. Manage stays in a separate group with a divider. Applied filter chips sit below the row, followed by the result count. On narrow screens the display/Manage row wraps beneath search; buttons retain their shared target sizes. Filter triggers use the same sliders icon and show a selected treatment whenever filters are active.
 
 ## Making changes
 
-- Change shared values in `tokens.css`, including narrow-screen values. Identity-specific palettes remain scoped to their cards.
+- Change shared values in `tokens.css`, including narrow-screen values. Identity palette values also live in tokens.css; card scope maps the stable identity tone to these tokens.
 - Import `app-theme.css` rather than assembling a page-specific stylesheet stack.
 - Reuse `EmptyState` for empty results and `LoadState` for loading/error recovery. Keep messages and action callbacks in the caller.
 - Reuse `DialogHeader` inside `DetailDialog`; preserve the caller's busy/close behavior and accessible label.
@@ -154,7 +154,7 @@ People and tag cards use four muted decorative tones (plum, dusty rose, midnight
 
 Person profiles share the directory card's tone through `identityTone.ts`, keyed by the canonical saved person name. Only the portrait backing and soft surrounding glow use the identity wash; the header surface and borders stay neutral. Photographs are not color-filtered. Profile typography, controls, and focus states retain their global semantic colors.
 
-The utility color pass uses neutral icons, page eyebrows, metadata, profile counts, and settings surfaces. Storage charts use `--ui-chart-1` through `--ui-chart-4`, a separate labeled neutral series palette rather than borrowing success/selection colors. Layout switches, navigation, tabs, and pickers use shared selection tokens. Duplicate keep choices are selections (pink), not completed operations (green); recycle choices remain labeled amber. Connection success, completed downloads, and errors retain their semantic colors. People/tag identity tones and portrait glows are intentionally excluded from these utility overrides.
+The utility color pass uses neutral icons, page eyebrows, metadata, profile counts, and settings surfaces. Storage charts use `--ui-chart-1` through `--ui-chart-4`, a separate labeled neutral series palette rather than borrowing success/selection colors. Layout switches, navigation, tabs, and pickers use shared selection tokens. Duplicate keep choices use labeled sage; recycle choices remain labeled amber. Connection success, completed downloads, and errors retain their semantic colors. People/tag identity tones and portrait glows are intentionally excluded from these utility overrides.
 
 ## Media viewers
 
@@ -187,8 +187,19 @@ Photos and person-photo browsing use the same compact toolbar as videos. Photo t
 
 ### Charcoal / cherry / warm white
 
-Shared tokens in ui-system.css define the brand: canvas #0d0d0f, panel #19181b, field #121114, warm-white text #faf6f0, secondary #c6bdba, muted #a79c9a. Primary actions use deep cherry (#bd2342 to #991b36), with a softer rose #f26b80 for progress, focus, and active navigation. Selected controls use a restrained cherry wash and warm rose text. Destructive actions keep explicit danger labels/tokens; success and warning retain semantic colors.
+Shared tokens in tokens.css define the brand: canvas #0d0d0f, panel #19181b, field #121114, warm-white text #faf6f0, secondary #c6bdba, muted #a79c9a. Primary actions use deep cherry (#bd2342 to #991b36), with a softer rose #f26b80 for progress, focus, and active navigation. Selected controls use a restrained cherry wash and warm rose text. Destructive actions keep explicit danger labels/tokens; success and warning retain semantic colors.
 
-brand-theme.css applies the brand finish after component styles. The playback mark and localized sidebar glow provide identity; large canvases and utility panels stay neutral. People/tag palettes and portrait glow stay in library-cards.css and are not recolored by the brand pass.
+brand-theme.css applies the brand finish after component styles. The playback mark and slim active-navigation indicator provide identity; large canvases and utility panels stay neutral. People/tag palette mappings and portrait glow stay in library-cards.css and are not recolored by the brand pass.
 
 Viewer chrome uses charcoal panels around a true-black media stage. ViewerHeader shares a restrained cherry indicator and warm-white titles. Organizing tabs/buttons use selected-state washes; playback/navigation controls retain full hit areas and labels. Viewer theme rules live in brand-theme.css and preserve compact layouts at narrow widths and short heights.
+
+
+### Color balance and ownership
+
+- **Charcoal and warm white:** default panels, navigation backgrounds, secondary actions, metadata and ordinary card hover borders. Avoid tinting entire utility panels or the sidebar cherry.
+- **Cherry:** primary actions, active-navigation indicator, user selections, favorites, keyboard focus and playback position. A hovered ordinary card is not a selection.
+- **Identity accents:** plum, dusty rose, blue and amber use `--ui-identity-*` tokens. Keep the existing stable hash and tone names so sorting/filtering never changes an identity. Use brighter accents for portrait initials, tag symbols and hover borders, with restrained washes behind art. Profile color remains local to the portrait; its header border stays neutral.
+- **Status:** blue (`--ui-info*`) for download activity, sage for completion/connection/keep, amber for warning/recycle and danger tokens for errors/destructive actions. Retain labels and icons so color is never the only signal.
+- **Priority:** selected cards and keyboard focus use shared cherry states even on identity-colored cards. Hover alone uses the identity border or a neutral border. Do not add brand-colored shadows to every card.
+
+Global values belong in `tokens.css`; component selectors consume semantic roles. Change palette values there rather than adding per-page hex overrides. Primary-button text must retain at least 4.5:1 contrast, as must supporting and status text on their intended surfaces.

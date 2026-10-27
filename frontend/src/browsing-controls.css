@@ -184,3 +184,22 @@
 @media(max-width: 1000px) {
   .finder-shell .directory-browse-toolbar .sort-menu-popover { left: 0; right: auto; }
 }
+
+/* Sources and queues can have two display menus plus a group of bulk actions. */
+.finder-shell .utility-browse-toolbar .queue-search { flex: 1; min-width: 0; width: 100%; margin: 0; }
+.finder-shell .utility-browse-toolbar .queue-search input { min-width: 0; width: 100%; }
+.finder-shell .utility-browse-toolbar .following-results { margin: 0; width: 100%; gap: var(--ui-space-2) var(--ui-space-4); }
+.finder-shell .utility-browse-toolbar>.media-browse-bar { flex-wrap: wrap; }
+.finder-shell .utility-browse-toolbar .media-display-controls { flex-wrap: wrap; gap: var(--ui-space-2); }
+@media(max-width: 1280px) {
+  .finder-shell .library-toolbar.utility-browse-toolbar { grid-template-columns: minmax(0,1fr); }
+  .finder-shell .utility-browse-toolbar>.media-browse-bar { grid-column: 1; grid-row: 2; width: 100%; justify-content: space-between; }
+  .finder-shell .utility-browse-toolbar>.video-result-scope { grid-row: 3; }
+}
+@media(max-width: 600px) {
+  .finder-shell .utility-browse-toolbar .media-manage-controls { padding: var(--ui-space-2) 0 0; border-left: 0; border-top: 1px solid var(--ui-line); width: 100%; }
+  .finder-shell .utility-browse-toolbar .media-manage-controls:empty { display: none; }
+  .finder-shell .utility-browse-toolbar .media-display-controls { width: 100%; }
+  .finder-shell .utility-browse-toolbar .media-display-controls>.sort-menu { flex: 1; min-width: 0; }
+  .finder-shell .utility-browse-toolbar .sort-menu-trigger { min-width: 0; width: 100%; gap: var(--ui-space-2); }
+}

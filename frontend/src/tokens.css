@@ -29,7 +29,7 @@
   --ui-secondary: #c6bdba;
   --ui-muted: #a79c9a;
   --ui-line: #f5e9df1c;
-  --ui-hover: #d42b4914;
+  --ui-hover: #faf6f00a;
   --ui-selected: #d42b4921;
   --ui-accent: #f26b80;
   --ui-accent-ink: #260b12;
@@ -68,6 +68,23 @@
   --ui-tag-text: #d5bddf;
   --ui-tag-surface: #d5a9ed10;
   --ui-tag-line: #d5a9ed20;
+  /* Informational activity is blue; cherry is reserved for user intent. */
+  --ui-info: #a8c4ed;
+  --ui-info-surface: #a8c4ed12;
+  --ui-info-line: #a8c4ed38;
+  /* Stable identity accents: bright details on restrained tinted surfaces. */
+  --ui-identity-plum: #c9a8ee;
+  --ui-identity-plum-wash: #a27bd52b;
+  --ui-identity-plum-line: #c9a8ee55;
+  --ui-identity-rose: #e5adbd;
+  --ui-identity-rose-wash: #be78902b;
+  --ui-identity-rose-line: #e5adbd55;
+  --ui-identity-midnight: #9ebff0;
+  --ui-identity-midnight-wash: #6a98d52b;
+  --ui-identity-midnight-line: #9ebff055;
+  --ui-identity-amber: #e2c08b;
+  --ui-identity-amber-wash: #b88b492b;
+  --ui-identity-amber-line: #e2c08b55;
   --ui-success: #9ccbb3;
   --ui-success-surface: #9ccbb310;
   --ui-warning: #e4bc84;
@@ -86,7 +103,7 @@
   --ui-card-title: 16px;
   --ui-card-overlay: #100e13e6;
   --ui-card-overlay-line: #ffffff38;
-  --ui-brand-glow: #bd23421a;
+  --ui-brand-glow: #bd23420c;
   --ui-brand-border: #f26b8038;
   --ui-surface-shadow: 0 14px 38px #0006;
   --ui-type-subsection: 16px;
