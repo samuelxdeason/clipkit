@@ -1,0 +1,83 @@
+/* After Hours: a cinematic identity layered over the shared workspace layouts. */
+.finder-shell {
+  --ui-canvas: #0c0b0e;
+  --ui-panel: #161419;
+  --ui-raised: #2c252e;
+  --ui-field: #100e13;
+  --ui-text: #faf4f6;
+  --ui-secondary: #c4b5bf;
+  --ui-muted: #a798a4;
+  --ui-line: #f4dae61a;
+  --ui-hover: #ff426914;
+  --ui-selected: #ff426921;
+  --ui-accent: #ff6b88;
+  --ui-accent-ink: #210810;
+  --ui-rose: #ff6b88;
+  --ui-lilac: #d5a9ed;
+  --ui-mist: #d5a9ed;
+  --ui-foam: #9ccbb3;
+  --ui-butter: #e4bc84;
+  --ui-peach: #e9a393;
+  --ui-dialog: #1d171f;
+  --ui-search: #100e13;
+  --ui-segment: #100e13;
+  --ui-segment-active: #36202d;
+  --ui-dialog-line: #f4dae62b;
+  --ui-dialog-shadow: 0 28px 100px #000b;
+  --ui-radius: 8px;
+  --ac: var(--ui-accent);
+  font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
+  font-weight: 400;
+  background: var(--ui-canvas);
+}
+.finder-shell ::selection { background: #ff42694d; color: #fff; }
+.finder-shell .manager-main { background: radial-gradient(ellipse at 85% 0, #a51d3910, transparent 550px), var(--ui-canvas); }
+.finder-shell .manager-sidebar { background: linear-gradient(165deg, #52152a20, transparent 45%), #110e14; }
+.finder-shell .manager-topbar { background: #100d12; border-bottom-color: var(--ui-line); }
+.finder-shell .manager-brand { font-size: 25px; font-weight: 800; letter-spacing: -1.2px; }
+.finder-shell .sidebar-brand-row .brand-symbol { color: var(--ui-accent); background: #ff426915; border-color: #ff42693a; border-radius: 9px; }
+.finder-shell .sidebar-brand-copy small { color: var(--ui-muted); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; }
+.finder-shell .manager-nav.active, .finder-shell .manager-nav.active:hover { background: linear-gradient(90deg, #ff426925, #ff426906); border-color: #ff42692b; box-shadow: inset 3px 0 var(--ui-accent); }
+.finder-shell .manager-nav svg { color: var(--ui-muted); }
+.finder-shell .manager-nav.active svg { color: var(--ui-accent); }
+.finder-shell .manager-heading h1 { font-weight: 750; letter-spacing: -1px; }
+.finder-shell .manager-main>.manager-heading h1,
+.finder-shell :is(.photo-library, .album-browser)>.manager-heading h1 { font-size: 32px; }
+.finder-shell :is(.manager-heading p, .profile-bio) { color: var(--ui-secondary); }
+.finder-shell :is(.m-button.primary, .m-button.library-add) { background: linear-gradient(115deg, #f83c68, #df2857); color: #fff; border-color: #ff78924d; box-shadow: 0 4px 18px #e82c5526; }
+.finder-shell :is(.m-button.primary, .m-button.library-add):hover:not(:disabled) { background: linear-gradient(115deg, #ff527b, #e93867); color: #fff; }
+.finder-shell .m-button:hover:not(:disabled):not(.primary):not(.library-add) { background-color: var(--ui-raised); }
+.finder-shell :is(.utility-tabs, .profile-tabs, .video-library-tabs) button.active,
+.finder-shell .utility-tabs button.chosen { background: var(--ui-segment-active); color: var(--ui-text); }
+.finder-shell .video-actions>.m-button.pressed { color: var(--ui-accent); background: var(--ui-selected); border-color: #ff426940; }
+.finder-shell .video-search-controls .manager-search:focus-within,
+.finder-shell :is(.manager-search, .queue-search, .filter-picker-search, .folder-tree-tools):focus-within { border-color: var(--ui-accent); box-shadow: 0 0 0 3px #ff426918; }
+.finder-shell :is(.video-browser-controls, .person-content-controls, .album-browser .album-toolbar) { background: linear-gradient(110deg, #ffffff03, transparent), #141117; border-color: var(--ui-line); }
+.finder-shell .video-card { background: var(--ui-panel); border-color: var(--ui-line); }
+.finder-shell :is(.video-card, .person-tile, .mixed-media-tile>.photo-tile):hover { border-color: #ff6b8855; box-shadow: 0 10px 32px #0006; }
+.finder-shell .video-card-title { font-weight: 650; }
+.finder-shell .video-card-play-symbol { background: #ed365fe8; color: #fff; border-color: #ffb7c34d; box-shadow: 0 6px 24px #0007; }
+.finder-shell .video-card-progress>span { background: linear-gradient(90deg, #d92957, #ff6b88); }
+.finder-shell :is(.tag-pill, .tag-pill:nth-child(n)) { background: #d5a9ed10; color: #d5bddf; border-color: #d5a9ed20; }
+.finder-shell :is(.person-profile, .collection-detail>.manager-heading, .settings-section-heading, .dq-intro) { background: radial-gradient(ellipse at 0 0, #b42a4930, transparent 70%), var(--ui-panel); }
+.finder-shell :is(.person-tile-art, .featured-collection .compact-folder-icon) { background: radial-gradient(ellipse at 25% 0, #ae29543d, transparent 80%), #20121d; }
+.finder-shell :is(.person-tile:nth-child(3n+2) .person-tile-art, .featured-collection:nth-child(3n+2) .compact-folder-icon) { background: radial-gradient(ellipse at 75% 0, #71329738, transparent 80%), #19121f; }
+.finder-shell :is(.person-tile:nth-child(3n+3) .person-tile-art, .featured-collection:nth-child(3n+3) .compact-folder-icon) { background: radial-gradient(ellipse at 25% 0, #96522830, transparent 80%), #1c1516; }
+.finder-shell :is(.video-card-placeholder, .photo-tile .media-tile-placeholder) { background: radial-gradient(ellipse at 30% 0, #9d285425, transparent 75%), #120f16; }
+.finder-shell .manager-empty { background: radial-gradient(ellipse at 50% 0, #a3294818, transparent 70%), #120f15; }
+.finder-shell :is(.manager-modal, .detail-window, .video-filter-menu, .filter-picker-sheet, .album-menu>div, .collection-more>div) { background: var(--ui-dialog); border-color: var(--ui-dialog-line); box-shadow: var(--ui-dialog-shadow); }
+.picker-options.organize-floating-options { font-family: "Segoe UI Variable", "Segoe UI", sans-serif; background: #211923; border-color: #ff6b8835; color: #faf4f6; }
+.organize-floating-options button[aria-selected=true] { background: #ff426921; color: #fff; }
+.finder-shell .watch-window { background: #100d12; box-shadow: 0 28px 100px #000d; }
+.finder-shell .watch-window .watch-inspector { background: #18121b; }
+.finder-shell .watch-organize-bar { background: #1b141e; border-color: var(--ui-line); }
+.finder-shell .watch-organize-bar button[aria-pressed=true],
+.finder-shell .wo-tabs button[aria-pressed=true] { background: var(--ui-selected); border-color: #ff6b8840; color: var(--ui-text); }
+.finder-shell .wo-option[aria-pressed=true] { background: #ff42690c; border-color: #ff6b8830; }
+.finder-shell .wo-option[aria-pressed=true] .wo-check { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-ink); }
+.finder-shell :is(.watch-organizer, .watch-organize-bar) :is(button, input):focus-visible { outline-color: var(--ui-accent); }
+.finder-shell .watch-controls button[aria-pressed=true] { background: var(--ui-selected); color: var(--ui-accent); }
+@media(max-width: 600px) {
+  .finder-shell .manager-main>.manager-heading h1,
+  .finder-shell :is(.photo-library, .album-browser)>.manager-heading h1 { font-size: 26px; }
+}

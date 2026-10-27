@@ -6,6 +6,10 @@ import "../src/style.css";
 import "../src/manager.css";
 import "../src/design-system.css";
 import "../src/watch-organizer.css";
+import "../src/workspace.css";
+import "../src/albums.css";
+import "../src/library-browsing.css";
+import "../src/after-hours.css";
 
 function Harness() {
   const [open, setOpen] = useState(false);

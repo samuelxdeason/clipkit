@@ -291,3 +291,8 @@ The final consistency pass aligns search and keyboard focus, placeholder contras
 checkbox accents, pagination controls, compact headings, and numeric metadata.
 The eight page smoke suites cover player, library, photos/collections, downloads,
 Following, Settings, duplicates, and loading/recovery using isolated sample data.
+
+The After Hours theme layers near-black and plum surfaces, crimson primary actions,
+sharper system typography, and cinematic media accents over the existing layouts.
+Its styles live in frontend/src/after-hours.css, including player and portaled menus.
+All eight mocked workflow suites passed with the theme applied.

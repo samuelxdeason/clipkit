@@ -23,6 +23,7 @@ import "./design-system.css";
 import "./workspace.css";
 import "./albums.css";
 import "./library-browsing.css";
+import "./after-hours.css";
 import VideoPlayer from "./VideoPlayer";
 import RedownloadControl from "./RedownloadControl";
 import VideoCard from "./VideoCard";
