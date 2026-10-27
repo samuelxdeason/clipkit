@@ -1,0 +1,44 @@
+.finder-shell :is(.ui-button--neutral, .ui-button--quiet):hover:not(:disabled) { background: var(--ui-raised)!important; }
+.finder-shell .ui-button--primary:hover:not(:disabled) { background: linear-gradient(115deg, var(--ui-primary-hover-start), var(--ui-primary-hover-end))!important; }
+.finder-shell .ui-button--danger:hover:not(:disabled) { background: var(--ui-selection-surface)!important; }
+.finder-shell .ui-button.ui-button:is([aria-pressed="true"], .pressed) { background: var(--ui-selection-surface)!important; border-color: var(--ui-selection-line)!important; color: var(--ui-selection-text)!important; }
+/* Shared interaction states. Layout and semantic identity colors stay in components. */
+.finder-shell :is(.m-button, .ui-button, .sort-menu-trigger, .preview-size-menu>summary, .preview-size-popover>button, .wo-option, .manager-nav) {
+  transition: background-color var(--ui-state-duration) ease, border-color var(--ui-state-duration) ease, color var(--ui-state-duration) ease;
+}
+
+.finder-shell :is(.preview-size-popover>button, .album-menu>div>button, .collection-more>div>button, .wo-option, .manager-nav:not(.active), .settings-navigation button:not(.active)):hover:not(:disabled) {
+  background: var(--ui-hover-surface); border-color: var(--ui-hover-line);
+}
+.finder-shell :is(.sort-menu-trigger, .preview-size-menu>summary, .video-filter-menu .filter-picker-trigger):hover:not(:disabled) {
+  background: var(--ui-hover-surface); border-color: var(--ui-hover-line); color: var(--ui-text);
+}
+.finder-shell :is(.preview-size-popover>button[aria-pressed="true"], .sort-menu-popover>button[aria-checked="true"], .wo-option[aria-pressed="true"], .settings-navigation button.active, .collection-tree-row.active) {
+  background: var(--ui-selection-surface); border-color: var(--ui-selection-line); color: var(--ui-selection-text);
+}
+.finder-shell :is(.preview-size-popover>button[aria-pressed="true"], .sort-menu-popover>button[aria-checked="true"], .wo-option[aria-pressed="true"], .settings-navigation button.active, .collection-tree-row.active):hover:not(:disabled) {
+  background: var(--ui-selection-hover); border-color: var(--ui-selection-line); color: var(--ui-selection-text);
+}
+.finder-shell .library-card.library-card.is-selected,
+.finder-shell .library-card.library-card.is-selected:hover { border-color: var(--ui-accent); background: var(--ui-selection-surface); }
+
+/* Focus is independent of selection, with an inset ring on clipped card/menu faces. */
+.finder-shell :is(button, summary, select, input, textarea, a, [role=button], [role=tab], [tabindex]):focus-visible {
+  outline: var(--ui-focus-width) solid var(--ui-focus)!important; outline-offset: var(--ui-focus-offset)!important;
+}
+.finder-shell :is(.video-card-play, .photo-tile, .person-tile, .tag-directory-card, .album-card, .preview-size-popover>button, .album-picker-list button):focus-visible { outline-offset: var(--ui-focus-inset)!important; }
+.finder-shell :is(.manager-search, .queue-search, .filter-picker-search, .destination-search, .folder-tree-tools):focus-within {
+  border-color: var(--ui-focus); box-shadow: 0 0 0 var(--ui-focus-width) var(--ui-focus-halo);
+}
+.finder-shell :is(.manager-search, .queue-search, .filter-picker-search, .destination-search, .folder-tree-tools) input:focus-visible { outline: none!important; box-shadow: none; }
+
+/* Native :disabled also covers controls inside a disabled fieldset. Keep them in
+   the layout, but never give them a hover lift, brightening or pointer cursor. */
+.finder-shell :is(button, input, select, textarea):disabled {
+  opacity: var(--ui-disabled-opacity)!important; cursor: not-allowed!important; transform: none!important; filter: none!important; box-shadow: none!important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .finder-shell :is(button, summary, input, select, textarea, .library-card, .library-card img) { transition: none!important; }
+}
+
+.finder-shell .library-card.library-card:has(:focus-visible) { border-color: var(--ui-focus); }

@@ -1,0 +1,41 @@
+/* Geometry roles. Components still own layout, media ratios and responsive wrapping. */
+
+.finder-shell :is(.settings-section-heading, .settings-page .settings-card, .settings-navigation, .following-add, .following-sources article, .following-source-heading, .downloads-page .download-add-card, .downloads-page .download-row, .download-overview-card, .dq-intro, .dq-copy, .person-profile, .collection-detail>.manager-heading, .manager-empty) {
+  border-radius: var(--ui-radius-panel);
+}
+.finder-shell :is(.settings-section-heading, .following-add, .following-sources article, .following-source-heading, .downloads-page .download-add-card, .dq-intro, .collection-detail>.manager-heading) {
+  padding: var(--ui-panel-padding);
+}
+.finder-shell .settings-page .setting-row { padding: var(--ui-panel-padding); gap: var(--ui-space-4); }
+.finder-shell .settings-section-heading { margin-bottom: var(--ui-space-6); }
+.finder-shell .settings-page { gap: var(--ui-space-6); }
+.finder-shell .settings-page .setting-path,
+.finder-shell .setting-inline-notice { margin: 0 var(--ui-panel-padding) var(--ui-panel-padding); padding: var(--ui-space-4); border-radius: var(--ui-radius-inset); }
+.finder-shell .storage-summary { margin: 0 var(--ui-panel-padding) var(--ui-panel-padding); gap: var(--ui-space-3); }
+.finder-shell .storage-summary>div { padding: var(--ui-space-4); border-radius: var(--ui-radius-inset); }
+.finder-shell .storage-breakdown { padding: 0 var(--ui-panel-padding) var(--ui-panel-padding); }
+.finder-shell .downloads-page .download-row { padding: var(--ui-space-4); gap: var(--ui-space-4); }
+.finder-shell .following-sources article { gap: var(--ui-space-4); }
+
+/* Compact toolbars and expanded filter panels use the same inset. */
+.finder-shell :is(.cinema-library>.library-toolbar.video-browser-controls, .photo-library>.library-toolbar.compact-video-toolbar) { padding: var(--ui-space-3) var(--ui-space-4); }
+.finder-shell .video-search-controls .video-filter-menu { padding: var(--ui-space-4); gap: var(--ui-space-4); }
+.finder-shell :is(.sort-menu-trigger, .preview-size-menu>summary, .video-filter-menu .filter-picker-trigger, .sidebar-manage-disclosure>summary, .modal-close, .album-dialog header>button, .photo-import-dialog header>button) { border-radius: var(--ui-radius-control); }
+.finder-shell :is(.manager-modal, .album-dialog, .photo-import-dialog, .profile-editor-dialog) :is(input:not([type=checkbox]):not([type=radio]), textarea, select) { border-radius: var(--ui-radius-control); }
+.finder-shell :is(.video-filter-menu, .filter-picker-sheet, .sort-menu-popover, .preview-size-popover, .album-menu>div, .collection-more>div, .dq-recycle-info>div, .album-picker-list) { border-radius: var(--ui-radius-inset); }
+.finder-shell :is(.sort-menu-popover, .preview-size-popover, .album-menu>div, .collection-more>div, .album-picker-list) { padding: var(--ui-menu-padding); }
+.finder-shell :is(.sort-menu-popover>button, .preview-size-popover>button, .album-menu>div>button, .collection-more>div>button) { border-radius: var(--ui-radius-control); padding: var(--ui-space-2) var(--ui-space-3); }
+
+/* Content dialogs share an inset; viewer stages retain their own edge-to-edge layout. */
+.finder-shell :is(.manager-modal, .album-dialog .detail-window, .photo-import-dialog .detail-window, .profile-editor-dialog .detail-window) { border-radius: var(--ui-radius-dialog); padding: var(--ui-dialog-padding); }
+.finder-shell :is(.album-dialog .detail-window, .photo-import-dialog .detail-window, .profile-editor-dialog .detail-window) { gap: var(--ui-space-4); }
+.finder-shell :is(.album-dialog .detail-window>footer, .album-dialog form>footer, .manager-modal .dialog-actions, .photo-import-dialog .dialog-actions, .profile-editor-dialog .dialog-actions) { padding-top: var(--ui-space-4); gap: var(--ui-action-gap); }
+.finder-shell .library-card .card-select-control { border-radius: var(--ui-radius-control); }
+
+@media (max-width: 700px) {
+  .finder-shell .storage-summary { gap: var(--ui-space-2); }
+  .finder-shell .storage-summary>div { padding: var(--ui-space-3) var(--ui-space-2); }
+  .finder-shell .downloads-page .download-row { gap: var(--ui-space-3); }
+}
+
+.finder-shell .profile-editor-dialog .profile-edit { padding: 0; gap: var(--ui-space-4); }

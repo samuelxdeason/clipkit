@@ -1,7 +1,7 @@
 import { Button } from "./UIControls";
 import { useEffect, useState } from "react";
 import * as api from "./api";
-import { Icon } from "./App";
+import { Icon } from "./Icons";
 
 export function PersonAccounts({ person, query, onChanged }: { person: string; query: string; onChanged: () => void }) {
   const [accounts, setAccounts] = useState<api.AccountInfo[]>([]);

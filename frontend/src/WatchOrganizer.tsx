@@ -1,3 +1,4 @@
+import { Icon } from "./Icons";
 import { Button, IconButton } from "./UIControls";
 import { useEffect, useRef, useState } from "react";
 import { library } from "../wailsjs/go/models";
@@ -97,7 +98,7 @@ export default function WatchOrganizer({ video, tab, onTab, onClose, onChanged, 
   };
   const disabled = busy || loading || !!loadError;
   return <section className="watch-organizer" aria-label="Organize this video" aria-busy={busy}>
-    <header className="wo-heading"><div><span>YOUR LIBRARY</span><h3>Make it yours</h3></div><IconButton type="button" onClick={onClose} label="Close organization panel">×</IconButton></header>
+    <header className="wo-heading"><div><span>YOUR LIBRARY</span><h3>Make it yours</h3></div><IconButton type="button" onClick={onClose} label="Close organization panel"><Icon name="x"/></IconButton></header>
     <nav className="wo-tabs" aria-label="Video information sections">{(Object.keys(names) as WatchTab[]).map(t => <button type="button" key={t} aria-pressed={tab === t} onClick={() => onTab(t)}>{names[t]}</button>)}</nav>
     <div className="wo-feedback" aria-live="polite">{busy ? "Saving…" : notice || "Changes save automatically."}{undo && !busy && <button type="button" onClick={() => perform(undo, "Change undone.")}>Undo</button>}</div>
     {error && <p className="wo-error" role="alert">{error}</p>}

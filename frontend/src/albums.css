@@ -47,7 +47,7 @@
 .mixed-media-tile>.photo-tile { width: 100%; height: 100%; }
 .mixed-media-tile.is-selected>.photo-tile { outline: 2px solid var(--ac); outline-offset: -2px; }
 .mixed-media-tile .media-tile-select { position: absolute; top: 15px; left: 15px; background: #202025e8; border-color: #b9b4bb; z-index: 2; }
-.mixed-media-kind { position: absolute; top: 14px; right: 14px; pointer-events: none; background: #202025d9; border-radius: 5px; padding: 5px; color: #e5e0df; }
+.mixed-media-kind { position: absolute; pointer-events: none; background: #202025d9; padding: 5px; color: #e5e0df; }
 .mixed-media-tile .photo-tile-frame { display: grid; place-items: center; }
 .collection-tree { min-height: 0; overflow-y: auto; padding: 6px 0; flex: 1; }
 .collection-tree-heading { display: flex; align-items: center; gap: 6px; padding: 4px 9px 8px; font-size: 11px; color: var(--ui-secondary); }
@@ -73,7 +73,7 @@
 .collection-drag-status.is-error { border-color: #d88787; }
 .album-dialog form>footer { margin-top: 18px; }
 @media(max-width:600px) { .album-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; } .album-cover { height: 115px; } .album-dialog .detail-window { padding: 18px; } .album-card>small { font-size: 10px; } }
-.collection-pointer-badge { position: fixed; z-index: 200; pointer-events: none; padding: 10px 16px; border-radius: 8px; background: #ecd0da; color: #30232a; box-shadow: 0 5px 20px #0005; font: 600 13px sans-serif; }
+.collection-pointer-badge { position: fixed; z-index: 200; pointer-events: none; padding: 10px 16px; border-radius: 8px; box-shadow: 0 5px 20px #0005; font: 600 13px sans-serif; }
 [data-collection-draggable] { cursor: grab; }
 .collection-dragging, .collection-dragging * { cursor: grabbing!important; user-select: none!important; }
 /* Compact folders keep the media and the current location in view. */
@@ -107,7 +107,7 @@
 .collection-selection-bar>strong { padding: 0 9px; }
 @media(hover:none) { .compact-folder .folder-card-new { opacity: 1; } }
 @media(max-width:600px) { .album-browser .album-grid { grid-template-columns: 1fr; } .album-toolbar .manager-search { min-width: 150px; } .collection-selection-bar { flex-wrap: wrap; justify-content: center; } }
-.finder-shell .manager-sidebar .manager-nav { min-height: 34px; padding-top: 7px; padding-bottom: 7px; }
+.finder-shell .manager-sidebar .manager-nav { padding-top: 7px; padding-bottom: 7px; }
 .finder-shell .manager-sidebar .sidebar-divider { margin-top: 5px; margin-bottom: 5px; }
 .finder-shell .manager-sidebar .nav-label { margin-top: 12px; margin-bottom: 6px; }
 .finder-shell .collection-tree { min-height: 170px; }

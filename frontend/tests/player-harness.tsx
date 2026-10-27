@@ -3,15 +3,9 @@ import { createRoot } from "react-dom/client";
 import VideoPlayer from "../src/VideoPlayer";
 import { library } from "../wailsjs/go/models";
 import "../src/style.css";
-import "../src/manager.css";
-import "../src/design-system.css";
+import "../src/app-theme.css";
+
 import "../src/watch-organizer.css";
-import "../src/workspace.css";
-import "../src/albums.css";
-import "../src/library-browsing.css";
-import "../src/after-hours.css";
-import "../src/ui-system.css";
-import "../src/media-viewers.css";
 
 function Harness() {
   const [open, setOpen] = useState(false);

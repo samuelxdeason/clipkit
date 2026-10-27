@@ -1,4 +1,4 @@
-import { Icon } from "./App";
+import { Icon } from "./Icons";
 import { CardImage, CardSelection } from "./LibraryCards";
 import { useCollectionDrag } from "./CollectionDnd";
 import type { CollectionDrag } from "./collectionDrag";

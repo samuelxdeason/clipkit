@@ -1,0 +1,52 @@
+/* Typography roles: layout and semantic colors remain with each component.
+   Load after component sheets so the same role has the same metrics everywhere. */
+
+.finder-shell :is(.ui-type-section, .settings-section-heading h2, .downloads-page .download-add-heading h2, .queue-section-title h2, .album-section-heading h2, .person-accounts>h2, .following-source-heading h2, .following-add>label, .wo-heading h3, .manager-empty h2, .manager-modal h2, .album-dialog h2, .photo-import-dialog h2, .profile-editor-dialog h2) {
+  font-size: var(--ui-type-section);
+  font-weight: var(--ui-weight-heading);
+  line-height: var(--ui-leading-heading);
+  letter-spacing: -.4px;
+}
+
+.finder-shell :is(.ui-type-subsection, .settings-group>h2, .account-connect h3, .storage-breakdown h3, .wo-intro h4, .dq-group-heading, .viewer-header h2) {
+  font-size: var(--ui-type-subsection);
+  font-weight: var(--ui-weight-heading);
+  line-height: var(--ui-leading-heading);
+  letter-spacing: -.2px;
+}
+
+.finder-shell :is(.ui-type-label, .video-filter-field>span, .video-filter-menu .filter-section-label, .preview-size-popover>span, .inspector-section h3, .watch-details label, .wo-file label, .inspector form label, .profile-editor-dialog label, .photo-import-dialog label, .manager-modal label, .album-dialog label, .destination-summary>span, .tags-directory-toolbar>label) {
+  font-size: var(--ui-type-label);
+  font-weight: var(--ui-weight-label);
+  line-height: var(--ui-leading-compact);
+  letter-spacing: 0;
+}
+
+.finder-shell :is(.ui-type-body, .settings-page .setting-copy>p, .settings-description, .following-add>p, .queue-section-title p, .manager-empty p, .profile-copy>.profile-bio, .person-accounts>p, .wo-intro p, .manager-modal>p, .album-dialog .detail-window>p, .photo-import-dialog .detail-window>p) {
+  font-size: var(--ui-type-body);
+  font-weight: 400;
+  line-height: var(--ui-leading-body);
+  letter-spacing: 0;
+}
+
+.finder-shell :is(.ui-type-meta, .download-overview-card>small, .downloads-page .download-meta, .download-url, .download-import, .download-help, .following-checked, .following-results, .following-results>span:last-child, .following-source-heading small, .following-source-copy>p, .following-source-stats, .settings-nav-copy small, .storage-summary span, .storage-legend, .account-row small, .collection-media-heading>span, .album-section-heading>span, .collection-card-stats, .compact-folder-copy small, .person-tile-alias, .person-tile-count, .tag-directory-copy small, .tags-directory-hint, .organize-empty-hint, .destination-hint, .album-picker-list small, .wo-option-name small, .wo-feedback, .wo-empty, .dq-intro>div>small, .manager-footer, .video-result-scope) {
+  font-size: var(--ui-type-meta);
+  font-weight: 400;
+  line-height: var(--ui-leading-compact);
+  letter-spacing: 0;
+}
+
+.finder-shell :is(.ui-type-eyebrow, .settings-eyebrow, .download-eyebrow, .following-eyebrow, .profile-eyebrow, .dq-progress .dq-eyebrow, .dq-eyebrow, .viewer-eyebrow, .wo-heading>div>span, .manager-sidebar>.nav-label) {
+  font-size: var(--ui-type-eyebrow);
+  font-weight: var(--ui-weight-label);
+  line-height: var(--ui-leading-compact);
+  letter-spacing: 1.2px;
+}
+
+/* Item names are body-sized, with emphasis rather than a competing heading size. */
+.finder-shell :is(.ui-type-item, .settings-page .setting-copy>strong, .account-row strong, .downloads-page .download-title-line h3, .album-picker-list strong, .wo-option-name strong) {
+  font-size: var(--ui-type-body);
+  font-weight: var(--ui-weight-heading);
+  line-height: var(--ui-leading-compact);
+  letter-spacing: 0;
+}

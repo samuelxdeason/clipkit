@@ -1,7 +1,7 @@
 import { Chevron } from "./UIControls";
 import { useState } from "react";
 import type { Album } from "./api";
-import { Icon } from "./App";
+import { Icon } from "./Icons";
 
 export function albumTrail(albums: Album[], id: number): Album[] {
   const result: Album[] = [], seen = new Set<number>();

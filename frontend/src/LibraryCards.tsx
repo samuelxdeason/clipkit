@@ -1,5 +1,5 @@
 import { useState, type MouseEventHandler } from "react";
-import { Icon } from "./App";
+import { Icon } from "./Icons";
 import PersonAvatar from "./PersonAvatar";
 
 import { cardTone } from "./identityTone";

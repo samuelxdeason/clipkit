@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, RefObject } from "react";
 import * as api from "./api";
 import { library } from "../wailsjs/go/models";
-import { Icon } from "./App";
+import { Icon } from "./Icons";
 import { videoKey, formatBytes, comparisonRows } from "./duplicateComparison";
 
 export default function DuplicateQueue({ version, media, onChanged, onPlay }: {

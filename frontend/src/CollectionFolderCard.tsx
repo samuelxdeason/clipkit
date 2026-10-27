@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Album } from "./api";
-import { Icon } from "./App";
+import { Icon } from "./Icons";
 import { useCollectionDrag,useCollectionDrop } from "./CollectionDnd";
 
 export default function CollectionFolderCard({folder,media,onOpen,onCreate,path,featured=false}:{folder:Album;media:(path:string)=>string;onOpen:()=>void;onCreate:()=>void;path?:string;featured?:boolean}){

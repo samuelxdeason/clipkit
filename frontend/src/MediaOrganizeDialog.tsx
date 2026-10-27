@@ -1,3 +1,4 @@
+import { DialogHeader } from "./WorkspaceUI";
 import { albumTrail } from "./AlbumPicker";
 import { LoadState } from "./WorkspaceUI";
 import { Button } from "./UIControls";
@@ -37,7 +38,7 @@ export default function MediaOrganizeDialog({ kind, photos = [], videos = [], so
     }catch(e){setError(String(e));}finally{setBusy(false);}
   };
   return <DetailDialog label={kind==="move"?"Move to folder":kind==="album"?"Add to collection":"Assign person"} className="album-dialog" onClose={()=>!busy&&onClose()}>
-    <header><h2>{kind==="move"?"Move to folder":kind==="album"?"Add to collection":"Assign person"}</h2><button disabled={busy} onClick={onClose} aria-label="Close">×</button></header>
+    <DialogHeader title={kind==="move"?"Move to folder":kind==="album"?"Add to collection":"Assign person"} disabled={busy} onClose={onClose}/>
     <p>{photos.length+videos.length} selected {photos.length+videos.length===1?"item":"items"} {kind!=="assign"?(kind==="move"?"will move out of this folder into the destination folder.":"will stay in your library and any other collections."):"will appear on this person’s profile."}{kind==="assign"&&photos.length>0&&" This replaces the current person on selected photos."}</p>
     {loading&&<LoadState busy title="Loading destinations…"/>}
     <fieldset disabled={busy||loading} hidden={loading}>

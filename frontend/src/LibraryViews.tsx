@@ -5,7 +5,7 @@ import PersonAvatar from "./PersonAvatar";
 import { useEffect, useState } from "react";
 import { library } from "../wailsjs/go/models";
 import { GetModelInfo, SaveModelInfo } from "./api";
-import { Icon } from "./App";
+import { Icon } from "./Icons";
 
 type Video = library.Video;
 export type OrganizeMode = "all" | "people" | "tags";

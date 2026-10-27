@@ -1,5 +1,5 @@
 import { IconButton } from "./UIControls";
-import { Icon } from "./App";
+import { Icon } from "./Icons";
 
 export default function ViewerHeader({ title, titleId, eyebrow, closeLabel, onClose, className = "" }: {
   title: string; titleId?: string; eyebrow?: string; closeLabel: string; onClose: () => void; className?: string;

@@ -1,7 +1,7 @@
 import { useEffect, useRef, type MouseEvent } from "react";
 import { CardImage, CardSelection } from "./LibraryCards";
 import { library } from "../wailsjs/go/models";
-import { Icon } from "./App";
+import { Icon } from "./Icons";
 import { useCollectionDrag } from "./CollectionDnd";
 import type { CollectionDrag } from "./collectionDrag";
 

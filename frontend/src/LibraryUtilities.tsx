@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import * as api from "./api";
 import { library, downloader } from "../wailsjs/go/models";
-import { Icon } from "./App";
+import { Icon } from "./Icons";
 
 const downloadPercent = (percent = 0) => Number.isFinite(percent) ? Math.max(0, Math.min(100, percent)) : 0;
 const bytes = (n = 0) => n >= 1073741824 ? `${(n / 1073741824).toFixed(1)} GB` : `${Math.round(n / 1048576)} MB`;

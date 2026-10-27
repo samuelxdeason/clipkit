@@ -5,7 +5,7 @@ import "./watch-organizer.css";
 import { useEffect, useRef, useState } from "react";
 import { library } from "../wailsjs/go/models";
 import { MarkWatched, SetPosition } from "./api";
-import { Icon } from "./App";
+import { Icon } from "./Icons";
 
 export default function VideoPlayer({ video, src, poster, onClose, onPrevious, onNext, onChanged, media, detailsOpen, onToggleDetails, onPosition }: {
   video: library.Video;

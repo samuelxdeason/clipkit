@@ -34,8 +34,13 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
    return r.fulfill({contentType:'image/svg+xml',body:`<svg xmlns="http://www.w3.org/2000/svg" width="${n%2?400:640}" height="${n%2?540:360}"><rect width="100%" height="100%" fill="${c}"/><circle cx="280" cy="100" r="65" fill="#ffffff20"/><path d="M0 320 180 130 330 310 500 170 640 300V600H0" fill="#ffffff15"/></svg>`});
   });
   await page.goto('http://127.0.0.1:5197');
+  await page.locator('.ui-page-header h1').waitFor();
+  await page.evaluate(()=>document.fonts.ready);
+  const headerMetrics=()=>Object.fromEntries(['h1','p'].map(tag=>{const e=document.querySelector('.ui-page-header '+tag),r=e.getBoundingClientRect(),c=getComputedStyle(e);return [tag,{x:r.x,y:r.y,height:r.height,font:c.fontFamily,size:c.fontSize,weight:c.fontWeight,spacing:c.letterSpacing,lineHeight:c.lineHeight,marginTop:c.marginTop,color:c.color}];}));
+  const videoHeaderMetrics=await page.evaluate(headerMetrics);
   await page.locator('[data-section="photos"]').click();
   await page.locator('.mixed-media-tile').first().waitFor();
+  assert.deepEqual(await page.evaluate(headerMetrics),videoHeaderMetrics);
   assert.equal(await page.locator('.mixed-media-tile').count(),60);
   await page.getByRole('button',{name:'Next →',exact:true}).click();
   await page.waitForFunction(()=>document.querySelectorAll('.mixed-media-tile').length===1);
@@ -132,13 +137,14 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
   await page.getByRole('button',{name:'Open folder Mountain mornings',exact:true}).waitFor();
   assert.match(await page.locator('.compact-folder-copy').innerText(),/Weekend trips/);
   await page.getByRole('button',{name:'Clear collection search'}).click();
-  await page.locator('.album-actions').getByRole('button',{name:'New collection',exact:true}).click();
-  await page.getByLabel('Collection name',{exact:true}).fill('Evening favorites');await page.screenshot({path:path.join(temp,'collection-dialog.png')});
+  await page.getByRole('group',{name:'Page actions'}).getByRole('button',{name:'New collection',exact:true}).click();
+  assert.deepEqual(await page.locator('.album-dialog .detail-window').evaluate(e=>{const s=getComputedStyle(e);return [s.padding,s.borderRadius];}),['24px','20px']);await page.getByLabel('Collection name',{exact:true}).fill('Evening favorites');await page.screenshot({path:path.join(temp,'collection-dialog.png')});
   await page.getByRole('button',{name:'Save',exact:true}).click();
   await page.getByRole('button',{name:'Open folder Evening favorites',exact:true}).waitFor();
   await page.getByRole('button',{name:'Open folder Weekend trips',exact:true}).click();
   await page.getByRole('button',{name:'Open folder Mountain mornings',exact:true}).waitFor();
   assert.equal(await page.locator('.featured-collection').count(),0);
+  await page.getByRole('group',{name:'Page actions'}).getByRole('button',{name:'New folder',exact:true}).click();await page.getByRole('heading',{name:'New subfolder',exact:true}).waitFor();await page.keyboard.press('Escape');
   await page.screenshot({path:path.join(temp,'collection-detail.png')});
   await page.getByRole('button',{name:'Videos',exact:true}).last().click();
   await page.getByRole('heading',{name:'No matching media',exact:true}).waitFor();
@@ -201,7 +207,7 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
   await page.getByRole('button',{name:'Toggle navigation'}).click();await page.screenshot({path:path.join(temp,'navigation-narrow.png')});
   await page.getByRole('button',{name:'Close navigation',exact:true}).click();assert.equal(await page.getByRole('button',{name:'Toggle navigation'}).getAttribute('aria-expanded'),'false');
   await page.getByRole('button',{name:'Toggle navigation'}).click();await page.locator('[data-section="tags"]').click();assert.equal(await page.getByRole('button',{name:'Toggle navigation'}).getAttribute('aria-expanded'),'false');
-  await page.getByRole('button',{name:'Toggle navigation'}).click();await page.locator('[data-section="photos"]').click();await page.getByRole('button',{name:'Add photos',exact:true}).click();await page.getByRole('dialog',{name:'Add photos'}).waitFor();await page.screenshot({path:path.join(temp,'import-dialog-narrow.png')});await page.keyboard.press('Escape');assert.equal(await page.getByRole('button',{name:'Add photos',exact:true}).evaluate(e=>e===document.activeElement),true);
+  await page.getByRole('button',{name:'Toggle navigation'}).click();await page.locator('[data-section="photos"]').click();await page.getByRole('button',{name:'Add photos',exact:true}).click();await page.getByRole('dialog',{name:'Add photos'}).waitFor();assert.deepEqual(await page.getByRole('dialog',{name:'Add photos'}).evaluate(e=>{const s=getComputedStyle(e);return [s.padding,s.borderRadius];}),['16px','20px']);await page.screenshot({path:path.join(temp,'import-dialog-narrow.png')});await page.keyboard.press('Escape');assert.equal(await page.getByRole('button',{name:'Add photos',exact:true}).evaluate(e=>e===document.activeElement),true);
   assert.deepEqual(errors,[]);
   console.log(JSON.stringify({passed:true,screenshots:temp,checks:['photo filters/search/sort/pagination','grid-only browsing','viewer keyboard navigation','range selection','organization dialogs','photo drag/drop payload','collection search with nested path','create and rename','nested folders','media type filters','Ctrl+K/Ctrl+Shift+N/F2/Alt+Up shortcuts','pinned and nested folder navigation','mobile close and focus return','narrow layouts']}));
  }finally{if(browser)await browser.close();server.kill();}

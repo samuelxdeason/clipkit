@@ -1,0 +1,37 @@
+/* Icon geometry follows purpose; color follows the surrounding action/state. */
+.finder-shell .ui-icon { display: inline-block; flex-shrink: 0; vertical-align: middle; stroke-width: var(--ui-icon-stroke); }
+.finder-shell :is(.ui-button, .m-button, .manager-nav, .settings-navigation button, .sidebar-manage-disclosure>summary)>svg,
+.finder-shell :is(.setting-icon, .download-add-icon)>svg,
+.finder-shell .preview-size-menu>summary>.ui-icon {
+  width: var(--ui-icon-regular); height: var(--ui-icon-regular); flex-shrink: 0;
+}
+.finder-shell :is(.manager-search, .queue-search, .destination-search)>svg,
+.finder-shell .collection-tree-row .folder-open>svg {
+  width: var(--ui-icon-small); height: var(--ui-icon-small); flex-shrink: 0;
+}
+.finder-shell :is(.ui-chevron, .collection-card-kind svg, .library-card .mixed-media-kind svg, .media-tile-subtitle>svg, .video-card-people>svg, .detail-chip>svg) {
+  width: var(--ui-icon-small); height: var(--ui-icon-small); flex-shrink: 0;
+}
+.finder-shell :is(.library-card .card-image-fallback, .video-card-placeholder, .media-tile-placeholder, .following-thumbnail)>svg {
+  width: var(--ui-icon-placeholder); height: var(--ui-icon-placeholder);
+}
+.finder-shell :is(.tag-directory-symbol, .state-symbol)>svg {
+  width: var(--ui-icon-feature); height: var(--ui-icon-feature);
+}
+.finder-shell :is(.ui-button, .m-button, .manager-nav, .settings-navigation button, .sidebar-manage-disclosure>summary, .destination-search) { gap: var(--ui-icon-gap); }
+.finder-shell :is(.preview-size-menu>summary, .media-tile-subtitle, .video-card-people, .collection-card-kind, .mixed-media-kind) { gap: var(--ui-icon-gap-small); }
+
+/* Action icons inherit text color, including primary, danger and selected states. */
+.finder-shell :is(.ui-button, .m-button)>svg,
+.finder-shell .video-actions>.m-button:not([aria-pressed="true"])>svg,
+.finder-shell .video-filter-popover summary>svg { color: inherit; }
+.finder-shell :is(.manager-search, .queue-search, .destination-search)>svg { color: var(--ui-muted); }
+.finder-shell .collection-tree-row:not(.active) .folder-open>svg,
+.finder-shell .sidebar-manage-disclosure>summary>svg { color: inherit; }
+.finder-shell .manager-nav:not(.active)>svg,
+.finder-shell .settings-navigation button:not(.active)>svg { color: var(--ui-muted); }
+.finder-shell .manager-nav.active>svg,
+.finder-shell .settings-navigation button.active>svg,
+.finder-shell .collection-tree-row.active .folder-open>svg { color: var(--ui-accent); }
+/* Identity badges, favorites, alerts, selection checks and playback overlays retain
+   their semantic colors. Do not apply a global svg color or fill reset. */

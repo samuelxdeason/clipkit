@@ -1,7 +1,7 @@
 import { Chevron } from "./UIControls";
 import { useEffect, useState } from "react";
 import type { Album } from "./api";
-import { Icon } from "./App";
+import { Icon } from "./Icons";
 import { albumTrail } from "./AlbumPicker";
 import { useCollectionDrag, useCollectionDrop } from "./CollectionDnd";
 

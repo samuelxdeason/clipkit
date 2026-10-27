@@ -110,7 +110,7 @@ const assert = require('node:assert/strict');
   assert(floatingBounds.x>=0 && floatingBounds.x+floatingBounds.width<=1440);
   assert(floatingBounds.width<300);
   assert(floatingBounds.y>=0 && floatingBounds.y+floatingBounds.height<=1000);
-  assert.equal(await page.locator('.video-filter-menu').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(22, 20, 25)');
+  assert.equal(await page.locator('.video-filter-menu').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(25, 24, 27)');
   await page.screenshot({path:path.join(temp,'filter-choice-menu.png')});
   await page.getByRole('menuitemradio',{name:'1080p and above',exact:true}).click();
   await page.getByRole('button', { name: 'Done', exact: true }).click();

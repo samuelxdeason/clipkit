@@ -5,7 +5,7 @@
 .finder-shell .viewer-header h2 { min-width: 0; margin: 0; padding: 0; font-size: 16px; line-height: 22px; font-weight: 650; color: var(--ui-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .finder-shell .viewer-eyebrow { flex-shrink: 0; color: var(--ui-muted); font-size: 10px; letter-spacing: 1.5px; }
 .finder-shell .watch-window { background: var(--ui-panel); border-color: var(--ui-line); }
-.finder-shell .watch-window .watch-inspector { background: var(--ui-panel); border-color: var(--ui-line); }
+.finder-shell .watch-window .watch-inspector { border-color: var(--ui-line); }
 .finder-shell .watch-organize-bar,
 .finder-shell .watch-footer { gap: var(--ui-space-3); padding: 8px 20px; background: var(--ui-panel); border-color: var(--ui-line); }
 .finder-shell .watch-organize-bar>span,

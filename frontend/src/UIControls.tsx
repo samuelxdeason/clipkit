@@ -1,3 +1,4 @@
+import { Icon } from "./Icons";
 import { Children, isValidElement, type ReactNode, useId, useLayoutEffect, useEffect, useRef, useState, forwardRef, type ButtonHTMLAttributes, type HTMLAttributes } from "react";
 
 export type ButtonVariant = "neutral" | "primary" | "quiet" | "danger";
@@ -37,7 +38,7 @@ export function ThumbnailSizeControl({ value, onChange, kind }: { value: Thumbna
   useEffect(() => { const close = (event: PointerEvent) => { if (menu.current && !menu.current.contains(event.target as Node)) menu.current.open = false; }; document.addEventListener("pointerdown", close); return () => document.removeEventListener("pointerdown", close); }, []);
   const label = kind === "videos" ? "Video thumbnail size" : kind === "photos" ? "Photo thumbnail size" : "Collection thumbnail size";
   return <details ref={menu} className="preview-size-menu" onKeyDown={e => { if(e.key === "Escape") { e.stopPropagation(); e.currentTarget.open = false; e.currentTarget.querySelector("summary")?.focus(); } }}>
-    <summary aria-label={label} title={"Preview size: " + value}><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="12" y="3" width="5" height="5" rx="1"/><rect x="3" y="12" width="5" height="5" rx="1"/><rect x="12" y="12" width="5" height="5" rx="1"/></svg><Chevron expanded/></summary>
+    <summary aria-label={label} title={"Preview size: " + value}><Icon name="grid"/><Chevron expanded/></summary>
     <div className="preview-size-popover" role="group" aria-label={label}><span>Preview size</span>{(["small", "medium", "large"] as const).map(size => <button type="button" key={size} aria-label={size[0].toUpperCase()+size.slice(1)+" previews"} aria-pressed={value===size} onClick={()=>{onChange(size);if(menu.current){menu.current.open=false;menu.current.querySelector("summary")?.focus();}}}><span>{size[0].toUpperCase()+size.slice(1)}</span><span aria-hidden="true">{value===size?"✓":""}</span></button>)}</div>
   </details>;
 }
