@@ -3,7 +3,7 @@
 ## Source of truth
 
 - `frontend/src/ui-system.css`: semantic tokens, component sizing, typography, state colors.
-- `frontend/src/UIControls.tsx`: `Button`, `ActionGroup`, and `ViewSwitcher`.
+- `frontend/src/UIControls.tsx`: `Button`, `ActionGroup`, and Primary button gradients meet 4.5:1 contrast for white text in normal and hover states.
 - `frontend/src/WorkspaceUI.tsx`: `PageHeader`, `LibraryToolbar`, loading/error states.
 - `frontend/src/after-hours.css`: media layouts and decorative theme treatments.
 
@@ -54,7 +54,6 @@ Build with `npm run build --prefix frontend`. Existing mocked browser suites in 
 
 The library smoke suite also checks equal page-title sizes and the toolbar's control centerlines, so the original drift is caught during future design changes.
 
-`ViewSwitcher` owns accessible list/grid toggles for videos and photos. Pass the current layout and an onChange callback; persistence stays with the page. Primary button gradients meet 4.5:1 contrast for white text in both normal and hover states.
 
 ## Library card family
 
@@ -75,3 +74,26 @@ People and tag cards use four muted decorative tones (plum, dusty rose, midnight
 Person profiles share the directory card's tone through `identityTone.ts`, keyed by the canonical saved person name. Only the portrait backing and soft surrounding glow use the identity wash; the header surface and borders stay neutral. Photographs are not color-filtered. Profile typography, controls, and focus states retain their global semantic colors.
 
 The utility color pass uses neutral icons, page eyebrows, metadata, profile counts, and settings surfaces. Storage charts use `--ui-chart-1` through `--ui-chart-4`, a separate labeled neutral series palette rather than borrowing success/selection colors. Layout switches, navigation, tabs, and pickers use shared selection tokens. Duplicate keep choices are selections (pink), not completed operations (green); recycle choices remain labeled amber. Connection success, completed downloads, and errors retain their semantic colors. People/tag identity tones and portrait glows are intentionally excluded from these utility overrides.
+
+## Media viewers
+
+`ViewerHeader` shares title layout and an accessible `IconButton` close control between the video player and both photo-viewer entry points. Playback actions and organizer actions use `Button`; native video controls, the video element, keyboard handling, saving, and fullscreen behavior remain unchanged. `media-viewers.css` supplies neutral viewer surfaces, shared 42px controls and spacing, restrained metadata, pink selected states, and semantic errors. Media stays on a black stage. The layout adapts to narrow and short windows without applying decorative identity tints to the media.
+
+### Browsing, selection, and navigation
+
+Videos and photos always use grids, including Manage mode. Collections use cover cards, compact nested folders, and media grids. Do not reintroduce list toggles or layout preferences.
+
+ThumbnailSizeControl is a compact disclosure menu with small, medium, and large choices. Preferences are saved separately for videos, photos, and collections. Selecting a size closes the menu and returns focus; Escape and outside clicks dismiss it. MediaBrowseBar keeps display preferences separate from search and filters.
+
+Manage on Videos and Photos reveals rounded-square selection controls and bulk actions. Collections use Select items for bulk media actions only: folder creation and collection options are always accessible. Sidebar folders have no Manage mode and no per-folder plus button. Folder navigation, drag/drop, keyboard shortcuts, and the top-level New collection control remain available.
+
+AlbumPicker separates choosing a destination from browsing its children. A persistent destination summary shows the selected path. Search does not discard selection; inline folder creation identifies its parent. Shared Chevron icons indicate disclosure state and folder navigation.
+
+Card hover uses a subtle lift, border highlight, and image brightening/zoom on fine pointers. Reduced motion disables movement. Preserve people and tag identity colors.
+
+Styles have explicit ownership: library-cards.css owns card geometry, identity colors, and hover; browsing-controls.css owns grid density, browsing bars, preview menus, destination pickers, and sidebar navigation. Remove unused rules when retiring a control rather than leaving competing overrides.
+
+
+SortMenu owns the themed sort popover for videos, photos, collections, people, and tags. Its menu radio items show one checked selection. Arrow keys, Home/End, and typeahead move focus without applying changes; Enter/Space apply, Escape restores trigger focus, and outside click or focus leaving closes the menu. The popover shares preview-size menu styling; FilterMenu uses the same menu behavior for single-choice filters.
+
+FilterMenu adapts static and dynamic options to the shared themed radio menu. Inside filter panels, choice lists float with viewport-relative positioning, flip upward when needed, and scroll at a bounded height. Opening them must not resize the filter panel. Filter surfaces use the neutral panel token rather than the legacy purple dialog color. Escape closes only the choice list and restores its trigger; a second Escape dismisses the enclosing filter panel. People/tag multi-selection remains in FilterMultiSelect.

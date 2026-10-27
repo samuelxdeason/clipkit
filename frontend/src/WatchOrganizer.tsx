@@ -1,3 +1,4 @@
+import { Button, IconButton } from "./UIControls";
 import { useEffect, useRef, useState } from "react";
 import { library } from "../wailsjs/go/models";
 import * as api from "./api";
@@ -96,15 +97,15 @@ export default function WatchOrganizer({ video, tab, onTab, onClose, onChanged, 
   };
   const disabled = busy || loading || !!loadError;
   return <section className="watch-organizer" aria-label="Organize this video" aria-busy={busy}>
-    <header className="wo-heading"><div><span>YOUR LIBRARY</span><h3>Make it yours</h3></div><button type="button" onClick={onClose} aria-label="Close organization panel">×</button></header>
+    <header className="wo-heading"><div><span>YOUR LIBRARY</span><h3>Make it yours</h3></div><IconButton type="button" onClick={onClose} label="Close organization panel">×</IconButton></header>
     <nav className="wo-tabs" aria-label="Video information sections">{(Object.keys(names) as WatchTab[]).map(t => <button type="button" key={t} aria-pressed={tab === t} onClick={() => onTab(t)}>{names[t]}</button>)}</nav>
     <div className="wo-feedback" aria-live="polite">{busy ? "Saving…" : notice || "Changes save automatically."}{undo && !busy && <button type="button" onClick={() => perform(undo, "Change undone.")}>Undo</button>}</div>
     {error && <p className="wo-error" role="alert">{error}</p>}
     {tab !== "file" ? <>
       <div className="wo-intro"><h4>{tab === "people" ? "Who’s in this video?" : tab === "tags" ? "Make it easy to find" : "Find a home for this video"}</h4><p>{tab === "people" ? "Link anyone you recognize. Select again to unlink." : tab === "tags" ? "Add a few useful labels. Select again to remove." : "Add to as many collections as you like."}</p></div>
       <form className="wo-search" onSubmit={e => { e.preventDefault(); if (!disabled) create(); }}><input aria-label={`Search ${names[tab].toLowerCase()}`} placeholder={`Search ${names[tab].toLowerCase()}…`} value={query} onChange={e => setQuery(e.target.value)} disabled={loading || !!loadError} /></form>
-      {loadError ? <div className="wo-empty" role="alert"><p>{loadError}</p><button className="m-button" onClick={() => setAttempt(a => a + 1)}>Try again</button></div> : loading ? <p className="wo-empty" role="status">Loading your library…</p> : <>
-        {canCreate && <button type="button" className="wo-create" disabled={disabled} onClick={create}>＋ {tab === "people" ? "Create and link" : tab === "tags" ? "Create tag" : "Create collection"} “{term}”</button>}
+      {loadError ? <div className="wo-empty" role="alert"><p>{loadError}</p><Button className="m-button" onClick={() => setAttempt(a => a + 1)}>Try again</Button></div> : loading ? <p className="wo-empty" role="status">Loading your library…</p> : <>
+        {canCreate && <Button type="button" className="wo-create" disabled={disabled} onClick={create}>＋ {tab === "people" ? "Create and link" : tab === "tags" ? "Create tag" : "Create collection"} “{term}”</Button>}
         <div className="wo-options">
           {tab === "people" && matchingPeople.map(({name, person}) => {
             const auto = automatic.includes(name), linked = auto || models.includes(name);
@@ -119,8 +120,8 @@ export default function WatchOrganizer({ video, tab, onTab, onClose, onChanged, 
         {(tab === "people" ? !matchingPeople.length : tab === "tags" ? !matchingTags.length : !matchingCollections.length) && <p className="wo-empty">{term ? "No matches. Use the create button above to add something new." : `No ${names[tab].toLowerCase()} yet. Type a name to get started.`}</p>}
       </>}
     </> : <div className="wo-file">
-      <form onSubmit={e => { e.preventDefault(); if (title.trim()) perform(async () => { await api.SetTitle(video.site, video.id, title.trim()); setSavedTitle(title.trim()); }, "Title updated."); }}><label>Video title<input aria-label="Video title" value={title} onChange={e => setTitle(e.target.value)} /></label>{title.trim() !== savedTitle && <button className="m-button" disabled={busy || !title.trim()}>Save title</button>}</form>
-      <button className="m-button" aria-pressed={favorite} disabled={busy} onClick={() => perform(async () => { await api.SetFavorite(video.site, video.id, !favorite); setFavorite(!favorite); }, favorite ? "Removed from favorites." : "Added to favorites.")}>{favorite ? "♥ Favorited" : "♡ Add to favorites"}</button>
+      <form onSubmit={e => { e.preventDefault(); if (title.trim()) perform(async () => { await api.SetTitle(video.site, video.id, title.trim()); setSavedTitle(title.trim()); }, "Title updated."); }}><label>Video title<input aria-label="Video title" value={title} onChange={e => setTitle(e.target.value)} /></label>{title.trim() !== savedTitle && <Button type="submit" className="m-button" disabled={busy || !title.trim()}>Save title</Button>}</form>
+      <Button className="m-button" aria-pressed={favorite} disabled={busy} onClick={() => perform(async () => { await api.SetFavorite(video.site, video.id, !favorite); setFavorite(!favorite); }, favorite ? "Removed from favorites." : "Added to favorites.")}>{favorite ? "♥ Favorited" : "♡ Add to favorites"}</Button>
       <dl><dt>Source</dt><dd>{video.site || "Local"}</dd><dt>Resolution</dt><dd>{video.width && video.height ? `${video.width} × ${video.height}` : "Unknown"}</dd><dt>Duration</dt><dd>{video.duration ? `${Math.floor(video.duration / 60)}:${String(Math.floor(video.duration % 60)).padStart(2, "0")}` : "Unknown"}</dd><dt>File size</dt><dd>{video.filesize ? `${Math.round(video.filesize / 1048576)} MB` : "Unknown"}</dd><dt>Added</dt><dd>{video.added || "Unknown"}</dd><dt>Original title</dt><dd>{video.source_title || video.title}</dd><dt>File path</dt><dd>{video.filepath}</dd></dl>
       {video.webpage_url && <label>Source link<input aria-label="Source link" readOnly value={video.webpage_url} onFocus={e => e.target.select()} /></label>}
       <RedownloadControl site={video.site} id={video.id} source={video.webpage_url} disabled={busy} />

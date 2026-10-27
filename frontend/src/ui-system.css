@@ -132,7 +132,6 @@
 .finder-shell :is(.account-row .setting-icon, .download-add-icon, .empty-icon) { color: var(--ui-secondary); background: var(--ui-field); border-color: var(--ui-line); }
 .finder-shell .settings-navigation button:not(.active) svg { color: var(--ui-muted); }
 .finder-shell .profile-stats span:nth-child(n) b { color: var(--ui-text); }
-.finder-shell :is(.video-card-people>svg, .video-list-table .person-cell, .video-list-table .file-name small>span, .following-source-stats b, .download-url, .dq-highlight) { color: var(--ui-secondary); }
 .finder-shell .dq-table td small.dq-highlight { color: var(--ui-text); font-weight: 600; }
 .finder-shell .manager-sidebar .manager-nav:not(.active) .nav-count { color: var(--ui-secondary); background: var(--ui-field); border-color: var(--ui-line); }
 .finder-shell .video-filter-popover summary>svg,

@@ -17,6 +17,7 @@ import "./library-browsing.css";
 import "./after-hours.css";
 import "./ui-system.css";
 import "./library-cards.css";
+import "./browsing-controls.css";
 
 const artwork = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><rect width="640" height="360" fill="#48515d"/><circle cx="480" cy="90" r="55" fill="#b7a6bc"/><path d="M0 360 190 120 380 360 510 190 640 360" fill="#78838a"/></svg>');
 const sampleVideo = new library.Video({ title: "An afternoon in the hills", site: "Local", id: "preview", duration: 600, position: 120, height: 1080, width: 1920, labels: ["Travel"], filesize: 94371840 });

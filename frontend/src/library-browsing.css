@@ -17,7 +17,6 @@
 .finder-shell .video-card-placeholder>svg { width: 30px; height: 30px; opacity: .6; }
 .video-card-progress { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: #0008; pointer-events: none; }
 .video-card-progress>span { display: block; height: 100%; background: var(--ui-accent); }
-.finder-shell .video-list-table tbody tr:hover { background: #ffffff05; }
 .finder-shell .people-directory-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin: 0 0 20px; color: var(--ui-secondary); font-size: 13px; }
 .people-directory-toolbar>span { overflow-wrap: anywhere; }
 .people-directory-toolbar label { display: flex; align-items: center; gap: 10px; }
@@ -282,8 +281,6 @@
 .finder-shell .collection-tree-row.active .folder-open svg { color: var(--ui-accent); }
 .finder-shell .folder-open { font-size: 12px; }
 .finder-shell .folder-expand { min-height: 28px; }
-.finder-shell .folder-new { border-radius: 6px; }
-.finder-shell .folder-new:hover:not(:disabled) { background: #d8b2b915; color: var(--ui-accent); }
 .finder-shell .folder-search-path { font-size: 10px; margin-left: 38px; }
 .finder-shell .sidebar-manage-disclosure>summary { padding: 11px 12px; font-size: 11px; font-weight: 600; color: var(--ui-secondary); }
 .finder-shell .sidebar-bottom { padding-top: 8px; }

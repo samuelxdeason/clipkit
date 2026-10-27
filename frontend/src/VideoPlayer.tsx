@@ -1,3 +1,5 @@
+import { Button } from "./UIControls";
+import ViewerHeader from "./ViewerHeader";
 import WatchOrganizer, { WatchTab } from "./WatchOrganizer";
 import "./watch-organizer.css";
 import { useEffect, useRef, useState } from "react";
@@ -88,7 +90,7 @@ export default function VideoPlayer({ video, src, poster, onClose, onPrevious, o
   };
   return <div className="watch-backdrop">
     <div className={`watch-window ${detailsOpen ? "has-details" : ""} ${video.height && video.width && video.height > video.width ? "portrait-player" : ""}`} ref={panel} role="dialog" aria-modal="true" aria-labelledby="watch-title" tabIndex={-1}>
-      <header className="watch-header"><div><span className="watch-eyebrow">NOW PLAYING</span><h2 id="watch-title">{video.title || video.filename || "Untitled video"}</h2></div><button className="watch-close" onClick={onClose} aria-label="Close player"><Icon name="x" /></button></header>
+      <ViewerHeader className="watch-header" title={video.title || video.filename || "Untitled video"} titleId="watch-title" eyebrow="NOW PLAYING" closeLabel="Close player" onClose={onClose} />
       <div className="watch-content"><div className="watch-playback"><div className="watch-stage"><video ref={player} src={src} poster={poster} controls autoPlay playsInline preload="metadata" aria-label="Video player"
         onLoadedMetadata={e => {
           const el = e.currentTarget;
@@ -104,8 +106,8 @@ export default function VideoPlayer({ video, src, poster, onClose, onPrevious, o
         onPause={save} onEnded={() => { lastPosition.current = total.current; save(); }}
         onError={() => setError("This video couldn’t be played. Check that its file is available and its format is supported by your browser.")} />
       </div>
-      <div className="watch-organize-bar"><span>Organize while you watch</span><div>{(["people", "tags", "collections"] as WatchTab[]).map(tab => <button type="button" key={tab} aria-pressed={detailsOpen && organizeTab === tab} onClick={() => openSection(tab)}><Icon name={tab === "people" ? "people" : tab === "tags" ? "tag" : "folder"} />{tab[0].toUpperCase() + tab.slice(1)}</button>)}</div></div>
-      <footer className="watch-footer"><span>{video.site}{video.height ? ` · ${video.height}p` : ""}{video.ext ? ` · ${video.ext.toUpperCase()}` : ""}</span><div className="watch-controls"><button onClick={onPrevious} disabled={!onPrevious} aria-label="Previous video">←</button><button onClick={onNext} disabled={!onNext} aria-label="Next video">→</button><button onClick={() => seek(-10)} aria-label="Rewind 10 seconds">↶ <span>10s</span></button><button onClick={() => seek(10)} aria-label="Forward 10 seconds"><span>10s</span> ↷</button><button onClick={() => openSection("file")} aria-pressed={detailsOpen && organizeTab === "file"}><Icon name="menu" />File details</button><button onClick={toggleFullscreen}><Icon name="expand" />{fullscreen ? "Exit fullscreen" : "Fullscreen"}</button></div></footer>
+      <div className="watch-organize-bar"><span>Organize while you watch</span><div>{(["people", "tags", "collections"] as WatchTab[]).map(tab => <Button type="button" key={tab} aria-pressed={detailsOpen && organizeTab === tab} onClick={() => openSection(tab)}><Icon name={tab === "people" ? "people" : tab === "tags" ? "tag" : "folder"} />{tab[0].toUpperCase() + tab.slice(1)}</Button>)}</div></div>
+      <footer className="watch-footer"><span>{video.site}{video.height ? ` · ${video.height}p` : ""}{video.ext ? ` · ${video.ext.toUpperCase()}` : ""}</span><div className="watch-controls"><Button onClick={onPrevious} disabled={!onPrevious} aria-label="Previous video">←</Button><Button onClick={onNext} disabled={!onNext} aria-label="Next video">→</Button><Button onClick={() => seek(-10)} aria-label="Rewind 10 seconds">↶ <span>10s</span></Button><Button onClick={() => seek(10)} aria-label="Forward 10 seconds"><span>10s</span> ↷</Button><Button onClick={() => openSection("file")} aria-pressed={detailsOpen && organizeTab === "file"}><Icon name="menu" />File details</Button><Button onClick={toggleFullscreen}><Icon name="expand" />{fullscreen ? "Exit fullscreen" : "Fullscreen"}</Button></div></footer>
       {(error || saveError) && <p className="watch-error" role="alert">{error || saveError}</p>}
       </div><div className="watch-inspector" hidden={!detailsOpen}><WatchOrganizer video={video} tab={organizeTab} onTab={setOrganizeTab} onClose={onToggleDetails} onChanged={onChanged} media={media} /></div></div>
     </div>

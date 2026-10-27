@@ -11,6 +11,7 @@ import "../src/albums.css";
 import "../src/library-browsing.css";
 import "../src/after-hours.css";
 import "../src/ui-system.css";
+import "../src/media-viewers.css";
 
 function Harness() {
   const [open, setOpen] = useState(false);

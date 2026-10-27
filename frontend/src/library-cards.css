@@ -71,3 +71,14 @@
 /* Identity color stays local to the portrait; the header uses neutral surfaces. */
 .finder-shell .person-profile[data-card-tone] { background: var(--ui-panel); border-color: var(--ui-line); }
 .finder-shell .person-profile[data-card-tone] .profile-avatar { background: radial-gradient(ellipse at 50% 20%, var(--card-wash), transparent), var(--ui-field); border-color: var(--ui-line); color: var(--ui-text); box-shadow: 0 0 40px 8px var(--card-wash), 0 12px 28px #0003; }
+
+@media (hover: hover) and (pointer: fine) {
+  .finder-shell .library-card { transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+  .finder-shell .library-card.library-card:is(.video-card, .mixed-media-tile, .person-tile, .tag-directory-card, .folder-card-shell):hover { transform: translateY(-3px); border-color: var(--ui-selection-line); box-shadow: 0 12px 28px #0005, 0 0 0 1px var(--ui-selection-line); }
+  .finder-shell .library-card :is(.video-card-frame img, .photo-tile-frame img, .compact-folder-icon img, .person-tile-art img) { transition: transform .25s ease, filter .25s ease; }
+  .finder-shell .library-card:hover :is(.video-card-frame img, .photo-tile-frame img, .compact-folder-icon img, .person-tile-art img) { transform: scale(1.025); filter: brightness(1.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .finder-shell .ui-chevron, .finder-shell .library-card, .finder-shell .library-card img { transition: none!important; }
+  .finder-shell .library-card:hover, .finder-shell .library-card:hover img { transform: none!important; }
+}

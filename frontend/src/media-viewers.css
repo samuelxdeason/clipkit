@@ -1,0 +1,55 @@
+/* Viewer chrome uses shared tokens; media itself stays on a black stage. */
+.finder-shell .ui-icon-button.ui-button { width: var(--ui-control-height); height: var(--ui-control-height)!important; flex: 0 0 var(--ui-control-height); padding: 0!important; }
+.finder-shell .viewer-header { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-4); padding: 12px 20px; min-height: 66px; flex-shrink: 0; background: var(--ui-panel); border-bottom: 1px solid var(--ui-line); }
+.finder-shell .viewer-header>div { display: flex; align-items: baseline; gap: var(--ui-space-3); min-width: 0; }
+.finder-shell .viewer-header h2 { min-width: 0; margin: 0; padding: 0; font-size: 16px; line-height: 22px; font-weight: 650; color: var(--ui-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.finder-shell .viewer-eyebrow { flex-shrink: 0; color: var(--ui-muted); font-size: 10px; letter-spacing: 1.5px; }
+.finder-shell .watch-window { background: var(--ui-panel); border-color: var(--ui-line); }
+.finder-shell .watch-window .watch-inspector { background: var(--ui-panel); border-color: var(--ui-line); }
+.finder-shell .watch-organize-bar,
+.finder-shell .watch-footer { gap: var(--ui-space-3); padding: 8px 20px; background: var(--ui-panel); border-color: var(--ui-line); }
+.finder-shell .watch-organize-bar>span,
+.finder-shell .watch-footer>span { color: var(--ui-secondary); font-size: var(--ui-type-meta); }
+.finder-shell .watch-organize-bar>div,
+.finder-shell .watch-controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ui-space-2); }
+.finder-shell .watch-controls .ui-button { white-space: nowrap; }
+.finder-shell .watch-error { background: var(--ui-danger-surface); color: var(--ui-danger); border-color: var(--ui-danger-line); font-size: var(--ui-type-meta); line-height: 1.6; }
+.finder-shell .watch-organizer { padding: 20px; color: var(--ui-text); font-size: var(--ui-type-control); }
+.finder-shell .wo-heading { gap: var(--ui-space-3); margin-bottom: var(--ui-space-4); }
+.finder-shell .wo-heading span { color: var(--ui-muted); }
+.finder-shell .wo-heading h3 { font-size: var(--ui-type-section); color: var(--ui-text); }
+.finder-shell .wo-tabs { background: var(--ui-field); border-color: var(--ui-line); gap: 4px; padding: 4px; }
+.finder-shell .wo-tabs button { min-height: 36px; color: var(--ui-secondary); }
+.finder-shell .wo-tabs button[aria-pressed="true"] { color: var(--ui-selection-text); background: var(--ui-selection-surface); box-shadow: none; }
+.finder-shell :is(.wo-feedback, .wo-intro p, .wo-option-name small, .wo-empty) { color: var(--ui-secondary); line-height: 1.6; }
+.finder-shell .wo-feedback button { color: var(--ui-text); }
+.finder-shell :is(.wo-search input, .wo-file input) { min-height: var(--ui-control-height); background: var(--ui-field); border-color: var(--ui-line); color: var(--ui-text); border-radius: var(--ui-radius); }
+.finder-shell .wo-options { gap: var(--ui-space-2); margin-top: var(--ui-space-3); }
+.finder-shell .wo-option { border-color: var(--ui-line); border-radius: var(--ui-radius); padding: 12px; }
+.finder-shell .wo-option:hover:not(:disabled) { background: var(--ui-raised); border-color: var(--ui-line); }
+.finder-shell .wo-option[aria-pressed="true"] { background: var(--ui-selection-surface); border-color: var(--ui-selection-line); }
+.finder-shell .wo-symbol { background: var(--ui-field); color: var(--ui-secondary); }
+.finder-shell .wo-check { border-color: var(--ui-line); color: var(--ui-secondary); }
+.finder-shell .wo-option[aria-pressed="true"] .wo-check { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-ink); }
+.finder-shell .wo-error { background: var(--ui-danger-surface); color: var(--ui-danger); border-color: var(--ui-danger-line); }
+.finder-shell .photo-viewer .detail-window { background: var(--ui-panel); border-color: var(--ui-line); }
+.finder-shell .photo-viewer .viewer-header,
+.finder-shell .photo-viewer footer { background: var(--ui-panel); padding: 12px 20px; gap: var(--ui-space-3); border-color: var(--ui-line); }
+.finder-shell .photo-viewer footer { align-items: center; border-top: 1px solid var(--ui-line); }
+.finder-shell .photo-viewer footer>span { font-size: var(--ui-type-meta); color: var(--ui-secondary); text-align: center; }
+@media (max-width: 700px) {
+  .finder-shell .viewer-header,
+  .finder-shell .photo-viewer .viewer-header,
+  .finder-shell .photo-viewer footer,
+  .finder-shell .watch-organize-bar,
+  .finder-shell .watch-footer { padding: 8px 12px; }
+  .finder-shell .viewer-header>div { display: block; }
+  .finder-shell .viewer-header h2 { font-size: 14px; }
+  .finder-shell .viewer-eyebrow { display: block; margin-bottom: 4px; }
+  .finder-shell .watch-controls .ui-button { padding-inline: 10px!important; }
+  .finder-shell .watch-organizer { padding: 16px; }
+}
+@media (max-height: 600px) and (min-width: 901px) {
+  .finder-shell .watch-header { padding-block: 6px; min-height: 54px; }
+  .finder-shell .watch-organize-bar, .finder-shell .watch-footer { padding-block: 4px; }
+}

@@ -59,8 +59,6 @@
 .folder-open { min-width: 0; flex: 1; display: flex; align-items: center; gap: 7px; padding: 7px 0; font-size: 12px; text-align: left; }
 .folder-open svg { width: 15px; height: 15px; flex-shrink: 0; color: #b6a6aa; }
 .folder-open span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.folder-new { padding: 5px; font-size: 15px; opacity: 0; }
-.collection-tree-row:hover .folder-new, .collection-tree-row:focus-within .folder-new { opacity: 1; }
 .folder-empty { padding: 10px 16px; color: var(--ui-secondary); font-size: 12px; text-align: left; }
 .collection-drop-target { display: inline-flex; border-radius: 5px; }
 .is-drop-target { outline: 2px solid #d9acb9!important; outline-offset: -2px; background-color: #d9acb921!important; }
@@ -74,7 +72,6 @@
 .collection-drag-status button { pointer-events: auto; font-size: 20px; }
 .collection-drag-status.is-error { border-color: #d88787; }
 .album-dialog form>footer { margin-top: 18px; }
-@media(hover:none) { .folder-new { opacity: 1; } }
 @media(max-width:600px) { .album-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; } .album-cover { height: 115px; } .album-dialog .detail-window { padding: 18px; } .album-card>small { font-size: 10px; } }
 .collection-pointer-badge { position: fixed; z-index: 200; pointer-events: none; padding: 10px 16px; border-radius: 8px; background: #ecd0da; color: #30232a; box-shadow: 0 5px 20px #0005; font: 600 13px sans-serif; }
 [data-collection-draggable] { cursor: grab; }

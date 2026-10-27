@@ -1,4 +1,4 @@
-import { Button } from "./UIControls";
+import { Button, Chevron } from "./UIControls";
 import { useEffect, useRef, useState } from "react";
 
 type Choice = { value: string; label: string; detail?: string };
@@ -17,7 +17,7 @@ export default function FilterMultiSelect({ label, choices, selected, onChange, 
     <button ref={trigger} type="button" className="filter-picker-trigger" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
       <span>{label}</span><span className="filter-picker-preview">{names.length ? names.join(", ") : "Any"}</span>
       {selected.length > 0 && <span className="filter-picker-count">{selected.length}</span>}
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4" /></svg>
+      <Chevron/>
     </button>
     {open && <div className="filter-picker-sheet" role="dialog" aria-modal="true" aria-label={"Choose " + label.toLowerCase()} onKeyDown={e => {
       if (e.key === "Escape") { e.stopPropagation(); close(); }

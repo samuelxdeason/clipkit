@@ -22,8 +22,6 @@
 .finder-shell .view-switch { display: flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--ui-line); border-radius: var(--ui-radius); background: var(--ui-field); }
 .finder-shell .view-switch button { display: grid; place-items: center; width: 30px; min-height: 28px; border-radius: 6px; color: var(--ui-secondary); }
 .finder-shell :is(.video-card-title, .photo-tile>strong, .file-name strong, .setting-copy>strong, .account-row strong) { font-size: var(--ui-type-title); font-weight: 650; }
-.finder-shell :is(.video-card-people, .video-card-meta, .video-list-table .numeric, .file-name small, .photo-tile>small, .profile-stats, .manager-footer, .directory-heading) { font-size: var(--ui-type-meta); color: var(--ui-secondary); }
-.finder-shell .video-list-table .file-name small { font-size: var(--ui-type-meta)!important; }
 .finder-shell :is(.manager-modal h2, .profile-editor-dialog h2, .photo-import-dialog h2, .settings-section-heading h2, .account-connect h2, .person-accounts h2) { font-size: 18px; font-weight: 700; letter-spacing: -.25px; }
 .finder-shell :is(.following-directory-toolbar, .following-toolbar, .download-queue-toolbar, .content-search-row) { gap: 12px; margin-bottom: 16px; align-items: center; }
 .finder-shell :is(.following-directory-toolbar, .following-toolbar, .download-queue-toolbar, .content-search-row) .manager-search { flex: 1; width: auto; min-width: 180px; }

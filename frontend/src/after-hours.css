@@ -460,8 +460,6 @@
 .finder-shell .collection-tree-row.active { background: #ff426910; border-color: #ff6b8830; }
 .finder-shell .folder-open { font-size: 13px; gap: 8px; }
 .finder-shell .folder-expand { min-height: 30px; width: 20px; }
-.finder-shell .folder-new { opacity: .65; min-width: 26px; min-height: 28px; }
-.finder-shell .folder-new:hover:not(:disabled), .finder-shell .folder-new:focus-visible { opacity: 1; color: var(--ui-accent); background: var(--ui-hover); }
 .finder-shell .folder-search-path { padding-bottom: 5px; line-height: 1.5; color: var(--ui-muted); }
 .finder-shell .sidebar-manage-disclosure>summary { min-height: 38px; padding: 11px 12px; border-radius: 8px; font-size: 12px; }
 .finder-shell .sidebar-manage-disclosure>summary:hover { background: #ffffff04; }
@@ -563,11 +561,6 @@
 .finder-shell .video-filter-menu .is-active select,
 .finder-shell .filter-picker-options>label.is-selected { background: var(--ui-selected); border-color: var(--ui-selection-line); color: var(--ui-text); }
 .finder-shell .video-card.is-selected { background: var(--ui-selection-surface); border-color: var(--ui-accent); }
-.finder-shell .video-list-table .selectable-row:hover td { background: #211722; border-top-color: var(--ui-dialog-line); border-bottom-color: var(--ui-dialog-line); }
-.finder-shell .video-list-table .selected-row td,
-.finder-shell .video-list-table .selected-row:hover td { background: var(--ui-selection-surface); border-top-color: var(--ui-selection-line); border-bottom-color: var(--ui-selection-line); }
-.finder-shell .video-list-table .selected-row td:last-child { border-right-color: var(--ui-selection-line); }
-.finder-shell .video-list-table .selected-row td:first-child { border-left-color: var(--ui-accent); }
 .finder-shell .bulk-bar { background: #211522; border-color: var(--ui-selection-line); box-shadow: 0 8px 28px #0005; }
 .finder-shell .is-drop-target { outline-color: var(--ui-accent)!important; background-color: var(--ui-hover)!important; }
 .finder-shell .collection-drag-status { background: #211725; color: var(--ui-text); border-color: var(--ui-selection-line); }

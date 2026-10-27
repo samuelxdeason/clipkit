@@ -1,0 +1,118 @@
+/* Browsing density is independent of Manage mode and never changes image cropping. */
+.finder-shell .manager-grid.browse-media-grid { --preview-min: 350px; grid-template-columns: repeat(auto-fill, minmax(min(var(--preview-min), 100%), 1fr)); }
+.finder-shell .manager-grid.browse-media-grid[data-thumbnail-size="small"] { --preview-min: 240px; }
+.finder-shell .manager-grid.browse-media-grid[data-thumbnail-size="large"] { --preview-min: 440px; }
+.finder-shell .manager-grid.photo-library-grid.browse-media-grid { --preview-min: 310px; }
+.finder-shell .manager-grid.photo-library-grid.browse-media-grid[data-thumbnail-size="small"] { --preview-min: 200px; }
+.finder-shell .manager-grid.photo-library-grid.browse-media-grid[data-thumbnail-size="large"] { --preview-min: 400px; }
+.finder-shell .browse-media-grid[data-managing="false"] .card-select-control { display: none; }
+/* One selection silhouette for cards, tables, and collection rows. */
+.finder-shell .row-select.row-select { width: 32px; height: 32px; min-width: 32px; padding: 0; border-radius: 10px; display: inline-grid; place-items: center; }
+.finder-shell .row-select.row-select svg { width: 18px; height: 18px; }
+.finder-shell .row-select.row-select[aria-pressed="true"] { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-ink); }
+
+
+/* A separate shelf for display preferences and the explicit organization mode. */
+.finder-shell .media-browse-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; margin: 0 0 22px; padding: 0 2px; }
+.finder-shell .media-display-controls, .finder-shell .media-manage-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; min-width: 0; }
+.finder-shell .media-manage-controls { margin-left: auto; padding-left: 20px; border-left: 1px solid var(--ui-line); }
+.finder-shell .media-browse-bar select { height: 42px; min-height: 42px; width: 164px; max-width: none; flex-shrink: 0; font-size: var(--ui-type-control); border: 1px solid var(--ui-line); border-radius: var(--ui-radius); color: var(--ui-secondary); background: var(--ui-field); padding: 0 12px; }
+.finder-shell .photo-browser-controls .video-search-controls { grid-column: 1 / -1; }
+.finder-shell .chrome-row>.media-browse-bar { margin: 0 0 0 auto; }
+@media (max-width: 600px) {
+  .finder-shell .media-browse-bar { gap: 12px; }
+  .finder-shell .media-manage-controls { padding-left: 0; border-left: 0; }
+  .finder-shell .media-browse-bar select { width: 150px; }
+}
+
+/* Collections reuse browsing density while retaining a folder-shaped card family. */
+.finder-shell .album-grid.collection-browse-grid { --collection-min: 300px; grid-template-columns: repeat(auto-fill, minmax(min(var(--collection-min), 100%), 1fr)); }
+.finder-shell .album-grid.collection-browse-grid[data-thumbnail-size="small"] { --collection-min: 220px; }
+.finder-shell .album-grid.collection-browse-grid[data-thumbnail-size="large"] { --collection-min: 400px; }
+.finder-shell .media-manage-controls .album-menu>summary { display: grid; place-items: center; box-sizing: border-box; min-width: 42px; height: 42px; margin: 0; padding: 0 12px; }
+
+.finder-shell .folder-card-shell .folder-card-new { opacity: 1; visibility: visible; }
+
+/* Sidebar folder browsing and destination picking share quiet surfaces and clear selection. */
+.finder-shell .collection-tree-row { align-items: center; }
+.finder-shell .album-picker .destination-search { display: flex; align-items: center; gap: 10px; padding: 0 12px; min-height: 44px; border: 1px solid var(--ui-line); border-radius: var(--ui-radius); background: var(--ui-field); }
+.finder-shell .destination-search>svg { width: 16px; height: 16px; color: var(--ui-muted); flex-shrink: 0; }
+.finder-shell .album-picker .destination-search input { min-width: 0; flex: 1; margin: 0; padding: 10px 0; border: 0; background: transparent; }
+.finder-shell .destination-search>button { width: 30px; height: 30px; border: 0; background: transparent; color: var(--ui-secondary); }
+.finder-shell .destination-hint { margin: 10px 0; color: var(--ui-muted); font-size: 12px; line-height: 1.5; }
+.finder-shell .album-picker-path { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 0; }
+.finder-shell .album-picker-path button { min-height: 32px; border-radius: 8px; }
+.finder-shell .album-picker-list { border: 1px solid var(--ui-line); border-radius: 12px; padding: 6px; background: var(--ui-field); }
+.finder-shell .album-picker-list>div { margin: 3px 0; border: 1px solid transparent; border-radius: 9px; }
+.finder-shell .album-picker-list>div.chosen { background: var(--ui-selection-surface); border-color: var(--ui-selection-line); }
+.finder-shell .album-picker-list>div>button { min-height: 58px; padding: 10px; gap: 12px; }
+.finder-shell .album-picker-list strong { display: block; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.finder-shell .album-picker-list small { color: var(--ui-muted); line-height: 1.5; overflow-wrap: anywhere; }
+.finder-shell .album-picker-list .destination-choice { flex: 0 0 22px; width: 22px; height: 22px; margin-left: auto; display: grid; place-items: center; border: 1px solid var(--ui-line); border-radius: 7px; }
+.finder-shell .album-picker-list .chosen .destination-choice { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-ink); }
+.finder-shell .album-picker-list>div>button[aria-label^="Browse"] { min-width: 42px; border-left: 1px solid var(--ui-line); color: var(--ui-secondary); }
+.finder-shell .destination-summary { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; margin-top: 12px; border: 1px solid var(--ui-line); border-radius: 10px; background: var(--ui-panel); }
+.finder-shell .destination-summary>span { color: var(--ui-muted); font-size: 11px; }
+.finder-shell .destination-summary strong { color: var(--ui-text); font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+
+.finder-shell .preview-size-menu { position: relative; flex-shrink: 0; }
+.finder-shell .preview-size-menu>summary { display: flex; align-items: center; justify-content: center; gap: 6px; width: 52px; height: 42px; box-sizing: border-box; border: 1px solid transparent; border-radius: 9px; color: var(--ui-muted); cursor: pointer; list-style: none; }
+.finder-shell .preview-size-menu>summary::-webkit-details-marker { display: none; }
+.finder-shell .preview-size-menu>summary:hover, .finder-shell .preview-size-menu[open]>summary { background: var(--ui-panel); color: var(--ui-text); border-color: var(--ui-line); }
+.finder-shell .preview-size-popover { position: absolute; left: 0; top: calc(100% + 6px); z-index: 30; width: 170px; padding: 8px; border: 1px solid var(--ui-line); border-radius: 12px; background: var(--ui-panel); box-shadow: 0 12px 32px #0008; }
+.finder-shell .preview-size-popover>span { display: block; color: var(--ui-muted); font-size: 11px; padding: 6px 10px; }
+.finder-shell .preview-size-popover>button { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 36px; padding: 8px 10px; border: 0; border-radius: 7px; background: transparent; color: var(--ui-secondary); }
+.finder-shell .preview-size-popover>button:hover { background: var(--ui-field); }
+.finder-shell .preview-size-popover>button[aria-pressed="true"] { color: var(--ui-selection-text); background: var(--ui-selection-surface); }
+
+.finder-shell .ui-chevron { flex-shrink: 0; transition: transform .16s ease; }
+.finder-shell .ui-chevron.is-expanded, .finder-shell .sidebar-manage-disclosure[open]>summary>.ui-chevron { transform: rotate(90deg); }
+.finder-shell .collection-tree-row { min-height: 34px; border-radius: 8px; background: transparent; border-color: transparent; }
+.finder-shell .collection-tree-row .folder-open { gap: 8px; min-height: 34px; font-size: 12px; color: var(--ui-secondary); }
+.finder-shell .collection-tree-row .folder-open>svg { width: 15px; height: 15px; color: var(--ui-muted); }
+.finder-shell .collection-tree-row:hover { background: var(--ui-panel); }
+.finder-shell .collection-tree-row.active { background: var(--ui-selection-surface); border-color: var(--ui-selection-line); }
+.finder-shell .collection-tree-row.active .folder-open { color: var(--ui-selection-text); }
+.finder-shell .folder-expand { display: grid; place-items: center; color: var(--ui-muted); }
+.finder-shell .folder-tree-tools { background: transparent; border-color: var(--ui-line); border-radius: 8px; }
+.finder-shell .sidebar-manage-disclosure>summary { list-style: none; display: flex; align-items: center; gap: 10px; min-height: 42px; box-sizing: border-box; padding: 10px 12px; color: var(--ui-secondary); border: 1px solid transparent; border-radius: 10px; }
+.finder-shell .sidebar-manage-disclosure>summary::-webkit-details-marker { display: none; }
+.finder-shell .sidebar-manage-disclosure>summary>svg { width: 16px; height: 16px; color: var(--ui-muted); }
+.finder-shell .sidebar-manage-disclosure>summary>.ui-chevron { margin-left: auto; }
+.finder-shell .sidebar-manage-disclosure[open]>summary { background: var(--ui-panel); border-color: var(--ui-line); color: var(--ui-text); }
+.finder-shell .sidebar-manage-disclosure .sidebar-manage { margin: 6px 0 8px 20px; padding-left: 8px; border-left: 1px solid var(--ui-line); }
+
+/* Native selects and filter popovers share the preview menu's visual language. */
+.finder-shell .video-filter-menu, .finder-shell .filter-picker-sheet { background: var(--ui-panel); border: 1px solid var(--ui-line); border-radius: 12px; box-shadow: 0 12px 32px #0008; }
+.finder-shell .video-search-controls .video-filter-menu { gap: 14px; padding: 16px; }
+.finder-shell .video-search-controls .video-filter-menu-heading { border-bottom: 1px solid var(--ui-line); padding-bottom: 12px; }
+.finder-shell .video-search-controls .video-filter-menu-footer { border-top: 1px solid var(--ui-line); padding-top: 12px; }
+.finder-shell .video-filter-field>span { color: var(--ui-secondary); font-size: 12px; font-weight: 600; }
+.finder-shell .video-filter-menu .filter-picker-trigger { background: var(--ui-field); border: 1px solid var(--ui-line); border-radius: 9px; color: var(--ui-secondary); }
+.finder-shell .video-filter-menu .filter-picker-trigger:hover { border-color: var(--ui-selection-line); color: var(--ui-text); }
+.finder-shell .video-filter-menu .has-selection .filter-picker-trigger, .finder-shell .video-filter-menu .is-active select { background: var(--ui-selection-surface); border-color: var(--ui-selection-line); color: var(--ui-selection-text); }
+.finder-shell .filter-picker-heading, .finder-shell .filter-picker-footer { background: var(--ui-panel); border-color: var(--ui-line); }
+.finder-shell .filter-picker-options>label { min-height: 44px; border-radius: 8px; }
+.finder-shell .filter-picker-options>label:hover { background: var(--ui-field); }
+.finder-shell .filter-picker-options>label.is-selected { background: var(--ui-selection-surface); color: var(--ui-selection-text); }
+.finder-shell .filter-picker-check { border-radius: 6px; }
+.finder-shell .video-filter-popover summary { gap: 8px; }
+
+.finder-shell .sort-menu { position: relative; min-width: 0; max-width: 100%; }
+.finder-shell .sort-menu-trigger { display: flex; align-items: center; justify-content: space-between; gap: 16px; box-sizing: border-box; min-width: 164px; height: 42px; padding: 0 12px; border: 1px solid var(--ui-line); border-radius: 9px; background: var(--ui-field); color: var(--ui-secondary); font-size: var(--ui-type-control); }
+.finder-shell .sort-menu-trigger:hover, .finder-shell .sort-menu-trigger[aria-expanded="true"] { border-color: var(--ui-selection-line); color: var(--ui-text); }
+.finder-shell .sort-menu-popover { width: max-content; min-width: 100%; box-sizing: border-box; max-width: calc(100vw - 40px); }
+.finder-shell .sort-menu-popover>button { gap: 24px; }
+.finder-shell .sort-menu-popover>button[aria-checked="true"] { color: var(--ui-selection-text); background: var(--ui-selection-surface); }
+.finder-shell .sort-menu-popover>button:focus-visible { outline-offset: -2px; }
+.finder-shell :is(.people-directory-toolbar, .tags-directory-toolbar) .sort-menu-popover { left: auto; right: 0; }
+
+/* Filter choices float independently of the panel layout and stay in the viewport. */
+.finder-shell .filter-choice-menu { width: 100%; }
+.finder-shell .filter-choice-menu>.sort-menu-trigger { width: 100%; min-width: 0; text-align: left; }
+.finder-shell .video-filter-menu .filter-choice-menu>.sort-menu-popover { z-index: 100; min-width: 0; margin: 0; max-width: calc(100vw - 24px); overflow-y: auto; overscroll-behavior: contain; }
+.finder-shell .filter-choice-menu .sort-menu-popover>button { text-align: left; }
+.finder-shell .filter-choice-menu .sort-menu-popover>button>span:first-child { overflow-wrap: anywhere; min-width: 0; }
+.finder-shell .video-filter-menu .is-active .sort-menu-trigger { background: var(--ui-selection-surface); color: var(--ui-selection-text); border-color: var(--ui-selection-line); }
+
+.finder-shell .library-toolbar .video-search-controls .video-filter-menu, .finder-shell .library-toolbar .filter-picker-sheet { background: var(--ui-panel); border-color: var(--ui-line); box-shadow: 0 12px 32px #0008; }

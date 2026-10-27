@@ -1,3 +1,5 @@
+import { albumTrail } from "./AlbumPicker";
+import { LoadState } from "./WorkspaceUI";
 import { Button } from "./UIControls";
 import { useEffect, useState } from "react";
 import * as api from "./api";
@@ -36,10 +38,11 @@ export default function MediaOrganizeDialog({ kind, photos = [], videos = [], so
   };
   return <DetailDialog label={kind==="move"?"Move to folder":kind==="album"?"Add to collection":"Assign person"} className="album-dialog" onClose={()=>!busy&&onClose()}>
     <header><h2>{kind==="move"?"Move to folder":kind==="album"?"Add to collection":"Assign person"}</h2><button disabled={busy} onClick={onClose} aria-label="Close">×</button></header>
-    <p>{photos.length+videos.length} selected {kind!=="assign"?(kind==="move"?"items will move out of this folder into the destination folder.":"items will stay in your library and any other collections."):"items will appear on this person’s profile."}{kind==="assign"&&photos.length>0&&" This replaces the current person on selected photos."}</p>
-    <fieldset disabled={busy||loading}>
+    <p>{photos.length+videos.length} selected {photos.length+videos.length===1?"item":"items"} {kind!=="assign"?(kind==="move"?"will move out of this folder into the destination folder.":"will stay in your library and any other collections."):"will appear on this person’s profile."}{kind==="assign"&&photos.length>0&&" This replaces the current person on selected photos."}</p>
+    {loading&&<LoadState busy title="Loading destinations…"/>}
+    <fieldset disabled={busy||loading} hidden={loading}>
       {kind!=="assign"?<AlbumPicker albums={albums} disabledId={kind==="move"?sourceId:0} value={album} onChange={setAlbum}/>:<><OrganizePicker key={people.length} kind="assign" choices={people.map(p=>({value:p.name,label:p.nickname||p.name}))} value={person} onChange={setPerson}/>{person&&<p className="album-muted">Person: {people.find(p=>p.name===person)?.nickname||person}</p>}</>}
-      <details className="album-create-inline"><summary>{kind!=="assign"?"Create a collection":"Create a person"}</summary><input aria-label={kind!=="assign"?"New collection name":"New person name"} value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Name"/>{kind!=="assign"&&album!==null&&<p className="album-muted">The new collection will be inside the selected collection.</p>}<Button variant="neutral" disabled={!newName.trim()} onClick={create}>Create</Button></details>
+      <details className="album-create-inline"><summary>{kind!=="assign"?(album===null?"New collection":"New folder in selected destination"):"Create a person"}</summary><input aria-label={kind!=="assign"?"New collection name":"New person name"} value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Name"/>{kind!=="assign"&&album!==null&&<p className="album-muted">Create inside: {albumTrail(albums,album).map(a=>a.name).join(" / ")}</p>}<Button variant="neutral" disabled={!newName.trim()} onClick={create}>Create</Button></details>
     </fieldset>
     {error&&<p role="alert" className="modal-error">{error}</p>}
     <footer><Button variant="neutral" disabled={busy} onClick={onClose}>Cancel</Button><Button variant="primary" disabled={busy||loading||(kind!=="assign"?album===null:!person)} onClick={save}>{busy?"Saving…":kind==="move"?"Move to folder":kind==="album"?"Add to collection":"Assign person"}</Button></footer>
