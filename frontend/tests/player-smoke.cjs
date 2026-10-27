@@ -43,6 +43,8 @@ const assert = require('node:assert/strict');
   await page.waitForFunction(()=>document.querySelector('video').currentTime>=3);
   await page.locator('video').evaluate(v=>v.dataset.identity='original');
   const time=await page.locator('video').evaluate(v=>v.currentTime);
+  const stage = await page.locator('.watch-stage').boundingBox();
+  assert(stage.height > 750, 'Desktop playback should use most of the window height');
   await page.locator('.watch-organize-bar').getByRole('button',{name:'People',exact:true}).click();
   await page.getByRole('button',{name:/Jamie Jamie Lee/}).click();
   await page.getByText('Person linked to this video.',{exact:false}).waitFor();
@@ -75,6 +77,15 @@ const assert = require('node:assert/strict');
   assert.equal(await page.locator('video').evaluate(v=>v.paused),false);
   await page.getByRole('button',{name:'Exit fullscreen',exact:true}).click();
   await page.screenshot({path:path.join(temp,'player-desktop.png')});
+  for (const viewport of [{width:880,height:900},{width:390,height:844},{width:1200,height:500}]) {
+    await page.setViewportSize(viewport);
+    const videoBox=await page.locator('video').boundingBox();
+    assert(videoBox.width>250 && videoBox.height>200, 'Playback remains usable at narrow and short sizes');
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    await page.getByRole('button',{name:'Rewind 10 seconds'}).scrollIntoViewIfNeeded();
+    await page.getByRole('button',{name:'Forward 10 seconds'}).click();
+    await page.getByRole('button',{name:'Rewind 10 seconds'}).click();
+  }
   await page.setViewportSize({width:700,height:900});
   await page.screenshot({path:path.join(temp,'player-narrow.png')});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);

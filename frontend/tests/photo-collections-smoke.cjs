@@ -12,6 +12,7 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
   const errors=[], writes=[]; page.on('pageerror',e=>errors.push(e.message));
   const photos=Array.from({length:61},(_,i)=>({id:String(i),filename:`Landscape ${String(i+1).padStart(2,'0')}.jpg`,filepath:i===2?'broken':`neutral-${i}`,model:i%2?'Jamie':'Alex',album:i%2?'City walks':'Weekend trips',added:new Date(Date.now()-i*60000).toISOString()}));
   const albums=[{id:1,name:'Weekend trips',parentId:0,count:12,photoCount:10,videoCount:2,albumCount:1,covers:['neutral-0']},{id:2,name:'City walks',parentId:0,count:8,photoCount:8,videoCount:0,albumCount:0,covers:['neutral-1']},{id:3,name:'Mountain mornings',parentId:1,count:0,photoCount:0,videoCount:0,albumCount:0,covers:[]},{id:4,name:'Watch later',parentId:0,count:0,photoCount:0,videoCount:0,albumCount:0,covers:[]}];
+  albums[0].covers=['neutral-0','broken','neutral-1','neutral-3'];
   await page.route('**/api/**',async r=>{
    const u=new URL(r.request().url()); let result=[];
    if(u.pathname==='/api/events')return r.fulfill({contentType:'text/event-stream',body:': mock\n\n'});
@@ -53,7 +54,10 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
   await page.getByRole('button',{name:'list photo view'}).click();await page.locator('.photo-file-table').waitFor();
   await page.getByRole('button',{name:'grid photo view'}).click();
   await page.getByRole('button',{name:'Open Landscape 01.jpg',exact:true}).click();
-  await page.getByRole('dialog').waitFor();await page.keyboard.press('ArrowRight');
+  await page.getByRole('dialog').waitFor();
+  assert((await page.locator('.photo-viewer .detail-window>img').boundingBox()).height>750);
+  await page.screenshot({path:path.join(temp,'photo-viewer.png')});
+  await page.keyboard.press('ArrowRight');
   await page.getByRole('dialog',{name:'Landscape 02.jpg'}).waitFor();await page.keyboard.press('Escape');
   await page.getByRole('button',{name:'Select photos',exact:true}).click();
   await page.locator('.media-tile-select').first().click();
@@ -74,6 +78,7 @@ const fs = require('node:fs'), path = require('node:path'), os = require('node:o
   await page.locator('[data-section="collections"]').click();
   await page.locator('.featured-collection').first().waitFor();
   await page.screenshot({path:path.join(temp,'collections.png')});
+  await page.waitForFunction(()=>document.querySelectorAll('.featured-collection .collection-cover-mosaic img').length===3 && [...document.querySelectorAll('.featured-collection .collection-cover-mosaic img')].every(img=>img.complete&&img.naturalWidth>0));
   await page.getByLabel('Search collection',{exact:true}).fill('Mountain');
   await page.getByRole('button',{name:'Open folder Mountain mornings',exact:true}).waitFor();
   assert.match(await page.locator('.compact-folder-copy').innerText(),/Weekend trips/);

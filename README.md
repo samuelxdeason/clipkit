@@ -296,3 +296,72 @@ The After Hours theme layers near-black and plum surfaces, crimson primary actio
 sharper system typography, and cinematic media accents over the existing layouts.
 Its styles live in frontend/src/after-hours.css, including player and portaled menus.
 All eight mocked workflow suites passed with the theme applied.
+
+Media-first browsing uses larger widescreen video previews, quieter card borders,
+and roomier photo, people, and collection grids. Selection and metadata remain
+visible, with existing list views, filtering, tagging, and drag-and-drop preserved.
+Library, photo/collection, and player smoke checks passed with these layouts.
+
+The immersive player fills the available window with a compact title bar and
+persistent playback/organization dock. Desktop organization scrolls independently;
+narrow windows stack it beneath playback. Player smoke checks also exercise the
+880px breakpoint, phone width, short windows, and forward/rewind controls.
+
+People profiles use a large portrait, a responsive identity header, clearer library
+stats, and underlined media tabs. The header keeps its height in the scrolling
+workspace so Edit profile remains reachable. Profile smoke checks include a sample
+portrait plus editing on desktop and phone-sized windows.
+
+Collections now use larger cover mosaics with up to three available images;
+unavailable covers fall back to remaining images or the folder icon. Photo grids
+use larger uncropped previews, and the photo viewer fills the window while keeping
+navigation visible. The photo/collection smoke suite covers cover recovery, viewer
+sizing, editing, selection, drag-and-drop, keyboard shortcuts, and narrow layouts.
+
+Following uses larger source portraits and a responsive gallery of widescreen media
+cards, with selection, source links, and download states visible on each card.
+Previews use existing saved thumbnails; other items show an explicit placeholder.
+Source checking, refresh/retry, status filtering, selection, bulk downloads, and
+narrow layouts pass the isolated Following smoke suite.
+
+Downloads uses larger queue summary cards, clearer active-transfer progress, and
+separate row action areas. At narrow widths, reorder and retry controls move below
+the download details. The mocked downloads suite verifies progress, speed, ETA,
+filtering, queue order/removal, retry recovery, enqueue, and bulk cleanup.
+
+Settings uses wider section navigation, clearer storage summaries, connection
+status badges, and structured action rows. Navigation moves above the content on
+smaller windows, with action buttons below descriptions on phones. The Settings
+smoke suite verifies connection imports, folder/restart mocks, backup recovery,
+rebuild, maintenance progress, advanced tools, and responsive layouts.
+
+Potential duplicates uses larger previews, wider comparison columns, clearer
+keep/recycle cards, and a prominent sticky decision bar. Horizontal comparison
+remains available in narrow windows. The duplicate smoke suite verifies playback,
+preview exclusivity, group navigation, preserved choices, and cleanup failure/retry
+with exact mocked keep payloads; no library files are changed by these checks.
+
+Tags uses larger category tiles, prominent names and video counts, and a clearer
+sorting toolbar. Existing search, keyboard activation, filtered video browsing,
+and bulk tagging pass the library smoke suite, including narrow layouts.
+
+Sidebar navigation uses roomier destinations, distinct current-page styling,
+visible folder-add controls, and clearer pinned-folder state. Short windows retain
+compact rows; narrow windows use a wider drawer. Photo/collection and library
+smoke suites verify shortcuts, nested/pinned folders, drag-and-drop, focus return,
+and browsing layouts with the new sidebar dimensions.
+
+Dialogs and pop-up menus share richer After Hours surfaces, larger fields and
+menu rows, stronger headings, and consistent action spacing. Library and photo/
+collection smoke checks verify editing, import-dialog access, organizing menus,
+Tab trapping, Escape ordering, focus return, and narrow layouts.
+
+Empty, loading, and recovery states use After Hours cards, clearer status colors,
+and prominent retry actions. Loading animation still respects reduced motion.
+State, Following, downloads, and Settings smoke suites verify recovery actions,
+notifications, progress, and narrow-window layouts with mocked failures.
+
+The final After Hours consistency pass unifies selected rows, grid selection,
+filter chips, pressed controls, bulk actions, and drag/drop highlights. All eight
+isolated UI smoke suites passed against the completed theme, including playback,
+organization, download controls, Settings, duplicates, and error recovery.
