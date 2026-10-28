@@ -5,7 +5,7 @@
 - `frontend/src/browse-layout.css`: browsing toolbar, chips, dropdown surfaces and paging layout.
 - `frontend/src/PopoverPosition.ts`: shared viewport-aware positioning and top-layer lifecycle.
 
-- `packages/design-tokens/tokens.css`: the single owner of global colors, typography, spacing, radii, icon sizes and responsive token values.
+- `packages/design-tokens/src/values.ts`: canonical values; `tokens.css` is generated legacy output. The new UI has its own [implemented guide](ui/README.md).
 - `frontend/src/app-theme.css`: the ordered stylesheet entry shared by the app, component preview and browser harness.
 - `frontend/src/ui-system.css`: component sizing, page typography and state treatments using those tokens.
 - `frontend/src/typography.css`: shared typography roles and mappings for section headings, labels, and supporting text; loaded after component styles.
@@ -27,7 +27,7 @@ Browsing uses full-width search above the results/control row. Counts sit on the
 
 ## Making changes
 
-- Change shared values in `packages/design-tokens/tokens.css`, including narrow-screen values. Identity palette values also live in the token package; card scope maps the stable identity tone to these tokens.
+- Change shared values in `packages/design-tokens/src/values.ts` and run `npm run build:tokens`, including narrow-screen values. Identity palette values also live in the token package; card scope maps the stable identity tone to these tokens.
 - Import `app-theme.css` rather than assembling a page-specific stylesheet stack.
 - Reuse `EmptyState` for empty results and `LoadState` for loading/error recovery. Keep messages and action callbacks in the caller.
 - Reuse `DialogHeader` inside `DetailDialog`; preserve the caller's busy/close behavior and accessible label.

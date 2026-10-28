@@ -16,7 +16,7 @@ function npm(args, cwd) {
 (async () => {
   const result = JSON.parse(npm(['pack', '--workspace', '@clipkit/design-tokens', '--pack-destination', temp, '--json', '--ignore-scripts'], root));
   const packed = Array.isArray(result) ? result[0] : result['@clipkit/design-tokens'];
-  assert.deepEqual(packed.files.map(f => f.path).sort(), ['README.md', 'package.json', 'tokens.css']);
+  assert.deepEqual(packed.files.map(f => f.path).sort(), ['README.md', 'package.json', 'src/panda.ts', 'src/values.ts', 'tokens.css']);
   const consumer = path.join(temp, 'consumer');
   fs.mkdirSync(consumer);
   fs.writeFileSync(path.join(consumer, 'package.json'), JSON.stringify({ name: 'token-consumer-fixture', private: true }));

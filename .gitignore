@@ -12,3 +12,9 @@ resources/ffmpeg/
 # Wails local install cache and temporary platform object.
 frontend/package.json.md5
 /*-res.syso
+
+packages/ui/styled-system/
+packages/ui/dist/
+packages/ui/storybook-static/
+apps/library/styled-system/
+apps/library/dist/

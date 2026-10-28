@@ -2,6 +2,8 @@
 
 Status: npm workspace and token extraction completed; UI/API extraction and app relocation remain planned. Current desktop/browser builds remain in frontend/ and the root Go module.
 
+On `codex/park-ui-rebuild`, the [UI foundation plan](ui-foundation-plan.md) replaces the incremental UI-porting sequence below with a separately built Park UI frontend. Existing runtime paths remain unchanged until its cutover gate. The sequence below remains context for the original frontend, not a requirement to copy its components into the rebuild.
+
 ## Target structure
 ```text
 apps/

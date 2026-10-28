@@ -1,0 +1,8 @@
+/* Bundled Nunito, licensed under OFL; no runtime font requests. */
+@font-face {
+  font-family: 'Nunito';
+  src: url('../../assets/nunito-variable.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+}

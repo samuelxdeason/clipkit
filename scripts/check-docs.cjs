@@ -12,6 +12,7 @@ function collect(dir) {
     else if (file.endsWith('.md')) files.push(file);
   }
 }
+files.push('packages/ui/README.md', 'packages/ui/AGENTS.md', 'packages/ui/NOTICE.md', 'apps/library/README.md', 'apps/library/AGENTS.md');
 collect('docs');
 let links = 0;
 for (const file of files) {

@@ -33,3 +33,7 @@ Use npm 12.0.2 (declared in packageManager) and a compatible Node runtime; this 
 Browser suites require Playwright accessible as `playwright` or via `PLAYWRIGHT_MODULE_PATH` pointing to an installed package. Edge is the default browser; `PLAYWRIGHT_CHANNEL` overrides it. The player fixture also requires FFmpeg as described in its test source. A missing prerequisite is a blocked check, not a passing test. Never copy a particular developer's absolute runtime path into repository commands.
 
 Builds do not verify behavior by themselves. For positioning changes verify viewport bounds, anchor gap, scrolling/resizing, nested menus, Escape/focus return and keyboard selection. For migrations verify the same desktop/browser behavior before and after. Tests must not touch a live queue or real vault.
+
+## New UI foundation
+
+The existing commands above still target the working app. Use `npm run dev:foundation` for the separate synthetic app and catalogue. See [new UI checks](ui/contributing.md) for build, type/lint/format, browser and isolated consumer verification. Node >=22.18 supports the typed token generator; verified on 24.19.0. Both esbuild 0.15.18 and 0.28.2 install scripts are allowed for their respective toolchains.

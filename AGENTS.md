@@ -20,4 +20,4 @@ Read [docs/README.md](docs/README.md) first, then the guide relevant to the task
 - `npm run test:go` — Go tests.
 - `npm run build:desktop` — frontend build followed by Wails packaging, without starting the app.
 
-Use npm workspaces and the single root package-lock.json. Install all dependencies with `npm ci` at the repository root. Do not add nested lockfiles or pnpm configuration. Tokens are owned by packages/design-tokens/tokens.css; keep the frontend shim import-only. See docs/testing.md for browser prerequisites and tool versions. Do not install dependencies merely to edit documentation.
+Use npm workspaces and the single root package-lock.json. Install all dependencies with `npm ci` at the repository root. Do not add nested lockfiles or pnpm configuration. Canonical token values are owned by packages/design-tokens/src/values.ts; tokens.css is generated for the legacy app. Keep the frontend shim import-only. New UI work follows docs/ui/README.md and its scoped instructions. See docs/testing.md for browser prerequisites and tool versions. Do not install dependencies merely to edit documentation.
