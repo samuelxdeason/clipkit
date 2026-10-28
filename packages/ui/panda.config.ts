@@ -27,26 +27,14 @@ import {
 } from './src/recipes/surfaces';
 
 export default defineConfig({
-  // preset-panda still supplies the numeric size/space scale that older
-  // recipes and app styles lean on. It is removed once every consumer uses
-  // the named scales from @clipkit/design-tokens; see docs/ui/foundations.md.
-  presets: ['@pandacss/preset-base', '@pandacss/preset-panda'],
+  // preset-base supplies utilities, conditions and patterns only. Every
+  // token comes from @clipkit/design-tokens; see docs/ui/foundations.md.
+  presets: ['@pandacss/preset-base'],
   preflight: true,
   jsxFramework: 'react',
   include: ['./src/**/*.{ts,tsx}'],
   outdir: 'styled-system',
   strictTokens: true,
-  plugins: [
-    {
-      name: 'clipkit-semantic-colors-only',
-      hooks: {
-        'preset:resolved': ({ utils, preset, name }) =>
-          name === '@pandacss/preset-panda'
-            ? utils.omit(preset, ['theme.tokens.colors', 'theme.semanticTokens.colors'])
-            : preset,
-      },
-    },
-  ],
   staticCss: { recipes: '*' },
   globalCss: {
     ':root': { colorScheme: 'dark', fontFamily: 'body', color: 'text', bg: 'canvas' },

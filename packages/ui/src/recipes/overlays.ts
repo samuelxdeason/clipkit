@@ -48,7 +48,7 @@ export const select = defineSlotRecipe({
   ],
   base: {
     root: { minW: '0', display: 'grid', gap: '2' },
-    label: { fontSize: 'sm', color: 'muted' },
+    label: { fontSize: 'body', color: 'muted' },
     // `.sort-menu-trigger`: field surface at the control height; hover and
     // open show the selection line.
     trigger: {
@@ -162,8 +162,8 @@ export const select = defineSlotRecipe({
       stacked: {},
       inline: {
         root: { gridTemplateColumns: '88px minmax(0, 1fr)', alignItems: 'center', gap: '3' },
-        label: { fontSize: 'xs', fontWeight: 'medium' },
-        trigger: { minH: '9', fontSize: 'sm' },
+        label: { fontSize: 'meta', fontWeight: 'label' },
+        trigger: { minH: '9', fontSize: 'body' },
       },
     },
   },
@@ -279,7 +279,7 @@ export const dialog = defineSlotRecipe({
       ...dialogSurface,
       borderRadius: 'dialog',
       w: 'full',
-      maxW: 'lg',
+      maxW: 'container.regular',
       maxH: 'calc(100dvh - 32px)',
       overflowY: 'auto',
       p: { base: '4', md: 'dialog' },

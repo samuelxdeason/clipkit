@@ -213,7 +213,7 @@ export const avatar = defineSlotRecipe({
     shape: {
       round: { frame: { aspectRatio: 'square', borderRadius: 'full' } },
       tile: { frame: { aspectRatio: 'square', borderRadius: 'panel' } },
-      portrait: { frame: { aspectRatio: '4 / 5', borderRadius: 'panel' } },
+      portrait: { frame: { aspectRatio: 'portrait', borderRadius: 'panel' } },
     },
   },
   defaultVariants: { shape: 'tile' },

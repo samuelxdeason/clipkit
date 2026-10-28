@@ -34,7 +34,7 @@ export const checkbox = defineSlotRecipe({
         outlineOffset: '1',
       },
     },
-    label: { fontSize: 'sm' },
+    label: { fontSize: 'body' },
   },
   variants: { hideLabel: { true: { label: { srOnly: true } } } },
 });

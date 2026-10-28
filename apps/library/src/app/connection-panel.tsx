@@ -16,7 +16,7 @@ export function ConnectionPanel({
     <Disclosure.Root className={css({ my: '4' })}>
       <Disclosure.Summary>Library connection</Disclosure.Summary>
       <form
-        className={css({ display: 'grid', gap: '3', mt: '3', maxW: 'lg' })}
+        className={css({ display: 'grid', gap: '3', mt: '3', maxW: 'container.regular' })}
         onSubmit={(event) => {
           event.preventDefault();
           onConnect(address);

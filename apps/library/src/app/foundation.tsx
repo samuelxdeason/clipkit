@@ -14,7 +14,7 @@ export function Foundation() {
   return (
     <main
       className={css({
-        maxW: '7xl',
+        maxW: 'container.page',
         mx: 'auto',
         px: { base: '5', md: '10' },
         py: '8',
@@ -39,7 +39,12 @@ export function Foundation() {
         </header>
       </Rule>
       <section
-        className={css({ display: 'grid', gap: '5', maxW: '3xl', py: { base: '4', md: '8' } })}
+        className={css({
+          display: 'grid',
+          gap: '5',
+          maxW: 'container.content',
+          py: { base: '4', md: '8' },
+        })}
       >
         <Text size="sm" tone="muted">
           A quieter frame. A richer experience.

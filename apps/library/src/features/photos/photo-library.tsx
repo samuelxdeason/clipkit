@@ -138,7 +138,7 @@ export function PhotoLibrary({ person }: { person?: string }) {
               checked={allSelected ? true : library.selected.length ? 'indeterminate' : false}
               onCheckedChange={library.selectPage}
             />
-            <Text size="sm" color="info" fontWeight="bold" role="status">
+            <Text size="sm" color="info" fontWeight="heading" role="status">
               {library.selected.length} selected
             </Text>
             <Button

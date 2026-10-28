@@ -72,23 +72,22 @@
     "react-dom": "^18.3.1"
   },
   "dependencies": {
-    "@clipkit/design-tokens": "0.1.0",
     "@ark-ui/react": "5.39.3",
+    "@clipkit/design-tokens": "0.1.0",
     "lucide-react": "1.62.0"
   },
   "devDependencies": {
     "@pandacss/dev": "2.4.0",
     "@pandacss/preset-base": "2.4.0",
-    "@pandacss/preset-panda": "2.4.0",
-    "@storybook/react-vite": "10.6.5",
-    "@storybook/addon-docs": "10.6.5",
     "@storybook/addon-a11y": "10.6.5",
-    "storybook": "10.6.5",
+    "@storybook/addon-docs": "10.6.5",
+    "@storybook/react-vite": "10.6.5",
     "@types/react": "18.3.31",
     "@types/react-dom": "18.3.7",
+    "@vitejs/plugin-react": "5.2.0",
+    "storybook": "10.6.5",
     "typescript": "5.9.3",
-    "vite": "7.3.7",
-    "@vitejs/plugin-react": "5.2.0"
+    "vite": "7.3.7"
   },
   "scripts": {
     "build": "panda codegen && panda lib && panda cssgen --outfile styled-system/styles.css",

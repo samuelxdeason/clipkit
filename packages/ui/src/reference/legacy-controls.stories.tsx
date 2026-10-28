@@ -45,7 +45,7 @@ const legacyMarkup = `
 </div>`;
 
 const caption = css({ color: 'muted', fontSize: 'meta', mb: '2', mt: '6' });
-const block = css({ display: 'grid', gap: '4', maxW: 'md' });
+const block = css({ display: 'grid', gap: '4', maxW: 'container.compact' });
 
 function Recipes() {
   const [tab, setTab] = useState('videos');
@@ -93,7 +93,13 @@ export const SideBySide: StoryObj = {
       <iframe
         title="Legacy controls"
         srcDoc={legacyDocument(legacyMarkup)}
-        className={css({ w: '5xl', maxW: 'none', h: '96', border: 'none', display: 'block' })}
+        className={css({
+          w: 'container.frame',
+          maxW: 'none',
+          h: '96',
+          border: 'none',
+          display: 'block',
+        })}
       />
     </div>
   ),

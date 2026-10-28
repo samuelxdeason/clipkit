@@ -5,7 +5,9 @@ export const text = defineRecipe({
   jsx: ['Text'],
   base: { margin: '0', lineHeight: '1.6', color: 'text' },
   variants: {
-    size: { sm: { fontSize: 'sm' }, md: { fontSize: 'md' }, lg: { fontSize: 'lg' } },
+    // sm is the existing app's running copy; md is its 16px lead copy and
+    // card-title size. There is no larger copy role: use Heading.
+    size: { sm: { fontSize: 'body' }, md: { fontSize: 'subsection' } },
     tone: { default: { color: 'text' }, muted: { color: 'muted' }, danger: { color: 'danger' } },
     // Named roles from the theme's text styles; they override size.
     variant: {

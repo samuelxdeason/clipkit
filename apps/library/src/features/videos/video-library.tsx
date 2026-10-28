@@ -215,7 +215,7 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
         {demo && (
           <Disclosure.Root className={css({ mt: '10' })}>
             <Disclosure.Summary>Demo tools · no real files or downloads</Disclosure.Summary>
-            <div className={css({ mt: '3', maxW: 'xs' })}>
+            <div className={css({ mt: '3', maxW: 'container.narrow' })}>
               <ChoiceSelect
                 label="Preview screen state"
                 value={state}
@@ -239,7 +239,7 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
               checked={allSelected ? true : library.selected.length ? 'indeterminate' : false}
               onCheckedChange={library.selectPage}
             />
-            <Text size="sm" color="info" fontWeight="bold" role="status">
+            <Text size="sm" color="info" fontWeight="heading" role="status">
               {library.selected.length} selected
             </Text>
             <Button

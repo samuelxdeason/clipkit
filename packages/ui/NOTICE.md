@@ -2,7 +2,7 @@
 
 Core controls are based on [Park UI](https://github.com/chakra-ui/park-ui), revision `102769cc91a9d36753dbc5893c74b7954b495efe`, retrieved 2026-10-27. Upstream license is preserved in [LICENSE.park-ui](LICENSE.park-ui).
 
-Input, Text and Heading retain the upstream styled-component structure from `components/react/src/components/ui/`, with local generated-runtime imports. Button and IconButton adapt the same directory's native/Ark composition. The button and input recipes are no longer adapted from Park: they are the existing app's own control contract (`frontend/src/ui-system.css` and `interaction-system.css`) written as Panda recipes, and the theme they draw on is derived entirely from `@clipkit/design-tokens`. Typography recipes are local role definitions.
+Input, Text and Heading retain the upstream styled-component structure from `components/react/src/components/ui/`, with local generated-runtime imports. Button and IconButton adapt the same directory's native/Ark composition. The button and input recipes are no longer adapted from Park: they are the existing app's own control contract (`frontend/src/ui-system.css` and `interaction-system.css`) written as Panda recipes, and the theme they draw on is derived entirely from `@clipkit/design-tokens`; no Panda preset tokens are loaded. Typography recipes are local role definitions.
 
 Intentional changes: ClipKit semantic colors; neutral default action; sm/md/lg sizes; explicit icon-only dimensions; required icon-button label; smaller loading API with native disabled and aria-busy; no ButtonGroup/Loader dependency yet. The foundation does not install Park's full preset, all palettes or unused widgets. It is an editable source integration, not a claim that `@park-ui/cli` is a runtime dependency.
 

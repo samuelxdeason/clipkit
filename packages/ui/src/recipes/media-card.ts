@@ -253,7 +253,7 @@ export const mediaCard = defineSlotRecipe({
         frame: { aspectRatio: 'video', '& img': { objectFit: 'contain' } },
       },
       photo: {
-        frame: { aspectRatio: '[4 / 5]', '& img': { objectFit: 'contain' } },
+        frame: { aspectRatio: 'portrait', '& img': { objectFit: 'contain' } },
         body: { px: '4', pt: '3.5', pb: '4' },
       },
       person: {

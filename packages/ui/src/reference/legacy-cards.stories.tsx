@@ -134,7 +134,7 @@ export const SideBySide: StoryObj = {
                 borderWidth: '1px',
                 borderColor: 'identity.plumLine',
                 fontSize: '[40px]',
-                fontWeight: 'bold',
+                fontWeight: 'heading',
               })}
             >
               AM
@@ -182,7 +182,13 @@ export const SideBySide: StoryObj = {
           legacyMarkup,
           '.grid { display: grid; grid-template-columns: repeat(4, 240px); gap: 16px; align-items: start; }',
         )}
-        className={css({ w: '5xl', maxW: 'none', h: '[560px]', border: 'none', display: 'block' })}
+        className={css({
+          w: 'container.frame',
+          maxW: 'none',
+          h: '[560px]',
+          border: 'none',
+          display: 'block',
+        })}
       />
     </div>
   ),

@@ -81,7 +81,7 @@ export function QueueOverview({
           <Text size="sm" tone="muted">
             Active now
           </Text>
-          <Text fontWeight="semibold" truncate>
+          <Text fontWeight="label" truncate>
             {!ready
               ? 'Loading queue…'
               : current
@@ -99,7 +99,7 @@ export function QueueOverview({
           <Text size="sm" tone="muted">
             Up next
           </Text>
-          <Text fontWeight="semibold" truncate>
+          <Text fontWeight="label" truncate>
             {!ready ? 'Loading queue…' : next ? next.title || next.url : 'Nothing waiting'}
           </Text>
           <Text size="sm" tone="muted">

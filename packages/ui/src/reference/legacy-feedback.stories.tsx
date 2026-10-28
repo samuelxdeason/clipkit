@@ -41,7 +41,7 @@ const legacyMarkup = `
 
 const caption = css({ color: 'muted', fontSize: 'meta', mb: '2', mt: '6' });
 const row = css({ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '2' });
-const block = css({ display: 'grid', gap: '4', maxW: '2xl' });
+const block = css({ display: 'grid', gap: '4', maxW: 'container.wide' });
 
 export const SideBySide: StoryObj = {
   render: () => (
@@ -87,7 +87,13 @@ export const SideBySide: StoryObj = {
       <iframe
         title="Legacy feedback"
         srcDoc={legacyDocument(legacyMarkup)}
-        className={css({ w: '5xl', maxW: 'none', h: '[760px]', border: 'none', display: 'block' })}
+        className={css({
+          w: 'container.frame',
+          maxW: 'none',
+          h: '[760px]',
+          border: 'none',
+          display: 'block',
+        })}
       />
     </div>
   ),

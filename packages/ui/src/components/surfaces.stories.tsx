@@ -34,7 +34,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const stack = css({ display: 'grid', gap: '4', maxW: '2xl' });
+const stack = css({ display: 'grid', gap: '4', maxW: 'container.wide' });
 const row = css({ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '3' });
 
 export const Panels: Story = {

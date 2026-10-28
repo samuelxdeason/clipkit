@@ -103,8 +103,9 @@ export const gradients = {
   },
 };
 
-/** The 4px grid. Numeric names match Panda's own scale so both read the same. */
+/** The 4px grid: a numeric name is that many grid steps (`3` is 12px). */
 export const spacing = {
+  0: { value: '0' },
   0.5: { value: '2px' },
   1: v('--ui-space-1'),
   1.5: { value: '6px' },
@@ -113,10 +114,15 @@ export const spacing = {
   3: v('--ui-space-3'),
   3.5: { value: '14px' },
   4: v('--ui-space-4'),
+  4.5: { value: '18px' },
   5: v('--ui-space-5'),
   6: v('--ui-space-6'),
   7: { value: '28px' },
   8: v('--ui-space-8'),
+  9: { value: '36px' },
+  10: { value: '40px' },
+  11: { value: '44px' },
+  12: { value: '48px' },
   actionGap: v('--ui-action-gap'),
   iconGap: v('--ui-icon-gap'),
   iconGapSmall: v('--ui-icon-gap-small'),
@@ -130,7 +136,45 @@ export const spacing = {
   card: v('--ui-card-padding'),
 };
 
+/**
+ * Sizes share the grid names with spacing (`h: '11'` is 44px) and add the
+ * roles the existing app names. Container widths are the page, column and
+ * dialog measures it lays out on.
+ */
 export const sizes = {
+  0: { value: '0' },
+  0.5: { value: '2px' },
+  1: { value: '4px' },
+  1.5: { value: '6px' },
+  2: { value: '8px' },
+  2.5: { value: '10px' },
+  3: { value: '12px' },
+  3.5: { value: '14px' },
+  4: { value: '16px' },
+  5: { value: '20px' },
+  6: { value: '24px' },
+  7: { value: '28px' },
+  8: { value: '32px' },
+  9: { value: '36px' },
+  10: { value: '40px' },
+  11: { value: '44px' },
+  12: { value: '48px' },
+  16: { value: '64px' },
+  24: { value: '96px' },
+  32: { value: '128px' },
+  40: { value: '160px' },
+  48: { value: '192px' },
+  96: { value: '384px' },
+  full: { value: '100%' },
+  container: {
+    narrow: { value: '320px' },
+    compact: { value: '448px' },
+    regular: { value: '512px' },
+    wide: { value: '672px' },
+    content: { value: '768px' },
+    frame: { value: '1024px' },
+    page: { value: '1280px' },
+  },
   control: v('--ui-control-height'),
   controlCompact: v('--ui-control-compact'),
   iconSmall: v('--ui-icon-small'),
@@ -193,6 +237,13 @@ export const radii = {
   panel: v('--ui-radius-panel'),
   card: v('--ui-card-radius'),
   dialog: v('--ui-radius-dialog'),
+  full: { value: '9999px' },
+};
+
+export const aspectRatios = {
+  square: { value: '1 / 1' },
+  video: { value: '16 / 9' },
+  portrait: { value: '4 / 5' },
 };
 
 export const shadows = {
@@ -207,6 +258,21 @@ export const durations = {
 
 export const easings = {
   state: { value: 'ease' },
+};
+
+/**
+ * Min-width breakpoints for the responsive layouts in the app. The existing
+ * app collapses its own layouts at 700px; these are the three widths the new
+ * screens were checked at.
+ */
+export const breakpoints = {
+  sm: '640px',
+  md: '768px',
+  lg: '1024px',
+};
+
+export const keyframes = {
+  spin: { to: { transform: 'rotate(360deg)' } },
 };
 
 export const textStyles = {
@@ -255,7 +321,10 @@ export const theme = {
     durations,
     easings,
     gradients,
+    aspectRatios,
   },
   semanticTokens: { colors },
   textStyles,
+  breakpoints,
+  keyframes,
 };

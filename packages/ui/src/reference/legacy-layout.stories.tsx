@@ -74,7 +74,13 @@ export const SideBySide: StoryObj = {
       <iframe
         title="Legacy page structure"
         srcDoc={legacyDocument(legacyMarkup)}
-        className={css({ w: '5xl', maxW: 'none', h: '[520px]', border: 'none', display: 'block' })}
+        className={css({
+          w: 'container.frame',
+          maxW: 'none',
+          h: '[520px]',
+          border: 'none',
+          display: 'block',
+        })}
       />
     </div>
   ),

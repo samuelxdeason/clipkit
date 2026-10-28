@@ -10,7 +10,7 @@ Compact card controls use Tag for labels and Button `quiet/compact` for File inf
 | IconButton | Button appearance with square target | aria-label required; use Icon as decorative content; aria-pressed for toggles |
 | Input | regular; compact | Visible label required; ref and native attributes preserved; aria-invalid and aria-describedby connect errors |
 | Heading | h2, md; sm/lg and as | Choose semantic level by document outline, visual size by role |
-| Text | md, default; sm/lg and muted/danger | Paragraph by default; can select semantic element with as |
+| Text | md, default; sm and muted/danger | Paragraph by default; can select semantic element with as |
 | Icon | Lucide glyph, md; sm | Decorative only; name the surrounding action |
 | ChoiceSelect / Select | Single-choice / compound | Label required; portal keeps options above surrounding panels; use controlled values |
 | Checkbox | Rounded square; boolean or indeterminate | Label required even when visually hidden; native hidden input preserves keyboard semantics |

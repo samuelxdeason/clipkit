@@ -124,7 +124,7 @@ function Person() {
             borderWidth: '1px',
             borderColor: 'identity.plumLine',
             fontSize: '[40px]',
-            fontWeight: 'bold',
+            fontWeight: 'heading',
           })}
         >
           AM
