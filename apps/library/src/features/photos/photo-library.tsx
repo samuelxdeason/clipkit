@@ -1,8 +1,7 @@
 import { ManageBar } from '../../components/browsing/manage-bar';
-import { PageIntro } from '../../components/browsing/page-intro';
 import { useRef, useState } from 'react';
 import { Image } from 'lucide-react';
-import { Button, Checkbox, EmptyState, Notice, Text } from '@clipkit/ui';
+import { Button, Checkbox, EmptyState, Notice, PageHeader, Text } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
 import { ConnectionPanel } from '../../app/connection-panel';
@@ -32,24 +31,15 @@ export function PhotoLibrary({ person }: { person?: string }) {
     <>
       <fieldset disabled={library.busy} className={css({ minW: '0' })}>
         {!person && (
-          <header
-            className={css({
-              display: 'flex',
-              alignItems: 'start',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '4',
-              mb: '4',
-            })}
-          >
-            <PageIntro
-              title="Your photo library"
-              description="Explore your photos, revisit a collection, and keep every moment easy to find."
-            />
-            <Button variant="neutral" onClick={() => void library.refresh()}>
-              {library.loading ? 'Refreshing…' : 'Refresh library'}
-            </Button>
-          </header>
+          <PageHeader
+            title="Your photo library"
+            description="Explore your photos, revisit a collection, and keep every moment easy to find."
+            actions={
+              <Button variant="neutral" onClick={() => void library.refresh()}>
+                {library.loading ? 'Refreshing…' : 'Refresh library'}
+              </Button>
+            }
+          />
         )}
         <PhotoToolbar
           filters={library.filters}

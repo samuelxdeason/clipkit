@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Button, Heading, Icon, Input, Text } from '@clipkit/ui';
+import { Button, Icon, Input, SectionHeading, Text } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 
 export function DownloadComposer({
@@ -27,12 +27,7 @@ export function DownloadComposer({
       }}
       className={css({ display: 'grid', gap: '4' })}
     >
-      <div>
-        <Text size="sm" color="info" fontWeight="semibold">
-          ADD TO YOUR LIBRARY
-        </Text>
-        <Heading as="h2">Save something new</Heading>
-      </div>
+      <SectionHeading eyebrow="Add to your library" title="Save something new" />
       <div className={css({ display: 'flex', flexWrap: 'wrap', alignItems: 'start', gap: '3' })}>
         <div className={css({ flex: '1', minW: '[min(100%, 240px)]' })}>
           {multiple ? (

@@ -2,11 +2,10 @@ import { DownloadComposer } from './download-composer';
 import { QueueOverview, queueCategories as categories } from './queue-overview';
 import { useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
-import { Button, ChoiceSelect, EmptyState, Heading, Notice, Text } from '@clipkit/ui';
+import { Button, ChoiceSelect, EmptyState, Notice, PageHeader, SectionHeading } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
 import { ConnectionPanel } from '../../app/connection-panel';
-import { PageIntro } from '../../components/browsing/page-intro';
 import {
   ActiveFilters,
   BrowseFooter,
@@ -117,12 +116,19 @@ export function DownloadsPage() {
   return (
     <LibraryShell page="downloads">
       <div className={css({ display: 'grid', gap: '6' })}>
-        <div className={`${row} ${css({ justifyContent: 'space-between' })}`}>
-          <PageIntro title="Downloads" description="Bring your next favorites into the library." />
-          <Button variant="neutral" onClick={() => void library.refresh()} disabled={library.busy}>
-            Refresh queue
-          </Button>
-        </div>
+        <PageHeader
+          title="Downloads"
+          description="Bring your next favorites into the library."
+          actions={
+            <Button
+              variant="neutral"
+              onClick={() => void library.refresh()}
+              disabled={library.busy}
+            >
+              Refresh queue
+            </Button>
+          }
+        />
         <section
           aria-label="Download center"
           className={css({
@@ -180,12 +186,11 @@ export function DownloadsPage() {
           </Notice>
         )}
         <div>
-          <div className={css({ mb: '4' })}>
-            <Heading as="h2">Download queue</Heading>
-            <Text size="sm" tone="muted">
-              Follow progress and choose what downloads next.
-            </Text>
-          </div>
+          <SectionHeading
+            className={css({ mb: '4' })}
+            title="Download queue"
+            description="Follow progress and choose what downloads next."
+          />
           <BrowseToolbar
             noun="downloads"
             query={query}

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Tags, Users } from 'lucide-react';
-import { Button, ChoiceSelect, EmptyState, Notice } from '@clipkit/ui';
-import { PageIntro } from './page-intro';
+import { Button, ChoiceSelect, EmptyState, Notice, PageHeader } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import {
   ActiveFilters,
@@ -90,33 +89,22 @@ export function DirectoryBrowser({
   }
   return (
     <>
-      <header
-        className={css({
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'start',
-          flexWrap: 'wrap',
-          gap: '4',
-          mb: '4',
-        })}
-      >
-        <div>
-          <PageIntro
-            title={kind === 'people' ? 'People' : 'Tags'}
-            description={
-              kind === 'people'
-                ? 'Familiar faces. A collection that feels like yours.'
-                : 'Find a mood, a theme, or a favorite.'
-            }
-          />
-        </div>
-        <div className={css({ display: 'flex', gap: '3', flexWrap: 'wrap' })}>
-          <Button variant="neutral" onClick={onRefresh}>
-            {loading ? 'Refreshing…' : 'Refresh library'}
-          </Button>
-          {actions}
-        </div>
-      </header>
+      <PageHeader
+        title={kind === 'people' ? 'People' : 'Tags'}
+        description={
+          kind === 'people'
+            ? 'Familiar faces. A collection that feels like yours.'
+            : 'Find a mood, a theme, or a favorite.'
+        }
+        actions={
+          <>
+            <Button variant="neutral" onClick={onRefresh}>
+              {loading ? 'Refreshing…' : 'Refresh library'}
+            </Button>
+            {actions}
+          </>
+        }
+      />
       <BrowseToolbar
         noun={kind}
         query={settings.query}

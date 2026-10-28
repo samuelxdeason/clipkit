@@ -1,14 +1,22 @@
 import { ManageBar } from '../../components/browsing/manage-bar';
 import { useRef, useState } from 'react';
 import { Film, FolderPlus, Heart, RotateCcw, Trash2 } from 'lucide-react';
-import { Button, Checkbox, ChoiceSelect, EmptyState, Icon, Notice, Text } from '@clipkit/ui';
+import {
+  Button,
+  Checkbox,
+  ChoiceSelect,
+  EmptyState,
+  Icon,
+  Notice,
+  PageHeader,
+  Text,
+} from '@clipkit/ui';
 import { BrowseGrid, BrowseFooter } from '../../components/browsing/browse-controls';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
 import { LibraryToolbar } from './library-toolbar';
 import { VideoDialogs, type VideoDialogKind } from './video-dialogs';
 import { VideoCard } from './video-card';
-import { PageIntro } from '../../components/browsing/page-intro';
 import { useVideoLibrary } from './use-video-library';
 import { useConnectedLibrary } from './use-connected-library';
 import { ConnectionPanel } from '../../app/connection-panel';
@@ -63,25 +71,16 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
     <>
       <fieldset disabled={busy} className={css({ minW: '0' })}>
         {!person && (
-          <header
-            className={css({
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'start',
-              flexWrap: 'wrap',
-              gap: '4',
-              mb: '4',
-            })}
-          >
-            <PageIntro
-              title="Your video library"
-              description="Find a favorite. Pick up where you left off."
-            />
-            <Button variant="neutral" onClick={library.reset}>
-              <Icon glyph={RotateCcw} size="sm" />
-              {demo ? 'Reset demo' : connected.loading ? 'Refreshing…' : 'Refresh library'}
-            </Button>
-          </header>
+          <PageHeader
+            title="Your video library"
+            description="Find a favorite. Pick up where you left off."
+            actions={
+              <Button variant="neutral" onClick={library.reset}>
+                <Icon glyph={RotateCcw} size="sm" />
+                {demo ? 'Reset demo' : connected.loading ? 'Refreshing…' : 'Refresh library'}
+              </Button>
+            }
+          />
         )}
         {!demo && connected.error && state !== 'error' && (
           <Notice tone="danger" className={css({ mb: '3' })}>

@@ -14,22 +14,20 @@ export const text = defineRecipe({
 export const heading = defineRecipe({
   className: 'ck-heading',
   jsx: ['Heading'],
+  // Sizes are the existing app's heading roles: subsection, section, page title.
   base: {
     margin: '0',
     color: 'text',
-    fontWeight: 'bold',
-    lineHeight: '1.2',
-    letterSpacing: 'tight',
+    fontWeight: 'heading',
+    lineHeight: 'heading',
   },
   variants: {
     size: {
-      sm: { fontSize: 'lg' },
-      md: { fontSize: '2xl' },
+      sm: { fontSize: 'subsection', letterSpacing: 'dialogTitle' },
+      md: { fontSize: 'section', letterSpacing: 'section' },
       lg: {
-        fontSize: { base: 'pageTitleCompact', md: 'pageTitle' },
-        fontWeight: 'pageTitle',
-        lineHeight: '1.15',
-        letterSpacing: 'pageTitle',
+        textStyle: 'pageTitle',
+        fontSize: { base: 'headingCompact', md: 'heading' },
       },
     },
   },

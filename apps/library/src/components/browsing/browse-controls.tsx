@@ -1,6 +1,16 @@
 import type { ReactNode } from 'react';
-import { Grid2X2, X } from 'lucide-react';
-import { Button, ChoiceSelect, Icon, Paging, SearchField, Text } from '@clipkit/ui';
+import { Grid2X2 } from 'lucide-react';
+import {
+  Button,
+  ChoiceSelect,
+  FilterChip,
+  FilterRail,
+  Icon,
+  Paging,
+  SearchField,
+  Text,
+  Toolbar,
+} from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 
 export function BrowseSearch({
@@ -80,35 +90,18 @@ export function BrowseToolbar({
   chips?: ReactNode;
 }) {
   return (
-    <section
-      aria-label={`${noun} browsing controls`}
-      className={css({
-        display: 'grid',
-        gap: '4',
-        pb: '5',
-        borderBottomWidth: '1px',
-        borderColor: 'line',
-      })}
-    >
-      <BrowseSearch noun={noun} value={query} onChange={onQuery} />
-      <div
-        className={css({
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '3',
-        })}
-      >
-        <Text size="sm" tone="muted" role="status">
+    <Toolbar.Root aria-label={`${noun} browsing controls`}>
+      <Toolbar.Search>
+        <BrowseSearch noun={noun} value={query} onChange={onQuery} />
+      </Toolbar.Search>
+      <Toolbar.Row>
+        <Toolbar.Summary role="status">
           {count} {noun}
-        </Text>
-        <div className={css({ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '3' })}>
-          {children}
-        </div>
-      </div>
-      {chips}
-    </section>
+        </Toolbar.Summary>
+        <Toolbar.Controls>{children}</Toolbar.Controls>
+      </Toolbar.Row>
+      {chips && <Toolbar.Chips>{chips}</Toolbar.Chips>}
+    </Toolbar.Root>
   );
 }
 
@@ -121,49 +114,11 @@ export function ActiveFilters({
 }) {
   if (!items.length) return null;
   return (
-    <div
-      aria-label="Active filters"
-      className={css({
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        gap: '2',
-        pt: '4',
-        borderTopWidth: '1px',
-        borderColor: 'line',
-      })}
-    >
-      <Text size="sm" tone="muted">
-        Active filters
-      </Text>
+    <FilterRail onReset={onClear} resetLabel="Clear search & filters">
       {items.map((item) => (
-        <Button
-          key={item.key}
-          variant="neutral"
-          maxW="full"
-          aria-label={`Remove ${item.label} filter`}
-          onClick={item.onRemove}
-        >
-          <span
-            title={item.label}
-            className={css({
-              minW: '0',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            })}
-          >
-            {item.label}
-          </span>
-          <span className={css({ display: 'inline-flex', color: 'accent' })}>
-            <Icon glyph={X} size="sm" />
-          </span>
-        </Button>
+        <FilterChip key={item.key} label={item.label} onClick={item.onRemove} />
       ))}
-      <Button variant="quiet" onClick={onClear} ml="auto" textDecoration="underline">
-        Clear search &amp; filters
-      </Button>
-    </div>
+    </FilterRail>
   );
 }
 

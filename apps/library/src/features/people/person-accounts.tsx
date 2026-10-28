@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, ChoiceSelect, Heading, Input, Text } from '@clipkit/ui';
+import { Button, ChoiceSelect, Input, SectionHeading, Text } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import type { Account, LibraryClient } from '../../services/library-client';
 import { safeWebURL } from './profile-model';
@@ -52,10 +52,10 @@ export function PersonAccounts({
         bg: 'surface',
       })}
     >
-      <Heading>Connected accounts</Heading>
-      <Text tone="muted">
-        Accounts connect their uploads and credited appearances to this person.
-      </Text>
+      <SectionHeading
+        title="Connected accounts"
+        description="Accounts connect their uploads and credited appearances to this person."
+      />
       <Input
         aria-label="Search connected accounts"
         placeholder="Search accounts…"

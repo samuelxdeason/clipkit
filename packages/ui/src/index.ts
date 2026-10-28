@@ -11,6 +11,17 @@ export { SearchField, type SearchFieldProps } from './components/search-field';
 export * as Tabs from './components/tabs';
 export * as MediaCard from './components/media-card';
 export {
+  PageHeader,
+  SectionHeading,
+  Toolbar,
+  FilterRail,
+  FilterChip,
+  type PageHeaderProps,
+  type SectionHeadingProps,
+  type FilterRailProps,
+  type FilterChipProps,
+} from './components/layout';
+export {
   Tag,
   StatusBadge,
   Notice,
