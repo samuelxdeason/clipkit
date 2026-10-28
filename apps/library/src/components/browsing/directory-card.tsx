@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowUpRight, Film, Tags, Users } from 'lucide-react';
-import { Icon, Text } from '@clipkit/ui';
-import { css, cva } from '@clipkit/ui/css';
+import { Icon, MediaCard, Text } from '@clipkit/ui';
+import { css } from '@clipkit/ui/css';
 import { identityIndex, type DirectoryEntry } from './directory-model';
 
 import { IdentityWash, identityTone } from './identity-style';
@@ -86,29 +86,15 @@ export function IdentityPortrait({ name, src }: { name: string; src?: string }) 
   );
 }
 
-// Shared interaction and spacing recipe; each directory keeps its own silhouette.
-const directoryLink = cva({
-  base: {
-    display: 'flex',
-    flexDirection: 'column',
-    h: 'full',
-    minW: '0',
-    color: 'text',
-    textDecoration: 'none',
-    position: 'relative',
-    _focusVisible: {
-      outlineWidth: '2px',
-      outlineStyle: 'solid',
-      outlineColor: 'accent',
-      outlineOffset: '-1',
-    },
-  },
-  variants: {
-    kind: {
-      people: { gap: '0' },
-      tags: { p: '5', gap: '6', minH: '[180px]' },
-    },
-  },
+// The link is the whole card; MediaCard supplies the shell and silhouette.
+const directoryLink = css({
+  display: 'flex',
+  flexDirection: 'column',
+  flex: '1',
+  minW: '0',
+  color: 'inherit',
+  textDecoration: 'none',
+  _focusVisible: { outline: 'none' },
 });
 
 export function DirectoryCard({
@@ -120,126 +106,81 @@ export function DirectoryCard({
   kind: 'people' | 'tags';
   href: string;
 }) {
-  const person = kind === 'people';
+  const count = `${entry.count} ${entry.count === 1 ? 'video' : 'videos'}`;
+  if (kind === 'people') {
+    return (
+      <MediaCard.Root kind="person" aria-label={entry.displayName} data-directory-kind={kind}>
+        <a href={href} className={directoryLink}>
+          <MediaCard.Frame>
+            <IdentityWash name={entry.name} placement="card" />
+            <div className={css({ position: 'relative', w: '[60%]', maxW: '[180px]' })}>
+              <IdentityMark name={entry.name} src={entry.thumbnail} kind="people" round />
+            </div>
+            <MediaCard.Arrow
+              aria-hidden="true"
+              className={css({ position: 'absolute', top: '4', right: '4' })}
+            >
+              <ArrowUpRight />
+            </MediaCard.Arrow>
+          </MediaCard.Frame>
+          <MediaCard.Body>
+            <MediaCard.Title title={entry.displayName}>{entry.displayName}</MediaCard.Title>
+            <MediaCard.Subtitle title={entry.name}>
+              <span>
+                {entry.displayName !== entry.name ? entry.name : 'Person in your library'}
+              </span>
+            </MediaCard.Subtitle>
+            {entry.detail && (
+              <MediaCard.Subtitle title={entry.detail}>
+                <span>{entry.detail}</span>
+              </MediaCard.Subtitle>
+            )}
+            <MediaCard.Footer>
+              <span
+                className={`${identityTone(entry.name)} ${css({ display: 'inline-flex', alignItems: 'center', gap: '2' })}`}
+              >
+                <Icon glyph={Film} size="sm" />
+                <span className={css({ color: 'muted' })}>{count}</span>
+              </span>
+            </MediaCard.Footer>
+          </MediaCard.Body>
+        </a>
+      </MediaCard.Root>
+    );
+  }
   return (
-    <article
-      aria-label={entry.displayName}
-      data-directory-kind={kind}
-      className={css({
-        minW: '0',
-        bg: 'surface',
-        borderWidth: '1px',
-        borderColor: 'line',
-        borderRadius: 'panel',
-        overflow: 'hidden',
-        position: 'relative',
-        transition: 'colors',
-        _hover: { borderColor: 'muted' },
-        _focusWithin: { borderColor: 'accent' },
-      })}
-    >
-      {!person && <IdentityWash name={entry.name} placement="tag" />}
-      <a href={href} className={directoryLink({ kind })}>
-        <div
-          className={css({
-            display: 'flex',
-            alignItems: 'start',
-            justifyContent: 'space-between',
-            position: 'relative',
-            ...(person
-              ? {
-                  p: '6',
-                  justifyContent: 'center',
-                  minH: '[200px]',
-                  bg: 'canvas',
-                  borderBottomWidth: '1px',
-                  borderColor: 'line',
-                }
-              : {}),
-          })}
-        >
-          {person && <IdentityWash name={entry.name} placement="card" />}
+    <MediaCard.Root kind="tag" aria-label={entry.displayName} data-directory-kind={kind}>
+      <IdentityWash name={entry.name} placement="tag" />
+      <a href={href} className={directoryLink}>
+        <MediaCard.Body>
           <div
             className={css({
-              position: 'relative',
-              flexShrink: '0',
-              ...(person ? { w: '[60%]', maxW: '[180px]' } : { w: '12' }),
+              display: 'flex',
+              alignItems: 'start',
+              justifyContent: 'space-between',
+              gap: '4',
             })}
           >
-            <IdentityMark
-              name={entry.name}
-              src={person ? entry.thumbnail : undefined}
-              kind={kind}
-              round={person}
-            />
+            <MediaCard.Symbol aria-hidden="true" className={identityTone(entry.name)}>
+              <Tags />
+            </MediaCard.Symbol>
+            <MediaCard.Arrow aria-hidden="true">
+              <ArrowUpRight />
+            </MediaCard.Arrow>
           </div>
-          <span
-            aria-hidden="true"
-            className={css({
-              color: 'muted',
-              display: 'inline-flex',
-              ...(person ? { position: 'absolute', right: '4', top: '4' } : {}),
-            })}
-          >
-            <Icon glyph={ArrowUpRight} size="sm" />
-          </span>
-        </div>
-        <div
-          className={css({
-            minW: '0',
-            display: 'grid',
-            gap: '2',
-            position: 'relative',
-            ...(person ? { p: '4', flex: '1', alignContent: 'start' } : { mt: 'auto' }),
-          })}
-        >
-          <h2
-            title={entry.displayName}
-            className={css({
-              textStyle: 'cardTitle',
-              overflowWrap: 'anywhere',
-              lineClamp: 2,
-              ...(person ? { minH: '[44px]' } : { fontSize: 'xl', lineHeight: '[1.25]' }),
-            })}
-          >
-            {entry.displayName}
-          </h2>
-          {person && (
-            <Text size="sm" tone="muted" title={entry.name} truncate>
-              {entry.displayName !== entry.name ? entry.name : 'Person in your library'}
+          <div className={css({ mt: 'auto', display: 'grid', gap: '2', minW: '0' })}>
+            <MediaCard.Title title={entry.displayName}>{entry.displayName}</MediaCard.Title>
+            <Text size="sm" tone="muted">
+              {count}
             </Text>
-          )}
-          <Text
-            size="sm"
-            tone="muted"
-            className={
-              person
-                ? css({
-                    borderTopWidth: '1px',
-                    borderColor: 'line',
-                    pt: '3',
-                    mt: '1',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '2',
-                  })
-                : undefined
-            }
-          >
-            {person && (
-              <span className={identityTone(entry.name)}>
-                <Icon glyph={Film} size="sm" />
-              </span>
+            {entry.detail && (
+              <Text size="sm" tone="muted" title={entry.detail} truncate>
+                {entry.detail}
+              </Text>
             )}
-            {entry.count} {entry.count === 1 ? 'video' : 'videos'}
-          </Text>
-          {entry.detail && (
-            <Text size="sm" tone="muted" title={entry.detail} truncate>
-              {entry.detail}
-            </Text>
-          )}
-        </div>
+          </div>
+        </MediaCard.Body>
       </a>
-    </article>
+    </MediaCard.Root>
   );
 }

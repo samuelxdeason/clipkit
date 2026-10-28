@@ -1,8 +1,7 @@
-import { ImageOff } from 'lucide-react';
+import { Film, Users } from 'lucide-react';
 import { useState } from 'react';
-import { Button, Checkbox, Tag, Text } from '@clipkit/ui';
+import { Button, Checkbox, MediaCard, Tag, Text } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
-import { MediaCardBody, MediaCardCaption } from '../../components/browsing/media-card-content';
 import { formatDuration, type Video } from './model';
 
 export function VideoCard({
@@ -32,62 +31,14 @@ export function VideoCard({
     (!video.artwork || portraitPoster === video.artwork);
   const artwork = useTriptych ? video.triptych : video.artwork;
   return (
-    <article
-      aria-label={video.title}
-      data-selected={selected || undefined}
-      className={css({
-        minW: '0',
-        flexShrink: '0',
-        display: 'flex',
-        flexDirection: 'column',
-        borderRadius: 'panel',
-        overflow: 'hidden',
-        borderWidth: '1px',
-        borderColor: 'line',
-        bg: 'surface',
-        transition: 'colors',
-        _hover: { borderColor: 'muted' },
-        '&[data-selected]': { borderColor: 'accent' },
-      })}
-    >
-      <div
-        className={css({
-          position: 'relative',
-          aspectRatio: 'video',
-          flexShrink: '0',
-          overflow: 'hidden',
-          bg: 'canvas',
-        })}
-      >
-        <button
+    <MediaCard.Root kind="video" aria-label={video.title} data-selected={selected || undefined}>
+      <MediaCard.Frame>
+        <MediaCard.Media
           type="button"
           aria-label={
             manage ? `${selected ? 'Deselect' : 'Select'} ${video.title}` : `Preview ${video.title}`
           }
           onClick={manage ? () => onSelect(!selected) : onOpen}
-          className={css({
-            position: 'absolute',
-            inset: '0',
-            display: 'grid',
-            placeItems: 'center',
-            w: 'full',
-            h: 'full',
-            cursor: 'pointer',
-            '& img': {
-              w: 'full',
-              h: 'full',
-              minW: '0',
-              minH: '0',
-              objectFit: 'contain',
-              objectPosition: 'center',
-            },
-            _focusVisible: {
-              outlineWidth: '2px',
-              outlineStyle: 'solid',
-              outlineColor: 'accent',
-              outlineOffset: '-1',
-            },
-          })}
         >
           {!useTriptych &&
             portraitPoster === video.artwork &&
@@ -125,98 +76,56 @@ export function VideoCard({
               }
             />
           ) : (
-            <div
-              className={css({ display: 'grid', gap: '2', justifyItems: 'center', color: 'muted' })}
-            >
-              <ImageOff aria-hidden="true" />
-              <Text size="sm">Preview unavailable</Text>
-            </div>
+            <MediaCard.Fallback>
+              <Film aria-hidden="true" />
+              <span>Preview unavailable</span>
+            </MediaCard.Fallback>
           )}
-        </button>
+        </MediaCard.Media>
         {video.duration > 0 && (
-          <span
-            className={css({
-              position: 'absolute',
-              bottom: '3',
-              right: '3',
-              bg: 'canvas',
-              color: 'text',
-              px: '2',
-              py: '0.5',
-              borderRadius: 'sm',
-              fontSize: 'xs',
-              pointerEvents: 'none',
-            })}
-          >
+          <MediaCard.Badge className={css({ bottom: '3', right: '3' })}>
             {formatDuration(video.duration)}
-          </span>
+          </MediaCard.Badge>
         )}
-        <span
-          className={css({
-            position: 'absolute',
-            bottom: '3',
-            left: '3',
-            bg: 'canvas',
-            px: '2',
-            py: '0.5',
-            borderRadius: 'sm',
-            fontSize: 'xs',
-            pointerEvents: 'none',
-          })}
-        >
-          {video.resolution}
-        </span>
+        {video.resolution && (
+          <MediaCard.Badge className={css({ bottom: '3', left: '3' })}>
+            {video.resolution}
+          </MediaCard.Badge>
+        )}
         {manage && (
-          <div className={css({ position: 'absolute', top: '2', left: '3' })}>
+          <MediaCard.Select>
             <Checkbox
               label={`Select checkbox: ${video.title}`}
               hideLabel
               checked={selected}
               onCheckedChange={onSelect}
             />
-          </div>
+          </MediaCard.Select>
         )}
         {video.progress > 0 && (
-          <div
+          <MediaCard.Progress
             role="img"
             aria-label={video.progress === 1 ? 'Finished' : 'In progress'}
-            className={css({
-              position: 'absolute',
-              bottom: '0',
-              left: '0',
-              w: 'full',
-              h: '1',
-              bg: 'canvas',
-              pointerEvents: 'none',
-            })}
           >
-            <div
-              style={{ width: `${video.progress * 100}%` }}
-              className={css({ h: 'full', bg: 'accent' })}
-            />
-          </div>
+            <MediaCard.ProgressValue style={{ width: `${video.progress * 100}%` }} />
+          </MediaCard.Progress>
         )}
-      </div>
-      <MediaCardBody fill>
-        <MediaCardCaption
-          title={video.title}
-          people={video.person}
-          emptyPeople="No people linked"
-        />
+      </MediaCard.Frame>
+      <MediaCard.Body>
+        <MediaCard.Title title={video.title}>{video.title}</MediaCard.Title>
+        <MediaCard.Subtitle
+          title={video.person || 'No people linked'}
+          data-empty={video.person ? undefined : ''}
+        >
+          <Users aria-hidden="true" />
+          <span>{video.person || 'No people linked'}</span>
+        </MediaCard.Subtitle>
         {manage && video.collection && (
           <Text size="sm" tone="muted">
             In {video.collection}
           </Text>
         )}
-        <div
-          className={css({
-            display: 'flex',
-            gap: '2',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            minH: '6',
-          })}
-        >
+        <MediaCard.Secondary>
           <div className={css({ display: 'flex', alignItems: 'center', gap: '1', minW: '0' })}>
             {video.tags.slice(0, 2).map((tag) => (
               <Tag
@@ -250,8 +159,8 @@ export function VideoCard({
               File info
             </Button>
           )}
-        </div>
-      </MediaCardBody>
-    </article>
+        </MediaCard.Secondary>
+      </MediaCard.Body>
+    </MediaCard.Root>
   );
 }

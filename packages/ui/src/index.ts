@@ -9,6 +9,7 @@ export { Checkbox, type CheckboxProps } from './components/checkbox';
 export { Paging } from './components/paging';
 export { SearchField, type SearchFieldProps } from './components/search-field';
 export * as Tabs from './components/tabs';
+export * as MediaCard from './components/media-card';
 export {
   Tag,
   StatusBadge,

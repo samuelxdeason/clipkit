@@ -58,10 +58,10 @@ const frame = `
 `;
 
 /** A standalone document that renders `markup` under the legacy theme. */
-export function legacyDocument(markup: string): string {
+export function legacyDocument(markup: string, extraCss = ''): string {
   // Relative font URLs cannot resolve inside the frame; the legacy button
   // uses the system font, so dropping the declarations loses nothing here.
   const css = sheets.join('\n').replace(/@font-face\s*{[^}]*}/g, '');
   // The app mounts under `.manager.finder-shell`; both classes scope rules.
-  return `<!doctype html><html><head><meta charset="utf-8"><style>${css}${frame}</style></head><body><div class="manager finder-shell">${markup}</div></body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><style>${css}${frame}${extraCss}</style></head><body><div class="manager finder-shell">${markup}</div></body></html>`;
 }

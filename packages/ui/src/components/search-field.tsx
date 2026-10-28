@@ -29,7 +29,9 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
       <input
         {...props}
         ref={ref}
-        type="search"
+        type="text"
+        enterKeyHint="search"
+        autoComplete="off"
         aria-label={label}
         value={value}
         onChange={(event) => onChange(event.target.value)}

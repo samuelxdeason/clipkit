@@ -29,7 +29,7 @@ Reads use cancellation and event-driven refresh, and failed refreshes retain exi
 
 ## Preview and checks
 
-Photo and video metadata share `components/browsing/media-card-content.tsx`: 14px horizontal/12px vertical padding, 16px titles at weight 650 and 22px line height, and a muted 14px people line with a fixed purple icon. Photo filenames stay on one line; video titles allow two. Long titles and people labels truncate with full-text tooltips. Change this shared owner to keep both card types aligned.
+Photo and video cards are `MediaCard` compositions from `@clipkit/ui` (`kind="photo"` and `kind="video"`): the recipe owns the shell, frame silhouette, body padding, 16px titles at weight 650 and 22px line height, and the muted 12px subtitle line with its lilac glyph. Photo filenames stay on one line; video titles allow two. Long titles and people labels truncate with full-text tooltips. Change the recipe in `packages/ui/src/recipes/media-card.ts` to keep every card type aligned; the app only supplies content, identity colour and the clickable surface's label.
 
 Portrait 4:5 image cards share selection geometry and person icon treatment with Videos, with a photo badge, filename and one person line. Album labels remain available through filters rather than duplicating the person below the card. Missing images show a fallback. The basic preview displays the original image, supports previous/next buttons and arrow keys, and restores focus on close. The complete immersive photo-viewer tooling remains milestone 4.
 

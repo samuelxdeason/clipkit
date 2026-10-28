@@ -18,11 +18,12 @@ Compact card controls use Tag for labels and Button `quiet/compact` for File inf
 | Dialog | Compound modal | Title required; description explains consequences; preserve focus restoration and recovery |
 | Paging | Controlled count/page/pageSize | Page number reflects results; caller owns page resets and result focus |
 | Tabs | Compound; segment (default) / underline | Manual activation; List needs aria-label; one Content per value; a toggle is a Button with aria-pressed, not a tab |
-| SearchField | regular; compact; optional hint | label required (no visible label); clear control appears with text; type=search |
+| SearchField | regular; compact; optional hint | label required (no visible label); clear control appears with text; a textbox with enterKeyHint=search |
 | Tag | Chip; button when it has onClick | Truncates; give an aria-label when the visible text is not the action; consumer owns max width |
 | StatusBadge | neutral; info / success / warning / danger; dot | A label for a state, never a control; green is reserved for done |
 | Notice | success (status); danger (alert); info | Inline message with accent bar; put Retry or Undo in actions as quiet compact buttons |
 | EmptyState | empty; loading; error | Centred panel with title, description, symbol or spinner, and actions; error is role=alert |
+| MediaCard | Compound; kind video (default) / photo / person / tag | Root is an article with aria-label; Media is the one clickable surface and needs a name; data-selected shows selection; identity colour and domain content stay in the app |
 
 Use one primary action for the current local task. Neutral is the supporting action; quiet is toolbar utility; danger names a destructive action. These are the existing app's four variants, written as one recipe; Storybook's Reference/Legacy buttons story renders both side by side. Destructive actions must be named accurately and preserve the app's confirmation/recovery behavior. A red button is not a confirmation flow.
 
