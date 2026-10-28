@@ -99,7 +99,7 @@ export function LibraryToolbar({
         }}
       >
         <Popover.Trigger asChild>
-          <Button variant="toolbar" aria-pressed={filterCount > 0}>
+          <Button variant="quiet" aria-pressed={filterCount > 0}>
             <Icon glyph={SlidersHorizontal} size="sm" />
             Filters{filterCount ? ` (${filterCount})` : ''}
           </Button>
@@ -230,7 +230,7 @@ export function LibraryToolbar({
               </Popover.Body>
               <Popover.Footer>
                 <Button
-                  variant="plain"
+                  variant="quiet"
                   onClick={() => onFilters({ ...emptyFilters, query: filters.query })}
                 >
                   Reset filters

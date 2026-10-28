@@ -77,7 +77,7 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
               title="Your video library"
               description="Find a favorite. Pick up where you left off."
             />
-            <Button variant="outline" onClick={library.reset}>
+            <Button variant="neutral" onClick={library.reset}>
               <Icon glyph={RotateCcw} size="sm" />
               {demo ? 'Reset demo' : connected.loading ? 'Refreshing…' : 'Refresh library'}
             </Button>
@@ -119,7 +119,7 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
               {library.notice}
             </Text>
             {library.removed.length > 0 && (
-              <Button size="sm" variant="plain" onClick={library.undo}>
+              <Button variant="quiet" onClick={library.undo}>
                 Undo removal
               </Button>
             )}
@@ -252,8 +252,7 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
               {library.selected.length} selected
             </Text>
             <Button
-              size="sm"
-              variant="plain"
+              variant="quiet"
               disabled={!library.selected.length}
               onClick={() => {
                 setDialog('collection');
@@ -265,8 +264,7 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
             {!demo && (
               <>
                 <Button
-                  size="sm"
-                  variant="plain"
+                  variant="quiet"
                   disabled={!library.selected.length}
                   onClick={() => {
                     setDialog('person');
@@ -275,8 +273,7 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
                   Add people
                 </Button>
                 <Button
-                  size="sm"
-                  variant="plain"
+                  variant="quiet"
                   disabled={!library.selected.length}
                   onClick={() => {
                     setDialog('tags');
@@ -287,8 +284,7 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
               </>
             )}
             <Button
-              size="sm"
-              variant="plain"
+              variant="quiet"
               disabled={!library.selected.length}
               onClick={library.favoriteSelected}
             >
@@ -296,9 +292,7 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
               Favorite selected
             </Button>
             <Button
-              size="sm"
-              variant="plain"
-              tone="danger"
+              variant="danger"
               disabled={!library.selected.length}
               onClick={() => setDialog('remove')}
             >
@@ -306,8 +300,7 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
               {demo ? 'Remove from demo' : 'Move to trash'}
             </Button>
             <Button
-              size="sm"
-              variant="plain"
+              variant="quiet"
               disabled={!library.selected.length}
               onClick={() => library.selectPage(false)}
             >

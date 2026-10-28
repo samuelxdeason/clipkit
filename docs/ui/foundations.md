@@ -2,7 +2,9 @@
 
 ## Colors and ownership
 
-Canonical values live in `packages/design-tokens/src/values.ts`. `build.mjs` generates the existing scoped CSS; `src/panda.ts` maps values to new semantic roles. Never edit generated tokens.css or copy color literals into a component. The saved legacy contract verifies value/scope parity.
+Canonical values live in `packages/design-tokens/src/values.ts`. `build.mjs` generates the existing scoped CSS; `src/panda.ts` derives the complete Panda theme from the same values: colour roles, the spacing grid, the two control heights, the type ramp, radii, shadows, gradients and the state duration. Never edit generated tokens.css or copy color literals into a component. The saved legacy contract verifies value/scope parity.
+
+The theme still loads `@pandacss/preset-panda` for its numeric size and space names (`h: '10'`, `w: 'full'`), which older recipes and app layout code use. Named scales from `values.ts` are the target; the preset is removed once nothing depends on it.
 
 | Token | Use |
 | --- | --- |
@@ -16,7 +18,13 @@ Canonical values live in `packages/design-tokens/src/values.ts`. `build.mjs` gen
 | success / warning / info | Reserved semantic status roles |
 | identity.* | Stable decorative person/tag accents; never selection or error meaning |
 
-The initial foundation maps Park's component variants directly to these semantic roles. It deliberately has no arbitrary colorPalette prop or full stock color ramp. Add a new role in the owner only when a component needs it. The old aliases remain solely for compatibility; no competing hand-maintained theme.
+| hover / hoverSurface / hoverLine | Hover fills and borders on neutral controls |
+| dialog / dialogLine / overlay / overlayLine / toolbar | Dialog, card-overlay and toolbar surfaces |
+| info / infoSurface / infoLine | Active work such as a running download; not success |
+| tag.* | Tag chips |
+| gradients.action / actionHover | The primary button fill and its hover |
+
+Component variants map directly to these roles. There is no arbitrary colorPalette prop or stock color ramp. Add a new role in the owner only when a component needs it; every role above comes from a value the existing app already uses.
 
 ## Typography and geometry
 
@@ -24,13 +32,13 @@ Interface text uses the shared `body` font token: Segoe UI Variable, Segoe UI, t
 
 Heading defaults to h2 and medium visual size; choose `as="h1" size="lg"` for the page title. Large headings use shared page-title tokens (36px desktop / 28px narrow, weight 750, -1px tracking, 1.15 line height), matching the working frontend. Visual size and document hierarchy are separate. Text offers sm/md/lg and default/muted/danger tones. Use labels for inputs, not a visual Text component alone.
 
-Standard controls use Park size names: sm 36px, md 40px, lg 44px. Medium is the desktop default; prefer large for touch-focused actions. Inputs and buttons align at a given size. Icon buttons are square at the same dimensions. Buttons use minimum heights so enlarged text can grow. Long content and zoom remain review requirements for future layouts.
+Controls come in two heights, carried over from the existing app: `regular` is the `control` size (42px, 13px text, 9px by 14px padding) and `compact` is `controlCompact` (32px, 4px by 10px padding). Buttons and inputs share them, so toolbars and forms line up without per-page adjustment. Icon buttons are square at the same heights. Buttons use minimum heights so enlarged text can grow. Long content and zoom remain review requirements for future layouts.
 
-Use Panda's shared spacing scale (commonly 2/3/4/6/8 = 8/12/16/24/32px), control radius 8px, panel 16px and dialog 20px. Page layout uses typed css(); control geometry belongs in its recipe. Do not adjust button padding or font size to repair a page layout.
+Spacing is the 4px grid from `values.ts`; the numeric names (`2`, `3`, `4`, `6`, `8` = 8/12/16/24/32px) match Panda's, and role names (`actionGap`, `iconGap`, `panel`, `dialog`, `card`) cover the gaps the existing app names. Radii are `small` 6px, `control` 8px, `inset` 12px, `panel` 16px and `dialog` 20px. Page layout uses typed css(); control geometry belongs in its recipe. Do not adjust button padding or font size to repair a page layout.
 
 ## States
 
-Named text styles `cardTitle`, `metadata`, and `fieldLabel` own compact browsing typography. Card-title weight, tracking and line height are theme tokens; avoid arbitrary values in consuming cards. `Button variant="tag" size="compact"` renders tag metadata; `variant="plain" size="compact"` renders quiet card actions. Compact size is reserved for secondary metadata, not primary forms or toolbar actions. Checkbox appearance belongs in `recipes/checkbox.ts`, with its component retaining Ark behavior.
+Named text styles `cardTitle`, `metadata`, and `fieldLabel` own compact browsing typography. Card-title weight, tracking and line height are theme tokens; avoid arbitrary values in consuming cards. `Button variant="tag" size="compact"` renders tag metadata; `variant="quiet" size="compact"` renders quiet card actions. Compact size is reserved for secondary metadata, not primary forms or toolbar actions. Checkbox appearance belongs in `recipes/checkbox.ts`, with its component retaining Ark behavior.
 
 The shared Checkbox uses a 24px rounded square with the 8px control radius, inside a minimum 40px hit area. Checked and indeterminate states share the same geometry; disabled and keyboard-focus styles remain visible. Use this component for card selection, select-page controls and filter choices instead of creating page-specific checkbox styles.
 

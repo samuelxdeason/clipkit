@@ -23,16 +23,14 @@ export function Paging({
       className={css({ display: 'flex', gap: '2', flexWrap: 'wrap', alignItems: 'center' })}
     >
       <Pagination.PrevTrigger asChild>
-        <Button size="sm" variant="plain">
-          Previous
-        </Button>
+        <Button variant="quiet">Previous</Button>
       </Pagination.PrevTrigger>
       <Pagination.Context>
         {(context) =>
           context.pages.map((item, index) =>
             item.type === 'page' ? (
               <Pagination.Item key={item.value} {...item} asChild>
-                <Button size="sm" variant={context.page === item.value ? 'subtle' : 'plain'}>
+                <Button variant={context.page === item.value ? 'quiet' : 'quiet'}>
                   {item.value}
                 </Button>
               </Pagination.Item>
@@ -45,9 +43,7 @@ export function Paging({
         }
       </Pagination.Context>
       <Pagination.NextTrigger asChild>
-        <Button size="sm" variant="plain">
-          Next
-        </Button>
+        <Button variant="quiet">Next</Button>
       </Pagination.NextTrigger>
     </Pagination.Root>
   );

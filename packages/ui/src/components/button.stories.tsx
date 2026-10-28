@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Heart, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from './button';
+import { IconButton } from './icon-button';
+import { Icon } from './icon';
 import { css } from '../../styled-system/css';
 
 const meta = {
@@ -10,7 +13,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Use solid for the main action, surface for supporting actions and plain for quiet utilities. Native type defaults to button. Loading disables activation; use a useful loadingText. Selection uses aria-pressed. Keep page styling outside the component.',
+          'Four variants from the existing app: neutral for supporting actions, quiet for toolbar utilities, primary for the one leading action, danger for destructive actions. Two heights: regular (42px) and compact (32px). Selection uses aria-pressed. Keep page styling outside the component.',
       },
     },
   },
@@ -18,21 +21,46 @@ const meta = {
 } satisfies Meta<typeof Button>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+const row = css({ display: 'flex', alignItems: 'center', gap: 'actionGap', flexWrap: 'wrap' });
+
 export const Default: Story = {};
-export const Primary: Story = { args: { variant: 'solid' } };
+export const Primary: Story = { args: { variant: 'primary' } };
+export const Quiet: Story = { args: { variant: 'quiet', children: 'Filters' } };
+export const Danger: Story = { args: { variant: 'danger', children: 'Remove item' } };
 export const Disabled: Story = { args: { disabled: true } };
 export const Loading: Story = { args: { loading: true, loadingText: 'Saving changes…' } };
-export const Destructive: Story = { args: { tone: 'danger', children: 'Remove item' } };
 export const LongLabel: Story = { args: { children: 'Add selected items to this collection' } };
-export const Sizes: Story = {
+
+export const Variants: Story = {
   render: () => (
-    <div className={css({ display: 'flex', alignItems: 'center', gap: '3', flexWrap: 'wrap' })}>
-      <Button size="sm">Small</Button>
-      <Button>Medium</Button>
-      <Button size="lg">Large</Button>
+    <div className={row}>
+      <Button variant="primary">
+        <Icon glyph={Plus} />
+        Add videos
+      </Button>
+      <Button>Neutral</Button>
+      <Button variant="quiet">Quiet</Button>
+      <Button variant="danger">Danger</Button>
     </div>
   ),
 };
+
+export const Sizes: Story = {
+  render: () => (
+    <div className={row}>
+      <Button>Regular</Button>
+      <Button size="compact">Compact</Button>
+      <IconButton aria-label="Favorite">
+        <Icon glyph={Heart} />
+      </IconButton>
+      <IconButton aria-label="Favorite" size="compact">
+        <Icon glyph={Heart} />
+      </IconButton>
+    </div>
+  ),
+};
+
 function Toggle() {
   const [selected, setSelected] = useState(false);
   return (

@@ -74,7 +74,7 @@ export function PhotoToolbar({
         }}
       >
         <Popover.Trigger asChild>
-          <Button variant="toolbar" aria-pressed={chips.length > 0}>
+          <Button variant="quiet" aria-pressed={chips.length > 0}>
             <Icon glyph={SlidersHorizontal} size="sm" />
             Filters
           </Button>
@@ -138,7 +138,7 @@ export function PhotoToolbar({
               </Popover.Body>
               <Popover.Footer>
                 <Button
-                  variant="plain"
+                  variant="quiet"
                   onClick={() => onFilters({ ...emptyPhotoFilters, query: filters.query })}
                 >
                   Reset filters

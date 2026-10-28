@@ -8,7 +8,7 @@ import { Heart } from 'lucide-react';
 
 <Heading as="h1" size="lg">Your library</Heading>
 <label>Collection name<Input name="name" /></label>
-<Button variant="solid" type="submit">Save</Button>
+<Button variant="primary" type="submit">Save</Button>
 <IconButton aria-label="Favorite"><Icon glyph={Heart} /></IconButton>
 ```
 

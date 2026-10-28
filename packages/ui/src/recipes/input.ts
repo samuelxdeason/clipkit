@@ -20,11 +20,11 @@ export const input = defineRecipe({
     _disabled: { opacity: '0.45', cursor: 'not-allowed' },
   },
   variants: {
+    // Fields share the two control heights so toolbars and forms line up.
     size: {
-      sm: { h: '9', px: '3', fontSize: 'sm' },
-      md: { h: '10', px: '3.5', fontSize: 'sm' },
-      lg: { h: '11', px: '4', fontSize: 'md' },
+      regular: { h: 'control', px: 'controlInline', fontSize: 'body' },
+      compact: { h: 'controlCompact', px: 'compactInline', fontSize: 'control' },
     },
   },
-  defaultVariants: { size: 'md' },
+  defaultVariants: { size: 'regular' },
 });

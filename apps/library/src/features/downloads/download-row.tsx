@@ -171,7 +171,7 @@ export function DownloadRow({
             <>
               <Button
                 size="compact"
-                variant="outline"
+                variant="neutral"
                 disabled={busy || first}
                 onClick={() => onAction('next')}
               >
@@ -180,7 +180,7 @@ export function DownloadRow({
               <IconButton
                 aria-label="Move up"
                 title="Move up"
-                variant="plain"
+                variant="quiet"
                 disabled={busy || first}
                 onClick={() => onAction('up')}
               >
@@ -189,7 +189,7 @@ export function DownloadRow({
               <IconButton
                 aria-label="Move down"
                 title="Move down"
-                variant="plain"
+                variant="quiet"
                 disabled={busy || last}
                 onClick={() => onAction('down')}
               >
@@ -198,7 +198,7 @@ export function DownloadRow({
               <IconButton
                 aria-label="Remove from queue"
                 title="Remove from queue"
-                variant="plain"
+                variant="quiet"
                 disabled={busy}
                 onClick={() => onAction('remove')}
               >
@@ -209,7 +209,7 @@ export function DownloadRow({
           {job.status === 'error' && (
             <Button
               size="compact"
-              variant="outline"
+              variant="neutral"
               disabled={busy}
               onClick={() => onAction('retry')}
             >

@@ -42,7 +42,7 @@ function ToolbarExample() {
   const [sort, setSort] = useState('newest');
   return (
     <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-      <Button variant="toolbar">Filters</Button>
+      <Button variant="quiet">Filters</Button>
       <ChoiceSelect
         hideLabel
         appearance="toolbar"
@@ -51,7 +51,7 @@ function ToolbarExample() {
         onChange={setSort}
         options={options}
       />
-      <Button variant="manage">Manage</Button>
+      <Button variant="quiet">Manage</Button>
     </div>
   );
 }

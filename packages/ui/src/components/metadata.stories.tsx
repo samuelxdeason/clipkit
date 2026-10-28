@@ -49,7 +49,7 @@ export const Card: Story = {
         <Button variant="tag" size="compact">
           Quiet moments
         </Button>
-        <Button variant="plain" size="compact" ml="auto">
+        <Button variant="quiet" size="compact" ml="auto">
           File info
         </Button>
       </div>

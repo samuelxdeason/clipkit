@@ -46,7 +46,7 @@ export function QueueOverview({
         {queueCategories.map((item) => (
           <Button
             key={item.value}
-            variant="outline"
+            variant="neutral"
             aria-pressed={value === item.value}
             onClick={() => onChange(value === item.value ? 'all' : item.value)}
             bg="field"

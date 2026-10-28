@@ -146,8 +146,7 @@ export function ProfileDialog({
                           }
                         />
                         <Button
-                          size="sm"
-                          variant="plain"
+                          variant="quiet"
                           onClick={() =>
                             setDraft((current) => ({
                               ...current,
@@ -160,7 +159,7 @@ export function ProfileDialog({
                       </div>
                     ))}
                     <Button
-                      variant="outline"
+                      variant="neutral"
                       onClick={() =>
                         setDraft((current) => ({
                           ...current,
@@ -190,14 +189,13 @@ export function ProfileDialog({
               )}
               <Dialog.Footer>
                 <Dialog.CloseTrigger asChild aria-label="Cancel">
-                  <Button disabled={busy} variant="plain">
+                  <Button disabled={busy} variant="quiet">
                     Cancel
                   </Button>
                 </Dialog.CloseTrigger>
                 <Button
                   type="submit"
-                  variant={action === 'delete' ? 'surface' : 'solid'}
-                  tone={action === 'delete' ? 'danger' : undefined}
+                  variant={action === 'delete' ? 'danger' : 'primary'}
                   loading={busy}
                   disabled={
                     action === 'rename' && (!name.trim() || name.trim() === data.person.name)

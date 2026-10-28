@@ -35,4 +35,4 @@ export const Invalid: Story = {
     </>
   ),
 };
-export const TouchSize: Story = { args: { size: 'lg' } };
+export const Compact: Story = { args: { size: 'compact' } };

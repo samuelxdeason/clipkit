@@ -48,12 +48,11 @@ export function FilterPicker({
       >
         <Popover.Trigger asChild>
           <Button
-            variant="picker"
+            variant="neutral"
             aria-pressed={value.length > 0}
             aria-label={`Choose ${label.toLowerCase()}`}
             justifyContent="space-between"
             w="full"
-            size="sm"
             title={value.length ? value.join(', ') : `Any ${label.toLowerCase()}`}
           >
             <span
@@ -127,16 +126,11 @@ export function FilterPicker({
               </div>
             </Popover.Body>
             <Popover.Footer>
-              <Button
-                size="sm"
-                variant="plain"
-                disabled={!value.length}
-                onClick={() => onChange([])}
-              >
+              <Button variant="quiet" disabled={!value.length} onClick={() => onChange([])}>
                 Clear {label.toLowerCase()}
               </Button>
               <Popover.CloseTrigger asChild aria-label={`Done choosing ${label.toLowerCase()}`}>
-                <Button size="sm">Done</Button>
+                <Button>Done</Button>
               </Popover.CloseTrigger>
             </Popover.Footer>
           </Popover.Content>

@@ -63,7 +63,7 @@ export function Foundation() {
           for everything we build next.
         </Text>
         <div className={row}>
-          <Button variant="solid" size="lg" onClick={() => input.current?.focus()}>
+          <Button variant="primary" onClick={() => input.current?.focus()}>
             Explore the controls <Icon glyph={ArrowRight} />
           </Button>
           <Text size="sm" tone="muted">
@@ -90,7 +90,7 @@ export function Foundation() {
             state.
           </Text>
           <div className={row}>
-            <Button variant="solid" onClick={() => setSaved(true)}>
+            <Button variant="primary" onClick={() => setSaved(true)}>
               <Icon glyph={saved ? Check : Plus} />
               {saved ? 'Added to demo' : 'Add videos'}
             </Button>
@@ -108,7 +108,7 @@ export function Foundation() {
             <Button loading loadingText="Saving…">
               Save
             </Button>
-            <Button tone="danger">Remove</Button>
+            <Button variant="danger">Remove</Button>
           </div>
           <Text size="sm" tone="muted" role="status">
             {saved
@@ -155,12 +155,12 @@ export function Foundation() {
               Add a name before saving this example.
             </Text>
             <div className={row}>
-              <Button type="submit" variant="outline">
+              <Button type="submit" variant="neutral">
                 Test form action
               </Button>
               <Icon glyph={Search} />
               <Text size="sm" tone="muted">
-                Shared 40px controls
+                Shared 42px controls
               </Text>
             </div>
           </form>

@@ -55,8 +55,7 @@ export function ManageBar({
       >
         {children}
         <IconButton
-          variant="plain"
-          size="sm"
+          variant="quiet"
           aria-label="Exit Manage mode"
           onClick={() => {
             onClose();

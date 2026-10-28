@@ -43,7 +43,7 @@ export function BrowseSearch({
       />
       {value && (
         <div className={css({ position: 'absolute', right: '1', top: '0' })}>
-          <IconButton variant="plain" aria-label="Clear search" onClick={() => onChange('')}>
+          <IconButton variant="quiet" aria-label="Clear search" onClick={() => onChange('')}>
             <Icon glyph={X} size="sm" />
           </IconButton>
         </div>
@@ -79,7 +79,7 @@ export function PreviewSize({
 export function ManageToggle({ active, onToggle }: { active: boolean; onToggle: () => void }) {
   return (
     <div className={css({ borderLeftWidth: '1px', borderColor: 'line', pl: '3', ml: '1' })}>
-      <Button data-manage-toggle="" variant="manage" aria-pressed={active} onClick={onToggle}>
+      <Button data-manage-toggle="" variant="quiet" aria-pressed={active} onClick={onToggle}>
         {active ? 'Done managing' : 'Manage'}
       </Button>
     </div>
@@ -161,8 +161,7 @@ export function ActiveFilters({
       {items.map((item) => (
         <Button
           key={item.key}
-          size="sm"
-          variant="surface"
+          variant="neutral"
           maxW="full"
           aria-label={`Remove ${item.label} filter`}
           onClick={item.onRemove}
@@ -183,7 +182,7 @@ export function ActiveFilters({
           </span>
         </Button>
       ))}
-      <Button size="sm" variant="plain" onClick={onClear} ml="auto" textDecoration="underline">
+      <Button variant="quiet" onClick={onClear} ml="auto" textDecoration="underline">
         Clear search &amp; filters
       </Button>
     </div>

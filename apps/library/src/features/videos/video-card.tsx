@@ -245,7 +245,7 @@ export function VideoCard({
           {!manage && (
             <Button
               size="compact"
-              variant="plain"
+              variant="quiet"
               aria-label={`Open details for ${video.title}`}
               onClick={onOpen}
             >

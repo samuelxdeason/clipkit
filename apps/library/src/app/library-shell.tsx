@@ -151,7 +151,7 @@ export function LibraryShell({
                   href={demo ? undefined : '/?view=downloads'}
                   active={page === 'downloads'}
                 />
-                <Button asChild variant="plain" justifyContent="flex-start">
+                <Button asChild variant="quiet" justifyContent="flex-start">
                   <a href="?view=foundation">Design foundation</a>
                 </Button>
               </div>

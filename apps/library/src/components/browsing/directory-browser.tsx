@@ -110,7 +110,7 @@ export function DirectoryBrowser({
           />
         </div>
         <div className={css({ display: 'flex', gap: '3', flexWrap: 'wrap' })}>
-          <Button variant="outline" onClick={onRefresh}>
+          <Button variant="neutral" onClick={onRefresh}>
             {loading ? 'Refreshing…' : 'Refresh library'}
           </Button>
           {actions}

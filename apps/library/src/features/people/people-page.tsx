@@ -37,7 +37,7 @@ export function PeoplePage() {
           onRefresh={() => void library.refresh()}
           href={(entry) => `/?view=person&name=${encodeURIComponent(entry.name)}`}
           actions={
-            <Button variant="solid" onClick={() => setCreating(true)}>
+            <Button variant="primary" onClick={() => setCreating(true)}>
               New person
             </Button>
           }
@@ -88,13 +88,13 @@ export function PeoplePage() {
                 )}
                 <Dialog.Footer>
                   <Dialog.CloseTrigger asChild aria-label="Cancel">
-                    <Button variant="plain" disabled={library.busy}>
+                    <Button variant="quiet" disabled={library.busy}>
                       Cancel
                     </Button>
                   </Dialog.CloseTrigger>
                   <Button
                     type="submit"
-                    variant="solid"
+                    variant="primary"
                     loading={library.busy}
                     disabled={!name.trim()}
                   >

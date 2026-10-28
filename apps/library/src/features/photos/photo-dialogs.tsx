@@ -151,13 +151,12 @@ export function PhotoDialogs({
               )}
               <Dialog.Footer>
                 <Dialog.CloseTrigger asChild aria-label="Cancel">
-                  <Button variant="plain" disabled={library.busy}>
+                  <Button variant="quiet" disabled={library.busy}>
                     Cancel
                   </Button>
                 </Dialog.CloseTrigger>
                 <Button
-                  variant={kind === 'trash' ? 'surface' : 'solid'}
-                  tone={kind === 'trash' ? 'danger' : undefined}
+                  variant={kind === 'trash' ? 'danger' : 'primary'}
                   loading={library.busy}
                   disabled={kind !== 'trash' && !value}
                   onClick={submit}

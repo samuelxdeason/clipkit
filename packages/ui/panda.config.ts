@@ -1,5 +1,5 @@
 import { defineConfig } from '@pandacss/dev';
-import { colors, radii } from '@clipkit/design-tokens/panda';
+import { theme } from '@clipkit/design-tokens/panda';
 import { button } from './src/recipes/button';
 import { input } from './src/recipes/input';
 import { checkbox } from './src/recipes/checkbox';
@@ -7,6 +7,9 @@ import { heading, text } from './src/recipes/typography';
 import { select, popover, dialog } from './src/recipes/overlays';
 
 export default defineConfig({
+  // preset-panda still supplies the numeric size/space scale that older
+  // recipes and app styles lean on. It is removed once every consumer uses
+  // the named scales from @clipkit/design-tokens; see docs/ui/foundations.md.
   presets: ['@pandacss/preset-base', '@pandacss/preset-panda'],
   preflight: true,
   jsxFramework: 'react',
@@ -28,36 +31,18 @@ export default defineConfig({
   globalCss: {
     ':root': { colorScheme: 'dark', fontFamily: 'body', color: 'text', bg: 'canvas' },
     body: { margin: '0' },
+    // Recipes set their own durations at class specificity, so this universal
+    // rule needs !important to win when the user asks for reduced motion.
     '@media (prefers-reduced-motion: reduce)': {
-      '*, *::before, *::after': { animationDuration: '0s', transitionDuration: '0s' },
+      '*, *::before, *::after': {
+        animationDuration: '0s !important',
+        transitionDuration: '0s !important',
+      },
     },
   },
   theme: {
     extend: {
-      tokens: {
-        fonts: {
-          body: { value: '"Segoe UI Variable", "Segoe UI", system-ui, sans-serif' },
-          brand: { value: '"Nunito", system-ui, sans-serif' },
-        },
-        fontWeights: { pageTitle: { value: 750 }, cardTitle: { value: 650 } },
-        lineHeights: { cardTitle: { value: '22px' } },
-        fontSizes: { pageTitle: { value: '36px' }, pageTitleCompact: { value: '28px' } },
-        letterSpacings: { pageTitle: { value: '-1px' }, cardTitle: { value: '-0.2px' } },
-        radii,
-      },
-      semanticTokens: { colors },
-      textStyles: {
-        cardTitle: {
-          value: {
-            fontSize: 'md',
-            fontWeight: 'cardTitle',
-            lineHeight: 'cardTitle',
-            letterSpacing: 'cardTitle',
-          },
-        },
-        metadata: { value: { fontSize: 'sm', lineHeight: '1.6', fontWeight: 'normal' } },
-        fieldLabel: { value: { fontSize: 'xs', fontWeight: 'medium', lineHeight: '1.6' } },
-      },
+      ...theme,
       recipes: { button, input, heading, text },
       slotRecipes: { select, popover, dialog, checkbox },
     },

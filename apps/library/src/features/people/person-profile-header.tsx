@@ -108,7 +108,7 @@ export function PersonProfileHeader({
                 </Text>
               )}
             </div>
-            <Button disabled={busy} variant="outline" onClick={() => onAction('edit')}>
+            <Button disabled={busy} variant="neutral" onClick={() => onAction('edit')}>
               <Icon glyph={Pencil} size="sm" />
               Edit profile
             </Button>
@@ -175,7 +175,7 @@ export function PersonProfileHeader({
                 Find them online
               </Text>
               {links.map((link, index) => (
-                <Button key={index} asChild size="compact" variant="outline" maxW="full">
+                <Button key={index} asChild size="compact" variant="neutral" maxW="full">
                   <a href={safeWebURL(link.url)!} target="_blank" rel="noopener noreferrer">
                     <span className={css({ overflowWrap: 'anywhere', whiteSpace: 'normal' })}>
                       {link.label || link.url}
@@ -208,7 +208,7 @@ export function PersonProfileHeader({
           <Button disabled={busy} onClick={() => onAction('rename')}>
             Rename person
           </Button>
-          <Button tone="danger" disabled={busy} onClick={() => onAction('delete')}>
+          <Button variant="danger" disabled={busy} onClick={() => onAction('delete')}>
             Delete person
           </Button>
         </div>

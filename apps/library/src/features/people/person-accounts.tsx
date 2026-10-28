@@ -81,7 +81,7 @@ export function PersonAccounts({
           </div>
           <div className={css({ display: 'flex', gap: '3', flexWrap: 'wrap' })}>
             {safeWebURL(account.url) && (
-              <Button asChild variant="outline">
+              <Button asChild variant="neutral">
                 <a href={safeWebURL(account.url)!} target="_blank" rel="noopener noreferrer">
                   View account
                 </a>
@@ -120,7 +120,7 @@ export function PersonAccounts({
               onChange={(event) => setURL(event.target.value)}
             />
           </label>
-          <Button type="submit" disabled={!safeWebURL(url)} variant="solid">
+          <Button type="submit" disabled={!safeWebURL(url)} variant="primary">
             Connect URL
           </Button>
         </form>

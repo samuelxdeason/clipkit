@@ -142,7 +142,7 @@ export function VideoDialogs({
               <div className={row}>
                 <Dialog.Title>{dialogTitle}</Dialog.Title>
                 <Dialog.CloseTrigger asChild>
-                  <IconButton aria-label="Close organize dialog" variant="plain" disabled={busy}>
+                  <IconButton aria-label="Close organize dialog" variant="quiet" disabled={busy}>
                     <Icon glyph={X} />
                   </IconButton>
                 </Dialog.CloseTrigger>
@@ -201,13 +201,14 @@ export function VideoDialogs({
               )}
               <Dialog.Footer>
                 <Dialog.CloseTrigger asChild>
-                  <Button variant="plain" disabled={busy}>
+                  <Button variant="quiet" disabled={busy}>
                     Cancel
                   </Button>
                 </Dialog.CloseTrigger>
                 <Button
-                  variant={dialog === 'collection' ? 'solid' : 'surface'}
-                  tone={dialog === 'remove' ? 'danger' : undefined}
+                  variant={
+                    dialog === 'collection' ? 'primary' : dialog === 'remove' ? 'danger' : 'neutral'
+                  }
                   disabled={busy || invalidDialog}
                   loading={busy}
                   onClick={confirmDialog}

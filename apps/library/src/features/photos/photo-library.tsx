@@ -46,7 +46,7 @@ export function PhotoLibrary({ person }: { person?: string }) {
               title="Your photo library"
               description="Explore your photos, revisit a collection, and keep every moment easy to find."
             />
-            <Button variant="outline" onClick={() => void library.refresh()}>
+            <Button variant="neutral" onClick={() => void library.refresh()}>
               {library.loading ? 'Refreshing…' : 'Refresh library'}
             </Button>
           </header>
@@ -145,33 +145,28 @@ export function PhotoLibrary({ person }: { person?: string }) {
               {library.selected.length} selected
             </Text>
             <Button
-              size="sm"
-              variant="plain"
+              variant="quiet"
               disabled={!library.selected.length}
               onClick={() => setDialog('person')}
             >
               Assign person
             </Button>
             <Button
-              size="sm"
-              variant="plain"
+              variant="quiet"
               disabled={!library.selected.length}
               onClick={() => setDialog('collection')}
             >
               Add to collection
             </Button>
             <Button
-              size="sm"
-              variant="plain"
-              tone="danger"
+              variant="danger"
               disabled={!library.selected.length}
               onClick={() => setDialog('trash')}
             >
               Move to trash
             </Button>
             <Button
-              size="sm"
-              variant="plain"
+              variant="quiet"
               disabled={!library.selected.length}
               onClick={() => library.selectPage(false)}
             >

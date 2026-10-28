@@ -118,7 +118,7 @@ export function DownloadsPage() {
       <div className={css({ display: 'grid', gap: '6' })}>
         <div className={`${row} ${css({ justifyContent: 'space-between' })}`}>
           <PageIntro title="Downloads" description="Bring your next favorites into the library." />
-          <Button variant="outline" onClick={() => void library.refresh()} disabled={library.busy}>
+          <Button variant="neutral" onClick={() => void library.refresh()} disabled={library.busy}>
             Refresh queue
           </Button>
         </div>
@@ -214,7 +214,7 @@ export function DownloadsPage() {
           </BrowseToolbar>
           <div className={`${row} ${css({ py: '4' })}`}>
             <Button
-              variant="plain"
+              variant="quiet"
               disabled={library.busy || !jobs.some((job) => job.status === 'error')}
               onClick={() =>
                 bulkAction('/api/job/retry', { id: '' }, 'Failed downloads submitted for retry.')
@@ -223,7 +223,7 @@ export function DownloadsPage() {
               Retry failed
             </Button>
             <Button
-              variant="plain"
+              variant="quiet"
               disabled={library.busy || !jobs.some((job) => matchesStatus(job, 'completed'))}
               onClick={() =>
                 bulkAction(
@@ -269,7 +269,7 @@ export function DownloadsPage() {
                     : 'Paste links above to get started.'}
                 </Text>
                 {jobs.length > 0 && (
-                  <Button variant="plain" onClick={clear}>
+                  <Button variant="quiet" onClick={clear}>
                     Clear filters
                   </Button>
                 )}

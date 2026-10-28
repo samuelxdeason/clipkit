@@ -75,7 +75,7 @@ export function DownloadComposer({
             />
           )}
         </div>
-        <Button type="submit" variant="solid" disabled={!connected || busy || !value.trim()}>
+        <Button type="submit" variant="primary" disabled={!connected || busy || !value.trim()}>
           <Icon glyph={Plus} size="sm" />
           Add to queue
         </Button>
@@ -88,7 +88,7 @@ export function DownloadComposer({
       <div className={css({ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '3' })}>
         <Button
           type="button"
-          variant="plain"
+          variant="quiet"
           size="compact"
           disabled={busy}
           aria-expanded={multiple}
