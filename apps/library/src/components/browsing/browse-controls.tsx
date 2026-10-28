@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { Search, X, Grid2X2 } from 'lucide-react';
-import { Button, ChoiceSelect, Icon, IconButton, Input, Paging, Text } from '@clipkit/ui';
+import { Grid2X2, X } from 'lucide-react';
+import { Button, ChoiceSelect, Icon, Paging, SearchField, Text } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 
 export function BrowseSearch({
@@ -13,42 +13,20 @@ export function BrowseSearch({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className={css({ position: 'relative' })}>
-      <div
-        className={css({
-          position: 'absolute',
-          left: '3',
-          top: '3',
-          color: 'muted',
-          pointerEvents: 'none',
-        })}
-      >
-        <Icon glyph={Search} size="sm" />
-      </div>
-      <Input
-        aria-label={`Search ${noun}`}
-        placeholder={
-          noun === 'people'
-            ? 'Search names or aliases…'
-            : noun === 'tags'
-              ? 'Search tag names…'
-              : noun === 'downloads'
-                ? 'Search titles or source URLs…'
-                : `Search ${noun}, people or metadata…`
-        }
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        ps="10"
-        pe="12"
-      />
-      {value && (
-        <div className={css({ position: 'absolute', right: '1', top: '0' })}>
-          <IconButton variant="quiet" aria-label="Clear search" onClick={() => onChange('')}>
-            <Icon glyph={X} size="sm" />
-          </IconButton>
-        </div>
-      )}
-    </div>
+    <SearchField
+      label={`Search ${noun}`}
+      placeholder={
+        noun === 'people'
+          ? 'Search names or aliases…'
+          : noun === 'tags'
+            ? 'Search tag names…'
+            : noun === 'downloads'
+              ? 'Search titles or source URLs…'
+              : `Search ${noun}, people or metadata…`
+      }
+      value={value}
+      onChange={onChange}
+    />
   );
 }
 

@@ -44,7 +44,13 @@ const sheets = [
   interactionSystem,
 ];
 
+// style.css starts with @tailwind directives the frame cannot process; this is
+// the part of Tailwind's preflight the controls depend on.
 const frame = `
+  *, ::before, ::after { box-sizing: border-box; border: 0 solid; }
+  button, input, select, textarea { font: inherit; color: inherit; margin: 0; padding: 0; }
+  button, [role="button"] { background-color: transparent; background-image: none; cursor: pointer; }
+  svg { display: block; }
   html, body { margin: 0; background: transparent; }
   .finder-shell { padding: 2px; background: transparent; }
   .finder-shell .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
@@ -56,5 +62,6 @@ export function legacyDocument(markup: string): string {
   // Relative font URLs cannot resolve inside the frame; the legacy button
   // uses the system font, so dropping the declarations loses nothing here.
   const css = sheets.join('\n').replace(/@font-face\s*{[^}]*}/g, '');
-  return `<!doctype html><html><head><meta charset="utf-8"><style>${css}${frame}</style></head><body><div class="finder-shell">${markup}</div></body></html>`;
+  // The app mounts under `.manager.finder-shell`; both classes scope rules.
+  return `<!doctype html><html><head><meta charset="utf-8"><style>${css}${frame}</style></head><body><div class="manager finder-shell">${markup}</div></body></html>`;
 }

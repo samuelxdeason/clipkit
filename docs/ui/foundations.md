@@ -6,6 +6,8 @@ Canonical values live in `packages/design-tokens/src/values.ts`. `build.mjs` gen
 
 The theme still loads `@pandacss/preset-panda` for its numeric size and space names (`h: '10'`, `w: 'full'`), which older recipes and app layout code use. Named scales from `values.ts` are the target; the preset is removed once nothing depends on it.
 
+Pages compose; recipes style. In `apps/library`, inline `css()` may set layout (display, grid, flex, gap, size, position) but not colour, type, borders, radii or shadows. ESLint warns on each such property; the warning count from `npm run lint:foundation` is the migration backlog, and it reaches zero when every appearance decision lives in a recipe or text style in `packages/ui`.
+
 | Token | Use |
 | --- | --- |
 | canvas / surface / raised / field | Background hierarchy; no decorative cherry panel fills |

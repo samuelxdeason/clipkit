@@ -1,7 +1,8 @@
-import { useId, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { Tabs } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 
-/** Manual-activation tabs: arrows move focus, Enter/Space opens the panel. */
+/** Underline tabs over one content panel; the caller renders the active panel. */
 export function ContentTabs({
   label,
   items,
@@ -15,65 +16,20 @@ export function ContentTabs({
   onChange: (value: string) => void;
   children: ReactNode;
 }) {
-  const id = useId();
   return (
-    <div className={css({ mt: '6' })}>
-      <div
-        role="tablist"
-        aria-label={label}
-        className={css({ display: 'flex', gap: '4', mb: '3' })}
-      >
-        {items.map((item, index) => (
-          <button
-            key={item.value}
-            type="button"
-            role="tab"
-            id={`${id}-${item.value}`}
-            aria-controls={`${id}-panel`}
-            aria-selected={value === item.value}
-            tabIndex={value === item.value ? 0 : -1}
-            onClick={() => onChange(item.value)}
-            onKeyDown={(event) => {
-              const next =
-                event.key === 'ArrowRight'
-                  ? (index + 1) % items.length
-                  : event.key === 'ArrowLeft'
-                    ? (index + items.length - 1) % items.length
-                    : event.key === 'Home'
-                      ? 0
-                      : event.key === 'End'
-                        ? items.length - 1
-                        : null;
-              if (next !== null) {
-                event.preventDefault();
-                document.getElementById(`${id}-${items[next].value}`)?.focus();
-              }
-            }}
-            className={css({
-              px: '1',
-              py: '3',
-              color: 'muted',
-              fontWeight: 'semibold',
-              fontSize: 'md',
-              borderBottomWidth: '2px',
-              borderColor: 'transparent',
-              cursor: 'pointer',
-              _hover: { color: 'text' },
-              '&[aria-selected=true]': { color: 'text', borderColor: 'accent' },
-              _focusVisible: {
-                outline: '[2px solid]',
-                outlineColor: 'accent',
-                outlineOffset: '[2px]',
-              },
-            })}
-          >
+    <Tabs.Root
+      value={value}
+      onValueChange={(details) => onChange(details.value)}
+      className={css({ mt: '6' })}
+    >
+      <Tabs.List aria-label={label}>
+        {items.map((item) => (
+          <Tabs.Trigger key={item.value} value={item.value}>
             {item.label}
-          </button>
+          </Tabs.Trigger>
         ))}
-      </div>
-      <div role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-${value}`} tabIndex={0}>
-        {children}
-      </div>
-    </div>
+      </Tabs.List>
+      <Tabs.Content value={value}>{children}</Tabs.Content>
+    </Tabs.Root>
   );
 }

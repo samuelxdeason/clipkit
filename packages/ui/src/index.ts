@@ -7,6 +7,8 @@ export { Icon, type IconProps } from './components/icon';
 export { ChoiceSelect, type ChoiceSelectProps } from './components/choice-select';
 export { Checkbox, type CheckboxProps } from './components/checkbox';
 export { Paging } from './components/paging';
+export { SearchField, type SearchFieldProps } from './components/search-field';
+export * as Tabs from './components/tabs';
 export * as Select from './components/select';
 export * as Popover from './components/popover';
 export * as Dialog from './components/dialog';
