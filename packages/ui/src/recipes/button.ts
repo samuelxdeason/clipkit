@@ -80,16 +80,6 @@ export const button = defineRecipe({
         borderColor: 'dangerLine',
         _hover: { bg: 'selected', _disabled: { bg: 'dangerSurface' } },
       },
-      // Tag metadata on cards; extracted into its own recipe once a second
-      // consumer needs a non-button tag.
-      tag: {
-        bg: 'tag.surface',
-        color: 'tag.text',
-        borderColor: 'tag.line',
-        minW: '0',
-        flexShrink: '1',
-        _hover: { bg: 'raised', _disabled: { bg: 'tag.surface' } },
-      },
     },
     size: {
       regular: {},
@@ -104,20 +94,6 @@ export const button = defineRecipe({
       true: { px: '0', py: '0', aspectRatio: '1', minW: 'control' },
     },
   },
-  compoundVariants: [
-    { iconOnly: true, size: 'compact', css: { minW: 'controlCompact' } },
-    {
-      variant: 'tag',
-      size: 'compact',
-      css: {
-        minH: '6',
-        px: '2',
-        py: '0.5',
-        fontSize: 'meta',
-        lineHeight: 'compact',
-        fontWeight: 'body',
-      },
-    },
-  ],
+  compoundVariants: [{ iconOnly: true, size: 'compact', css: { minW: 'controlCompact' } }],
   defaultVariants: { variant: 'neutral', size: 'regular' },
 });

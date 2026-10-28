@@ -1,6 +1,6 @@
 import { ImageOff } from 'lucide-react';
 import { useState } from 'react';
-import { Button, Checkbox, Text } from '@clipkit/ui';
+import { Button, Checkbox, Tag, Text } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { MediaCardBody, MediaCardCaption } from '../../components/browsing/media-card-content';
 import { formatDuration, type Video } from './model';
@@ -219,17 +219,15 @@ export function VideoCard({
         >
           <div className={css({ display: 'flex', alignItems: 'center', gap: '1', minW: '0' })}>
             {video.tags.slice(0, 2).map((tag) => (
-              <Button
+              <Tag
                 key={tag}
-                size="compact"
-                variant="tag"
                 title={tag}
                 aria-label={`Filter by tag: ${tag}`}
                 onClick={() => onTag(tag)}
-                maxW="[130px]"
+                className={css({ maxW: '[130px]' })}
               >
-                <span className={css({ overflow: 'hidden', textOverflow: 'ellipsis' })}>{tag}</span>
-              </Button>
+                {tag}
+              </Tag>
             ))}
             {video.tags.length > 2 && (
               <Text

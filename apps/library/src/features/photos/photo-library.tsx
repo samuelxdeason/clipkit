@@ -1,7 +1,8 @@
 import { ManageBar } from '../../components/browsing/manage-bar';
 import { PageIntro } from '../../components/browsing/page-intro';
 import { useRef, useState } from 'react';
-import { Button, Checkbox, Heading, Text } from '@clipkit/ui';
+import { Image } from 'lucide-react';
+import { Button, Checkbox, EmptyState, Notice, Text } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
 import { ConnectionPanel } from '../../app/connection-panel';
@@ -12,7 +13,6 @@ import { PhotoDialogs, type PhotoDialogKind } from './photo-dialogs';
 import { usePhotoLibrary } from './use-photo-library';
 import { emptyPhotoFilters, photoPageSize } from './model';
 
-const row = css({ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '3' });
 export function PhotoLibrary({ person }: { person?: string }) {
   const library = usePhotoLibrary(person);
   const [dialog, setDialog] = useState<PhotoDialogKind>(null);
@@ -65,16 +65,19 @@ export function PhotoLibrary({ person }: { person?: string }) {
           albums={[...new Set(library.photos.map((photo) => photo.album).filter(Boolean))].sort()}
           collections={library.collections}
         />
-        {library.notice && (
-          <Text role="status" size="sm" py="3">
-            {library.notice}
-          </Text>
-        )}
+        {library.notice && <Notice className={css({ my: '3' })}>{library.notice}</Notice>}
         {library.error && (
-          <div role="alert" className={`${row} ${css({ py: '4' })}`}>
-            <Text tone="danger">{library.error}</Text>
-            <Button onClick={() => void library.refresh()}>Retry</Button>
-          </div>
+          <Notice
+            tone="danger"
+            className={css({ my: '3' })}
+            actions={
+              <Button variant="quiet" size="compact" onClick={() => void library.refresh()}>
+                Retry
+              </Button>
+            }
+          >
+            {library.error}
+          </Notice>
         )}
         <div
           ref={results}
@@ -83,25 +86,29 @@ export function PhotoLibrary({ person }: { person?: string }) {
           className={css({ pt: '4', outline: 'none', scrollMarginTop: '4' })}
         >
           {library.loading && (!library.photos.length || !!library.filters.collection) ? (
-            <Text role="status">Loading your photos…</Text>
+            <EmptyState state="loading" title="Loading your photos…" />
           ) : !library.matches.length ? (
-            <div className={css({ py: '20', display: 'grid', justifyItems: 'center', gap: '4' })}>
-              <Heading>
-                {library.error
+            <EmptyState
+              state={library.error ? 'error' : 'empty'}
+              symbol={<Image />}
+              title={
+                library.error
                   ? 'Photos are unavailable'
                   : library.photos.length
                     ? 'No photos match'
-                    : 'Your photo library is empty'}
-              </Heading>
-              <Text tone="muted">
-                {library.photos.length
+                    : 'Your photo library is empty'
+              }
+              description={
+                library.photos.length
                   ? 'Try another search or clear your filters.'
-                  : 'Add photos in the existing app, then refresh. Hidden collections are excluded.'}
-              </Text>
-              <Button onClick={() => library.updateFilters(emptyPhotoFilters)}>
-                Clear search and filters
-              </Button>
-            </div>
+                  : 'Add photos in the existing app, then refresh. Hidden collections are excluded.'
+              }
+              actions={
+                <Button onClick={() => library.updateFilters(emptyPhotoFilters)}>
+                  Clear search and filters
+                </Button>
+              }
+            />
           ) : (
             <BrowseGrid kind="photos" size={library.size} testId="photo-grid">
               {library.visible.map((photo) => (

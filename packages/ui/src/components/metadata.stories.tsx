@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { Button } from './button';
 import { Checkbox } from './checkbox';
+import { Tag } from './feedback';
 import { Text } from './text';
 import { css } from '../../styled-system/css';
 
@@ -43,12 +44,8 @@ export const Card: Story = {
         Alex Morgan, Casey Ellis
       </Text>
       <div className={css({ display: 'flex', gap: '1', alignItems: 'center' })}>
-        <Button variant="tag" size="compact">
-          Travel
-        </Button>
-        <Button variant="tag" size="compact">
-          Quiet moments
-        </Button>
+        <Tag onClick={() => {}}>Travel</Tag>
+        <Tag onClick={() => {}}>Quiet moments</Tag>
         <Button variant="quiet" size="compact" ml="auto">
           File info
         </Button>

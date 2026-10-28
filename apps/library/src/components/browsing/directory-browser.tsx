@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Button, ChoiceSelect, Heading, Text } from '@clipkit/ui';
+import { Tags, Users } from 'lucide-react';
+import { Button, ChoiceSelect, EmptyState, Notice } from '@clipkit/ui';
 import { PageIntro } from './page-intro';
 import { css } from '@clipkit/ui/css';
 import {
@@ -155,19 +156,19 @@ export function DirectoryBrowser({
           onChange={(size) => setSettings((current) => ({ ...current, size }))}
         />
       </BrowseToolbar>
-      {notice && (
-        <Text role="status" py="3">
-          {notice}
-        </Text>
-      )}
+      {notice && <Notice className={css({ my: '3' })}>{notice}</Notice>}
       {error && (
-        <div
-          role="alert"
-          className={css({ py: '4', display: 'flex', gap: '3', alignItems: 'center' })}
+        <Notice
+          tone="danger"
+          className={css({ my: '3' })}
+          actions={
+            <Button variant="quiet" size="compact" onClick={onRefresh}>
+              Retry
+            </Button>
+          }
         >
-          <Text tone="danger">{error}</Text>
-          <Button onClick={onRefresh}>Retry</Button>
-        </div>
+          {error}
+        </Notice>
       )}
       <div
         ref={results}
@@ -176,35 +177,39 @@ export function DirectoryBrowser({
         className={css({ pt: '4', outline: 'none' })}
       >
         {loading && !entries.length ? (
-          <Text role="status">Loading {kind}…</Text>
+          <EmptyState state="loading" title={`Loading ${kind}…`} />
         ) : !matches.length ? (
-          <div className={css({ py: '16', display: 'grid', justifyItems: 'center', gap: '4' })}>
-            <Heading>
-              {error
+          <EmptyState
+            state={error ? 'error' : 'empty'}
+            symbol={kind === 'people' ? <Users /> : <Tags />}
+            title={
+              error
                 ? 'Directory unavailable'
                 : entries.length
                   ? `No matching ${kind}`
                   : kind === 'people'
                     ? 'Your people, all together'
-                    : 'Make your library easier to find'}
-            </Heading>
-            <Text tone="muted">
-              {entries.length
+                    : 'Make your library easier to find'
+            }
+            description={
+              entries.length
                 ? 'Try a different search or clear your filters.'
                 : kind === 'people'
                   ? 'Create a person, then link them to videos or photos.'
-                  : 'Add tags to videos using Manage mode. Tags appear here when they are used.'}
-            </Text>
-            {entries.length ? (
-              <Button onClick={() => update({ query: '', coverage: 'all' })}>
-                Clear search and filters
-              </Button>
-            ) : (
-              <Button asChild>
-                <a href="/">Browse videos</a>
-              </Button>
-            )}
-          </div>
+                  : 'Add tags to videos using Manage mode. Tags appear here when they are used.'
+            }
+            actions={
+              entries.length ? (
+                <Button onClick={() => update({ query: '', coverage: 'all' })}>
+                  Clear search and filters
+                </Button>
+              ) : (
+                <Button asChild>
+                  <a href="/">Browse videos</a>
+                </Button>
+              )
+            }
+          />
         ) : (
           <BrowseGrid kind={kind} size={settings.size} testId={`${kind}-grid`}>
             {matches.slice((page - 1) * 24, page * 24).map((entry) => (

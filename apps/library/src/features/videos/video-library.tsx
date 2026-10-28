@@ -1,7 +1,7 @@
 import { ManageBar } from '../../components/browsing/manage-bar';
 import { useRef, useState } from 'react';
-import { FolderPlus, Heart, RotateCcw, Trash2 } from 'lucide-react';
-import { Button, Checkbox, ChoiceSelect, Heading, Icon, Text } from '@clipkit/ui';
+import { Film, FolderPlus, Heart, RotateCcw, Trash2 } from 'lucide-react';
+import { Button, Checkbox, ChoiceSelect, EmptyState, Icon, Notice, Text } from '@clipkit/ui';
 import { BrowseGrid, BrowseFooter } from '../../components/browsing/browse-controls';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
@@ -84,9 +84,9 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
           </header>
         )}
         {!demo && connected.error && state !== 'error' && (
-          <Text role="alert" tone="danger">
+          <Notice tone="danger" className={css({ mb: '3' })}>
             {connected.error}
-          </Text>
+          </Notice>
         )}
         <LibraryToolbar
           connected={!demo}
@@ -114,16 +114,18 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
           count={library.matches.length}
         />
         {library.notice && (
-          <div className={css({ py: '3', display: 'flex', alignItems: 'center', gap: '3' })}>
-            <Text size="sm" role="status">
-              {library.notice}
-            </Text>
-            {library.removed.length > 0 && (
-              <Button variant="quiet" onClick={library.undo}>
-                Undo removal
-              </Button>
-            )}
-          </div>
+          <Notice
+            className={css({ my: '3' })}
+            actions={
+              library.removed.length > 0 && (
+                <Button variant="quiet" size="compact" onClick={library.undo}>
+                  Undo removal
+                </Button>
+              )
+            }
+          >
+            {library.notice}
+          </Notice>
         )}
         <div
           ref={results}
@@ -132,62 +134,53 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
           className={css({ pt: '4', outline: 'none', scrollMarginTop: '4' })}
         >
           {state === 'loading' ? (
-            <div role="status" className={css({ py: '20', textAlign: 'center' })}>
-              <Heading>Loading your library…</Heading>
-              <Text tone="muted">
-                {demo
+            <EmptyState
+              state="loading"
+              title="Loading your library…"
+              description={
+                demo
                   ? 'This is a preview of the loading state.'
-                  : 'Loading the accessible catalogue so search and filters include every video.'}
-              </Text>
-              {demo && <Button onClick={() => setState('ready')}>Finish loading demo</Button>}
-            </div>
+                  : 'Loading the accessible catalogue so search and filters include every video.'
+              }
+              actions={
+                demo && <Button onClick={() => setState('ready')}>Finish loading demo</Button>
+              }
+            />
           ) : state === 'error' ? (
-            <div
-              role="alert"
-              className={css({
-                py: '20',
-                textAlign: 'center',
-                display: 'grid',
-                justifyItems: 'center',
-                gap: '4',
-              })}
-            >
-              <Heading>We couldn’t load the videos</Heading>
-              <Text tone="muted">
-                {demo
+            <EmptyState
+              state="error"
+              symbol={<Film />}
+              title="We couldn’t load the videos"
+              description={
+                demo
                   ? 'Your demo collection is still here. Try again to return to it.'
-                  : connected.error}
-              </Text>
-              <Button onClick={() => (demo ? setState('ready') : void connected.refresh())}>
-                Retry
-              </Button>
-            </div>
-          ) : library.matches.length === 0 ? (
-            <div
-              className={css({
-                py: '20',
-                textAlign: 'center',
-                display: 'grid',
-                justifyItems: 'center',
-                gap: '4',
-              })}
-            >
-              <Heading>
-                {!demo && !library.videos.length ? 'Your library is empty' : 'No videos match'}
-              </Heading>
-              <Text tone="muted">
-                {!demo && !library.videos.length
-                  ? 'Add videos in the existing app, then refresh this library. Hidden collections are excluded from this view.'
-                  : 'Try another search or clear your filters.'}
-              </Text>
-              {!demo && !library.videos.length ? (
-                <Button onClick={() => void connected.refresh()}>Refresh library</Button>
-              ) : (
-                <Button onClick={() => library.updateFilters(emptyFilters)}>
-                  Clear search and filters
+                  : connected.error
+              }
+              actions={
+                <Button onClick={() => (demo ? setState('ready') : void connected.refresh())}>
+                  Retry
                 </Button>
-              )}
-            </div>
+              }
+            />
+          ) : library.matches.length === 0 ? (
+            <EmptyState
+              symbol={<Film />}
+              title={!demo && !library.videos.length ? 'Your library is empty' : 'No videos match'}
+              description={
+                !demo && !library.videos.length
+                  ? 'Add videos in the existing app, then refresh this library. Hidden collections are excluded from this view.'
+                  : 'Try another search or clear your filters.'
+              }
+              actions={
+                !demo && !library.videos.length ? (
+                  <Button onClick={() => void connected.refresh()}>Refresh library</Button>
+                ) : (
+                  <Button onClick={() => library.updateFilters(emptyFilters)}>
+                    Clear search and filters
+                  </Button>
+                )
+              }
+            />
           ) : (
             <BrowseGrid size={library.size} testId="video-grid">
               {library.visible.map((video) => (

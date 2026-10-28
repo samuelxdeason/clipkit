@@ -40,7 +40,7 @@ Spacing is the 4px grid from `values.ts`; the numeric names (`2`, `3`, `4`, `6`,
 
 ## States
 
-Named text styles `cardTitle`, `metadata`, and `fieldLabel` own compact browsing typography. Card-title weight, tracking and line height are theme tokens; avoid arbitrary values in consuming cards. `Button variant="tag" size="compact"` renders tag metadata; `variant="quiet" size="compact"` renders quiet card actions. Compact size is reserved for secondary metadata, not primary forms or toolbar actions. Checkbox appearance belongs in `recipes/checkbox.ts`, with its component retaining Ark behavior.
+Named text styles `cardTitle`, `metadata`, and `fieldLabel` own compact browsing typography. Card-title weight, tracking and line height are theme tokens; avoid arbitrary values in consuming cards. Tag renders tag metadata; `Button variant="quiet" size="compact"` renders quiet card actions. Compact size is reserved for secondary metadata, not primary forms or toolbar actions. Checkbox appearance belongs in `recipes/checkbox.ts`, with its component retaining Ark behavior.
 
 The shared Checkbox uses a 24px rounded square with the 8px control radius, inside a minimum 40px hit area. Checked and indeterminate states share the same geometry; disabled and keyboard-focus styles remain visible. Use this component for card selection, select-page controls and filter choices instead of creating page-specific checkbox styles.
 

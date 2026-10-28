@@ -7,6 +7,7 @@ import { heading, text } from './src/recipes/typography';
 import { select, popover, dialog } from './src/recipes/overlays';
 import { tabs } from './src/recipes/tabs';
 import { searchField } from './src/recipes/search-field';
+import { tag, statusBadge, notice, emptyState } from './src/recipes/feedback';
 
 export default defineConfig({
   // preset-panda still supplies the numeric size/space scale that older
@@ -45,8 +46,8 @@ export default defineConfig({
   theme: {
     extend: {
       ...theme,
-      recipes: { button, input, heading, text },
-      slotRecipes: { select, popover, dialog, checkbox, tabs, searchField },
+      recipes: { button, input, heading, text, tag, statusBadge },
+      slotRecipes: { select, popover, dialog, checkbox, tabs, searchField, notice, emptyState },
     },
   },
 });

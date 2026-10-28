@@ -1,5 +1,5 @@
 import { useCallback, useState, type ReactNode } from 'react';
-import { Button, Heading, Text } from '@clipkit/ui';
+import { Button, EmptyState, Heading, Notice } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
 import { ConnectionPanel } from '../../app/connection-panel';
@@ -50,21 +50,21 @@ export function PersonPage({
         <a href="/?view=people">People</a> / {displayName}
       </nav>
       {library.error && (
-        <div
-          role="alert"
-          className={css({ display: 'flex', gap: '3', py: '4', alignItems: 'center' })}
+        <Notice
+          tone="danger"
+          className={css({ my: '3' })}
+          actions={
+            <Button variant="quiet" size="compact" onClick={() => void library.refresh()}>
+              Retry
+            </Button>
+          }
         >
-          <Text tone="danger">{library.error}</Text>
-          <Button onClick={() => void library.refresh()}>Retry</Button>
-        </div>
+          {library.error}
+        </Notice>
       )}
-      {library.notice && (
-        <Text role="status" py="3">
-          {library.notice}
-        </Text>
-      )}
+      {library.notice && <Notice className={css({ my: '3' })}>{library.notice}</Notice>}
       {library.loading && !profile ? (
-        <Text role="status">Loading profile…</Text>
+        <EmptyState state="loading" title="Loading profile…" />
       ) : !profile ? (
         <>
           <Heading as="h1">{library.error ? 'Profile unavailable' : 'Person not found'}</Heading>

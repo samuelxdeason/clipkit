@@ -1,7 +1,8 @@
 import { DownloadComposer } from './download-composer';
 import { QueueOverview, queueCategories as categories } from './queue-overview';
 import { useEffect, useState } from 'react';
-import { Button, ChoiceSelect, Heading, Text } from '@clipkit/ui';
+import { Download } from 'lucide-react';
+import { Button, ChoiceSelect, EmptyState, Heading, Notice, Text } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
 import { ConnectionPanel } from '../../app/connection-panel';
@@ -155,19 +156,28 @@ export function DownloadsPage() {
           />
         </section>
         {library.error && (
-          <div role="alert" className={row}>
-            <Text tone="danger">{library.error}</Text>
-            <Button disabled={library.busy} onClick={() => void library.refresh()}>
-              Retry connection
-            </Button>
-          </div>
+          <Notice
+            tone="danger"
+            actions={
+              <Button
+                variant="quiet"
+                size="compact"
+                disabled={library.busy}
+                onClick={() => void library.refresh()}
+              >
+                Retry connection
+              </Button>
+            }
+          >
+            {library.error}
+          </Notice>
         )}
         {(library.notice || added !== null) && (
-          <Text role="status">
+          <Notice>
             {added !== null
               ? `${added} new downloads added. Existing queue entries may be skipped.`
               : library.notice}
-          </Text>
+          </Notice>
         )}
         <div>
           <div className={css({ mb: '4' })}>
@@ -238,7 +248,7 @@ export function DownloadsPage() {
           </div>
           <div className={css({ display: 'grid', gap: '3' })}>
             {library.loading && !library.data ? (
-              <Text role="status">Loading queue…</Text>
+              <EmptyState state="loading" title="Loading queue…" />
             ) : matches.length ? (
               matches.slice((currentPage - 1) * 24, currentPage * 24).map((job) => (
                 <DownloadRow
@@ -255,25 +265,29 @@ export function DownloadsPage() {
                 />
               ))
             ) : (
-              <div className={css({ py: '12', textAlign: 'center' })}>
-                <Heading>
-                  {library.error && !library.data
+              <EmptyState
+                state={library.error && !library.data ? 'error' : 'empty'}
+                symbol={<Download />}
+                title={
+                  library.error && !library.data
                     ? 'Queue unavailable'
                     : jobs.length
                       ? 'No matching downloads'
-                      : 'Your queue is clear'}
-                </Heading>
-                <Text tone="muted">
-                  {jobs.length
+                      : 'Your queue is clear'
+                }
+                description={
+                  jobs.length
                     ? 'Try another search or clear your filters.'
-                    : 'Paste links above to get started.'}
-                </Text>
-                {jobs.length > 0 && (
-                  <Button variant="quiet" onClick={clear}>
-                    Clear filters
-                  </Button>
-                )}
-              </div>
+                    : 'Paste links above to get started.'
+                }
+                actions={
+                  jobs.length > 0 && (
+                    <Button variant="quiet" onClick={clear}>
+                      Clear filters
+                    </Button>
+                  )
+                }
+              />
             )}
           </div>
           {library.data && (

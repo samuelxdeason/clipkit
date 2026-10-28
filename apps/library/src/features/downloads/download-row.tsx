@@ -8,7 +8,7 @@ import {
   Check,
   CircleAlert,
 } from 'lucide-react';
-import { Button, Heading, Icon, IconButton, Text } from '@clipkit/ui';
+import { Button, Heading, Icon, IconButton, StatusBadge, Text } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { progress, statusLabels, type DownloadJob } from './model';
 
@@ -90,16 +90,21 @@ export function DownloadRow({
               {job.url}
             </Text>
           </div>
-          <Text
-            size="sm"
-            px="3"
-            py="1"
-            bg="field"
-            borderRadius="full"
-            color={job.status === 'error' ? 'danger' : active ? 'info' : 'muted'}
+          <StatusBadge
+            tone={
+              job.status === 'error'
+                ? 'danger'
+                : job.status === 'done'
+                  ? 'success'
+                  : job.status === 'duplicate'
+                    ? 'warning'
+                    : active
+                      ? 'info'
+                      : 'neutral'
+            }
           >
             {statusLabels[job.status] || job.status}
-          </Text>
+          </StatusBadge>
         </div>
         {job.replace && (
           <Text size="sm" tone="muted">

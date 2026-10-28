@@ -9,6 +9,16 @@ export { Checkbox, type CheckboxProps } from './components/checkbox';
 export { Paging } from './components/paging';
 export { SearchField, type SearchFieldProps } from './components/search-field';
 export * as Tabs from './components/tabs';
+export {
+  Tag,
+  StatusBadge,
+  Notice,
+  EmptyState,
+  type TagProps,
+  type StatusBadgeProps,
+  type NoticeProps,
+  type EmptyStateProps,
+} from './components/feedback';
 export * as Select from './components/select';
 export * as Popover from './components/popover';
 export * as Dialog from './components/dialog';
