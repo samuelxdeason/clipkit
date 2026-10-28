@@ -10,12 +10,10 @@ import {
   Users,
   Settings,
   Download,
+  SlidersHorizontal,
 } from 'lucide-react';
-import { Button, Heading, Icon, IconButton, Text } from '@clipkit/ui';
+import { Button, Heading, Icon, IconButton, Sidebar, Text } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
-import { navigation } from './navigation.styles';
-
-const nav = navigation();
 
 export function LibraryShell({
   children,
@@ -57,47 +55,32 @@ export function LibraryShell({
           <Icon glyph={Menu} />
         </IconButton>
       </div>
-      <aside
+      <Sidebar.Root
         id="library-navigation"
         data-open={open}
         className={css({
           display: { base: 'none', lg: 'flex' },
           '&[data-open=true]': { display: 'flex' },
-          flexDirection: 'column',
-          gap: '6',
-          p: '4',
-          borderRightWidth: '1px',
-          borderColor: 'line',
-          bg: 'field',
+          w: { base: 'full', lg: '[248px]' },
           position: { lg: 'sticky' },
           top: '0',
           h: { lg: '[100dvh]' },
         })}
       >
-        <div className={nav.brand}>
-          <span className={nav.mark}>
-            <Icon glyph={SquarePlay} />
-          </span>
+        <Sidebar.Brand href={demo ? '/?demo=1' : '/'} aria-label="ClipKit home">
+          <Sidebar.Mark>
+            <SquarePlay aria-hidden="true" />
+          </Sidebar.Mark>
           <div>
-            <p className={nav.wordmark}>
+            <Sidebar.Wordmark>
               clipkit<span className={css({ color: 'accent' })}>.</span>
-            </p>
-            <p className={nav.tagline}>YOUR PERSONAL LIBRARY</p>
+            </Sidebar.Wordmark>
+            <Sidebar.Tagline>Your personal library</Sidebar.Tagline>
           </div>
-        </div>
-        <nav
-          aria-label="Library navigation"
-          className={css({
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '6',
-            flex: '1',
-            minH: '0',
-            overflowY: 'auto',
-          })}
-        >
-          <div className={nav.group}>
-            <p className={nav.label}>LIBRARY</p>
+        </Sidebar.Brand>
+        <Sidebar.Nav aria-label="Library navigation">
+          <Sidebar.Group>
+            <Sidebar.Label>Library</Sidebar.Label>
             <NavigationItem
               label="Videos"
               glyph={Film}
@@ -110,9 +93,9 @@ export function LibraryShell({
               href={demo ? undefined : '/?view=photos'}
               active={page === 'photos'}
             />
-          </div>
-          <div className={nav.group}>
-            <p className={nav.label}>ORGANIZE</p>
+          </Sidebar.Group>
+          <Sidebar.Group>
+            <Sidebar.Label>Organize</Sidebar.Label>
             <NavigationItem label="Collections" glyph={Folder} />
             <NavigationItem
               label="People"
@@ -126,24 +109,14 @@ export function LibraryShell({
               href={demo ? undefined : '/?view=tags'}
               active={page === 'tags'}
             />
-          </div>
-          <div
-            className={css({
-              mt: 'auto',
-              pt: '4',
-              borderTopWidth: '1px',
-              borderColor: 'line',
-              display: 'grid',
-              gap: '3',
-            })}
-          >
+          </Sidebar.Group>
+          <Sidebar.Footer>
             <details open={page === 'downloads' ? true : undefined}>
-              <summary
-                className={css({ cursor: 'pointer', fontSize: 'sm', color: 'muted', py: '3' })}
-              >
+              <Sidebar.Summary>
+                <SlidersHorizontal aria-hidden="true" />
                 Manage library
-              </summary>
-              <div className={css({ display: 'grid', gap: '2' })}>
+              </Sidebar.Summary>
+              <Sidebar.Group className={css({ mt: '1' })}>
                 <NavigationItem label="Following" glyph={Heart} />
                 <NavigationItem
                   label="Downloads"
@@ -154,7 +127,7 @@ export function LibraryShell({
                 <Button asChild variant="quiet" justifyContent="flex-start">
                   <a href="?view=foundation">Design foundation</a>
                 </Button>
-              </div>
+              </Sidebar.Group>
             </details>
             <NavigationItem label="Settings" glyph={Settings} />
             {demo && (
@@ -162,9 +135,9 @@ export function LibraryShell({
                 Synthetic demo · session only
               </Text>
             )}
-          </div>
-        </nav>
-      </aside>
+          </Sidebar.Footer>
+        </Sidebar.Nav>
+      </Sidebar.Root>
       <main
         id="main-content"
         className={css({
@@ -180,7 +153,7 @@ export function LibraryShell({
   );
 }
 
-/** Sidebar links keep navigation alignment and selected treatment in one owner. */
+/** Sidebar rows: a link for a route that exists, a disabled button for one that does not yet. */
 function NavigationItem({
   label,
   glyph,
@@ -200,13 +173,15 @@ function NavigationItem({
   );
   if (!href)
     return (
-      <button type="button" disabled className={nav.item} title="Coming in a later milestone">
+      <Sidebar.Item type="button" disabled title="Coming in a later milestone">
         {content}
-      </button>
+      </Sidebar.Item>
     );
   return (
-    <a href={href} aria-current={active ? 'page' : undefined} className={nav.item}>
-      {content}
-    </a>
+    <Sidebar.Item asChild>
+      <a href={href} aria-current={active ? 'page' : undefined}>
+        {content}
+      </a>
+    </Sidebar.Item>
   );
 }

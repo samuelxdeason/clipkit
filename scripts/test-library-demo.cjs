@@ -57,7 +57,7 @@ const uiRequire = createRequire(path.join(root, 'packages/ui/package.json'));
     const currentLink = navigation.getByRole('link', { name: 'Videos', exact: true });
     assert.equal(await currentLink.getAttribute('aria-current'), 'page');
     assert.equal((await currentLink.boundingBox()).height, 44, 'Sidebar rows retain shared geometry');
-    assert.equal(await navigation.getByText('LIBRARY', { exact: true }).evaluate(el => getComputedStyle(el).fontSize), '12px');
+    assert.equal(await navigation.getByText('Library', { exact: true }).evaluate(el => getComputedStyle(el).fontSize), '11px', 'Group labels use the eyebrow style');
     assert(await navigation.getByRole('button', { name: 'Collections', exact: true }).isDisabled());
     const sortControl = page.getByRole('combobox', { name: 'Sort videos', exact: true });
     const toolbarStyle = await sortControl.evaluate(el => {

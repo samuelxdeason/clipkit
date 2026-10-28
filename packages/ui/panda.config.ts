@@ -10,6 +10,7 @@ import { searchField } from './src/recipes/search-field';
 import { tag, statusBadge, notice, emptyState } from './src/recipes/feedback';
 import { mediaCard } from './src/recipes/media-card';
 import { pageHeader, sectionHeading, toolbar, filterRail, filterChip } from './src/recipes/layout';
+import { sidebar } from './src/recipes/sidebar';
 
 export default defineConfig({
   // preset-panda still supplies the numeric size/space scale that older
@@ -63,6 +64,7 @@ export default defineConfig({
         sectionHeading,
         toolbar,
         filterRail,
+        sidebar,
       },
     },
   },

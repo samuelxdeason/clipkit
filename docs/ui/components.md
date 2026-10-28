@@ -27,6 +27,7 @@ Compact card controls use Tag for labels and Button `quiet/compact` for File inf
 | SectionHeading | title; eyebrow; description; surface | Introduces a region inside a page; h2 by default; `surface` puts it on its own panel like the old settings heading |
 | Toolbar | Compound: Root, Search, Row, Summary, Controls, Chips | Root is a labelled section; Summary carries role=status for the result count |
 | FilterRail / FilterChip | Rail with caption and reset; chip removes its filter | Chip's accessible name is "Remove … filter"; reset label is the caller's wording |
+| Sidebar | Compound: Root, Brand, Mark, Wordmark, Tagline, Nav, Group, Label, Item, Count, Footer, Summary | Item is a button; links use asChild with aria-current="page"; Nav carries the "Library navigation" label; unavailable routes are disabled Items |
 | MediaCard | Compound; kind video (default) / photo / person / tag | Root is an article with aria-label; Media is the one clickable surface and needs a name; data-selected shows selection; identity colour and domain content stay in the app |
 
 Use one primary action for the current local task. Neutral is the supporting action; quiet is toolbar utility; danger names a destructive action. These are the existing app's four variants, written as one recipe; Storybook's Reference/Legacy buttons story renders both side by side. Destructive actions must be named accurately and preserve the app's confirmation/recovery behavior. A red button is not a confirmation flow.
