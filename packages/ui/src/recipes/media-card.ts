@@ -14,6 +14,7 @@ export const mediaCard = defineSlotRecipe({
     'root',
     'frame',
     'media',
+    'backdrop',
     'fallback',
     'badge',
     'favorite',
@@ -27,6 +28,7 @@ export const mediaCard = defineSlotRecipe({
     'footer',
     'symbol',
     'arrow',
+    'link',
   ],
   base: {
     root: {
@@ -75,6 +77,17 @@ export const mediaCard = defineSlotRecipe({
       h: 'full',
       cursor: 'pointer',
       _focusVisible: { outline: '2px solid', outlineColor: 'focus', outlineOffset: '-2px' },
+    },
+    // A blurred copy of portrait artwork fills the frame behind the contained image.
+    backdrop: {
+      position: 'absolute',
+      inset: '0',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      filter: 'blur(18px)',
+      transform: 'scale(1.12)',
+      opacity: '0.3',
+      pointerEvents: 'none',
     },
     fallback: {
       display: 'flex',
@@ -195,16 +208,27 @@ export const mediaCard = defineSlotRecipe({
       borderTopWidth: '1px',
       borderColor: 'line',
     },
+    // Directory cards are one link; it inherits the card's colour and shows no focus ring of its own.
+    link: {
+      display: 'flex',
+      flexDirection: 'column',
+      flex: '1',
+      minW: '0',
+      color: 'inherit',
+      textDecoration: 'none',
+      _focusVisible: { outline: 'none' },
+    },
+    // The symbol takes its colour from the card's Identity tone, as the old tag tile did.
     symbol: {
       display: 'grid',
       placeItems: 'center',
       flexShrink: '0',
       w: '12',
       h: '12',
-      bg: 'tag.surface',
-      color: 'tag.text',
+      color: 'inherit',
+      bg: 'color-mix(in srgb, currentColor 10%, transparent)',
       borderWidth: '1px',
-      borderColor: 'tag.line',
+      borderColor: 'color-mix(in srgb, currentColor 30%, transparent)',
       borderRadius: 'inset',
       '& svg': { w: 'iconFeature', h: 'iconFeature' },
     },

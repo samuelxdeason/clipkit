@@ -10,6 +10,7 @@ import {
   SearchField,
   Text,
   Toolbar,
+  Rule,
 } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 
@@ -66,11 +67,11 @@ export function PreviewSize({
 
 export function ManageToggle({ active, onToggle }: { active: boolean; onToggle: () => void }) {
   return (
-    <div className={css({ borderLeftWidth: '1px', borderColor: 'line', pl: '3', ml: '1' })}>
+    <Rule side="left" className={css({ ml: '1' })}>
       <Button data-manage-toggle="" variant="quiet" aria-pressed={active} onClick={onToggle}>
         {active ? 'Done managing' : 'Manage'}
       </Button>
-    </div>
+    </Rule>
   );
 }
 
@@ -185,27 +186,26 @@ export function BrowseFooter({
   onPage: (page: number) => void;
 }) {
   return (
-    <footer
-      aria-label={`${noun} paging`}
-      className={css({
-        mt: '6',
-        pt: '5',
-        borderTopWidth: '1px',
-        borderColor: 'line',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '4',
-      })}
-    >
-      <Text size="sm" tone="muted">
-        {count ? `${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, count)}` : '0'} of{' '}
-        {count} {noun}
-      </Text>
-      {count > pageSize && (
-        <Paging page={page} count={count} pageSize={pageSize} onPageChange={onPage} />
-      )}
-    </footer>
+    <Rule asChild side="top">
+      <footer
+        aria-label={`${noun} paging`}
+        className={css({
+          mt: '6',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '4',
+        })}
+      >
+        <Text size="sm" tone="muted">
+          {count ? `${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, count)}` : '0'} of{' '}
+          {count} {noun}
+        </Text>
+        {count > pageSize && (
+          <Paging page={page} count={count} pageSize={pageSize} onPageChange={onPage} />
+        )}
+      </footer>
+    </Rule>
   );
 }

@@ -2,7 +2,15 @@ import { DownloadComposer } from './download-composer';
 import { QueueOverview, queueCategories as categories } from './queue-overview';
 import { useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
-import { Button, ChoiceSelect, EmptyState, Notice, PageHeader, SectionHeading } from '@clipkit/ui';
+import {
+  Button,
+  ChoiceSelect,
+  EmptyState,
+  Notice,
+  PageHeader,
+  SectionHeading,
+  Panel,
+} from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
 import { ConnectionPanel } from '../../app/connection-panel';
@@ -129,38 +137,27 @@ export function DownloadsPage() {
             </Button>
           }
         />
-        <section
-          aria-label="Download center"
-          className={css({
-            p: { base: '4', md: '6' },
-            display: 'grid',
-            gap: '5',
-            borderWidth: '1px',
-            borderColor: 'line',
-            borderRadius: 'panel',
-            bg: 'surface',
-            backgroundImage:
-              '[radial-gradient(ellipse at top left, color-mix(in srgb, token(colors.info) 12%, transparent), transparent 75%)]',
-          })}
-        >
-          <DownloadComposer
-            value={links}
-            onChange={setLinks}
-            busy={library.busy}
-            connected={!!library.client}
-            error={inputError}
-            onSubmit={() => void submit()}
-          />
-          <QueueOverview
-            jobs={jobs}
-            ready={!!library.data}
-            value={status}
-            onChange={(value) => {
-              setStatus(value);
-              setPage(1);
-            }}
-          />
-        </section>
+        <Panel asChild padding="roomy">
+          <section aria-label="Download center" className={css({ display: 'grid', gap: '5' })}>
+            <DownloadComposer
+              value={links}
+              onChange={setLinks}
+              busy={library.busy}
+              connected={!!library.client}
+              error={inputError}
+              onSubmit={() => void submit()}
+            />
+            <QueueOverview
+              jobs={jobs}
+              ready={!!library.data}
+              value={status}
+              onChange={(value) => {
+                setStatus(value);
+                setPage(1);
+              }}
+            />
+          </section>
+        </Panel>
         {library.error && (
           <Notice
             tone="danger"

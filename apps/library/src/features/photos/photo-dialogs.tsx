@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, ChoiceSelect, Dialog, Portal, Text } from '@clipkit/ui';
-import { css } from '@clipkit/ui/css';
+import { Button, ChoiceSelect, Dialog, Portal, Text, PreviewImage } from '@clipkit/ui';
 import { collectionOptions } from '../../components/browsing/collection-options';
 import type { usePhotoLibrary } from './use-photo-library';
 
@@ -63,15 +62,10 @@ export function PhotoDialogs({
               <Dialog.Title>{active?.filename || 'Photo preview'}</Dialog.Title>
               <Dialog.Description>{active?.model || 'No person assigned'}</Dialog.Description>
               {active && (
-                <img
+                <PreviewImage
                   src={library.client?.media(active.filepath)}
                   alt={active.filename}
-                  className={css({
-                    w: 'full',
-                    maxH: '[65dvh]',
-                    objectFit: 'contain',
-                    borderRadius: 'control',
-                  })}
+                  maxH="[65dvh]"
                 />
               )}
               <Dialog.Footer>

@@ -12,7 +12,7 @@ import {
   Download,
   SlidersHorizontal,
 } from 'lucide-react';
-import { Button, Heading, Icon, IconButton, Sidebar, Text } from '@clipkit/ui';
+import { Button, Heading, Icon, IconButton, Sidebar, Text, Accent, Rule } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 
 export function LibraryShell({
@@ -33,14 +33,13 @@ export function LibraryShell({
         minH: '[100dvh]',
       })}
     >
-      <div
+      <Rule
+        side="bottom"
         className={css({
           display: { base: 'flex', lg: 'none' },
           p: '4',
           justifyContent: 'space-between',
           alignItems: 'center',
-          borderBottomWidth: '1px',
-          borderColor: 'line',
         })}
       >
         <Heading as="p" size="sm" fontFamily="brand">
@@ -54,7 +53,7 @@ export function LibraryShell({
         >
           <Icon glyph={Menu} />
         </IconButton>
-      </div>
+      </Rule>
       <Sidebar.Root
         id="library-navigation"
         data-open={open}
@@ -73,7 +72,7 @@ export function LibraryShell({
           </Sidebar.Mark>
           <div>
             <Sidebar.Wordmark>
-              clipkit<span className={css({ color: 'accent' })}>.</span>
+              clipkit<Accent>.</Accent>
             </Sidebar.Wordmark>
             <Sidebar.Tagline>Your personal library</Sidebar.Tagline>
           </div>

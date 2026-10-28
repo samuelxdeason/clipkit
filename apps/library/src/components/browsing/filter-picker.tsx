@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, Users, Tags } from 'lucide-react';
-import { Button, Checkbox, Icon, Input, Popover, Text } from '@clipkit/ui';
+import { Button, Checkbox, Icon, Input, Popover, Text, Identity } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 
 /** Nested, non-portalled picker preserves the parent filter panel's focus boundary. */
@@ -55,11 +55,9 @@ export function FilterPicker({
             w="full"
             title={value.length ? value.join(', ') : `Any ${label.toLowerCase()}`}
           >
-            <span
-              className={css({ display: 'inline-flex', color: 'identity.plum', flexShrink: '0' })}
-            >
+            <Identity tone="plum" className={css({ display: 'inline-flex', flexShrink: '0' })}>
               <Icon glyph={label === 'Tags' ? Tags : Users} size="sm" />
-            </span>
+            </Identity>
             <span
               className={css({
                 flex: '1',

@@ -3,6 +3,7 @@ import { ArrowUpRight, Film, Image, Tags, Users } from 'lucide-react';
 import { Button } from '../components/button';
 import { Tag } from '../components/feedback';
 import * as MediaCard from '../components/media-card';
+import { Identity } from '../components/surfaces';
 import { css } from '../../styled-system/css';
 import { legacyDocument } from './legacy-document';
 
@@ -158,9 +159,11 @@ export const SideBySide: StoryObj = {
         <MediaCard.Root kind="tag" aria-label="Quiet moments">
           <MediaCard.Body>
             <div className={css({ display: 'flex', justifyContent: 'space-between', gap: '4' })}>
-              <MediaCard.Symbol aria-hidden="true">
-                <Tags />
-              </MediaCard.Symbol>
+              <Identity asChild tone="rose">
+                <MediaCard.Symbol aria-hidden="true">
+                  <Tags />
+                </MediaCard.Symbol>
+              </Identity>
               <MediaCard.Arrow aria-hidden="true">
                 <ArrowUpRight />
               </MediaCard.Arrow>

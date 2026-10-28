@@ -44,20 +44,10 @@ export function VideoCard({
             portraitPoster === video.artwork &&
             video.artwork &&
             failedArtwork !== video.artwork && (
-              <span
+              <MediaCard.Backdrop
                 aria-hidden="true"
                 data-portrait-backdrop=""
                 style={{ backgroundImage: `url(${JSON.stringify(video.artwork)})` }}
-                className={css({
-                  position: 'absolute',
-                  inset: '0',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  filter: '[blur(18px)]',
-                  transform: 'scale(1.12)',
-                  opacity: '0.3',
-                  pointerEvents: 'none',
-                })}
               />
             )}
           {artwork && failedArtwork !== artwork ? (

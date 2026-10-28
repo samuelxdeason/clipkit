@@ -25,6 +25,10 @@ export const input = defineRecipe({
       regular: { h: 'control', px: 'controlInline', fontSize: 'body' },
       compact: { h: 'controlCompact', px: 'compactInline', fontSize: 'control' },
     },
+    // Textareas keep the field surface but grow with their content.
+    multiline: {
+      true: { h: 'auto', minH: '[96px]', py: '2', lineHeight: 'body', resize: 'vertical' },
+    },
   },
   defaultVariants: { size: 'regular' },
 });

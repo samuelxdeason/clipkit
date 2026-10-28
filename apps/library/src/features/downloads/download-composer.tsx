@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Button, Icon, Input, SectionHeading, Text } from '@clipkit/ui';
+import { Button, Icon, Input, SectionHeading, Text, Textarea } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 
 export function DownloadComposer({
@@ -31,7 +31,7 @@ export function DownloadComposer({
       <div className={css({ display: 'flex', flexWrap: 'wrap', alignItems: 'start', gap: '3' })}>
         <div className={css({ flex: '1', minW: '[min(100%, 240px)]' })}>
           {multiple ? (
-            <textarea
+            <Textarea
               id="download-links"
               aria-label="Add download links"
               rows={4}
@@ -39,17 +39,6 @@ export function DownloadComposer({
               onChange={(event) => onChange(event.target.value)}
               disabled={busy}
               placeholder="Paste one link per line"
-              className={css({
-                w: 'full',
-                p: '3',
-                bg: 'field',
-                color: 'text',
-                borderWidth: '1px',
-                borderColor: 'line',
-                borderRadius: 'control',
-                resize: 'vertical',
-                _focusVisible: { outline: '[2px solid]', outlineColor: 'accent' },
-              })}
             />
           ) : (
             <Input

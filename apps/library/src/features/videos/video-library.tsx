@@ -10,6 +10,7 @@ import {
   Notice,
   PageHeader,
   Text,
+  Disclosure,
 } from '@clipkit/ui';
 import { BrowseGrid, BrowseFooter } from '../../components/browsing/browse-controls';
 import { css } from '@clipkit/ui/css';
@@ -212,10 +213,8 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
           />
         )}
         {demo && (
-          <details className={css({ mt: '10', color: 'muted', fontSize: 'sm' })}>
-            <summary className={css({ cursor: 'pointer' })}>
-              Demo tools · no real files or downloads
-            </summary>
+          <Disclosure.Root className={css({ mt: '10' })}>
+            <Disclosure.Summary>Demo tools · no real files or downloads</Disclosure.Summary>
             <div className={css({ mt: '3', maxW: 'xs' })}>
               <ChoiceSelect
                 label="Preview screen state"
@@ -228,7 +227,7 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
                 ]}
               />
             </div>
-          </details>
+          </Disclosure.Root>
         )}
         {!demo && !person && (
           <ConnectionPanel server={connected.server} onConnect={connected.connect} busy={busy} />

@@ -28,6 +28,14 @@ Compact card controls use Tag for labels and Button `quiet/compact` for File inf
 | Toolbar | Compound: Root, Search, Row, Summary, Controls, Chips | Root is a labelled section; Summary carries role=status for the result count |
 | FilterRail / FilterChip | Rail with caption and reset; chip removes its filter | Chip's accessible name is "Remove … filter"; reset label is the caller's wording |
 | Sidebar | Compound: Root, Brand, Mark, Wordmark, Tagline, Nav, Group, Label, Item, Count, Footer, Summary | Item is a button; links use asChild with aria-current="page"; Nav carries the "Library navigation" label; unavailable routes are disabled Items |
+| Panel | padding none / compact / regular / roomy; accent info / success / danger / selected; elevation floating | The bordered surface for settings cards, download rows and the manage dock; use asChild to keep section or article semantics |
+| Rule | side top (default) / bottom / left | A hairline with the spacing the old app pairs with it; asChild keeps the element |
+| Stat | Compound Root, Label, Value; tone | Label over a tabular number; Label and Value render dt and dd |
+| Identity | tone plum / rose / blue / amber; wash card / tag / hero | Decorative colour from a name, never selection or status; asChild colours any element |
+| Avatar | Compound Root, Frame, Wash, Initials, Glow, Image; shape round / tile / portrait | Initials or a portrait in an identity-tinted frame; wrap in Identity for the tone |
+| IconTile / ProgressBar / PreviewImage / Textarea | tone; native progress; contained image; Input recipe on a textarea | Small surfaces that previously lived inline |
+| Breadcrumbs / Disclosure / TextLink / Accent | nav; details with quiet summary and danger tone; inline link; accent span | Copy-level patterns |
+| Text | size; tone; variant body / eyebrow / metadata / label | Named roles from the theme's text styles override size |
 | MediaCard | Compound; kind video (default) / photo / person / tag | Root is an article with aria-label; Media is the one clickable surface and needs a name; data-selected shows selection; identity colour and domain content stay in the app |
 
 Use one primary action for the current local task. Neutral is the supporting action; quiet is toolbar utility; danger names a destructive action. These are the existing app's four variants, written as one recipe; Storybook's Reference/Legacy buttons story renders both side by side. Destructive actions must be named accurately and preserve the app's confirmation/recovery behavior. A red button is not a confirmation flow.

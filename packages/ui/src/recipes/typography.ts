@@ -7,8 +7,15 @@ export const text = defineRecipe({
   variants: {
     size: { sm: { fontSize: 'sm' }, md: { fontSize: 'md' }, lg: { fontSize: 'lg' } },
     tone: { default: { color: 'text' }, muted: { color: 'muted' }, danger: { color: 'danger' } },
+    // Named roles from the theme's text styles; they override size.
+    variant: {
+      body: {},
+      eyebrow: { textStyle: 'eyebrow', textTransform: 'uppercase', letterSpacing: '[1.2px]' },
+      metadata: { textStyle: 'metadata' },
+      label: { textStyle: 'fieldLabel' },
+    },
   },
-  defaultVariants: { size: 'md', tone: 'default' },
+  defaultVariants: { size: 'md', tone: 'default', variant: 'body' },
 });
 
 export const heading = defineRecipe({

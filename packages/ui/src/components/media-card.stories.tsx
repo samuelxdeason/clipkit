@@ -5,6 +5,7 @@ import { Button } from './button';
 import { Checkbox } from './checkbox';
 import { Tag } from './feedback';
 import * as MediaCard from './media-card';
+import { Identity } from './surfaces';
 import { css } from '../../styled-system/css';
 
 const meta = {
@@ -156,9 +157,11 @@ function TagTile() {
     <MediaCard.Root kind="tag" aria-label="Quiet moments">
       <MediaCard.Body>
         <div className={css({ display: 'flex', justifyContent: 'space-between', gap: '4' })}>
-          <MediaCard.Symbol aria-hidden="true">
-            <Tags />
-          </MediaCard.Symbol>
+          <Identity asChild tone="rose">
+            <MediaCard.Symbol aria-hidden="true">
+              <Tags />
+            </MediaCard.Symbol>
+          </Identity>
           <MediaCard.Arrow aria-hidden="true">
             <ArrowUpRight />
           </MediaCard.Arrow>

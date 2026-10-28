@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import { Button, ChoiceSelect, Dialog, Icon, IconButton, Input, Portal, Text } from '@clipkit/ui';
+import {
+  Button,
+  ChoiceSelect,
+  Dialog,
+  Icon,
+  IconButton,
+  Input,
+  Portal,
+  Text,
+  PreviewImage,
+} from '@clipkit/ui';
 import { collectionOptions } from '../../components/browsing/collection-options';
 import { css } from '@clipkit/ui/css';
 import { useVideoLibrary } from './use-video-library';
@@ -83,10 +93,9 @@ export function VideoDialogs({
                   : 'Video details · saved in your library.'}
               </Dialog.Description>
               {preview?.artwork && (
-                <img
+                <PreviewImage
                   src={preview.artwork}
                   alt={demo ? 'Geometric landscape demo artwork' : preview.title}
-                  className={css({ w: 'full', borderRadius: 'control' })}
                 />
               )}
               <Text tone="muted">

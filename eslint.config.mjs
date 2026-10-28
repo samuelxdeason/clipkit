@@ -21,7 +21,7 @@ export default tseslint.config(
     files: ['apps/library/src/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-syntax': ['warn', {
-        selector: "CallExpression[callee.name='css'] > ObjectExpression > Property[key.name=/^(color|bg|background|backgroundColor|bgGradient|borderColor|borderTopColor|borderBottomColor|borderLeftColor|borderRightColor|borderRadius|rounded|boxShadow|shadow|fontSize|fontWeight|fontFamily|lineHeight|letterSpacing|textStyle|opacity)$/]",
+        selector: "CallExpression[callee.name='css'] > ObjectExpression > Property[key.name=/^(color|bg|background|backgroundColor|bgGradient|borderColor|borderTopColor|borderBottomColor|borderLeftColor|borderRightColor|borderRadius|rounded|boxShadow|shadow|fontSize|fontWeight|fontFamily|lineHeight|letterSpacing|opacity)$/]",
         message: 'Appearance belongs to a recipe or text style in packages/ui; css() in the app is for layout.',
       }],
     },

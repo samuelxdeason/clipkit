@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Input, Text } from '@clipkit/ui';
+import { Button, Disclosure, Input, Text, TextLink } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 
 export function ConnectionPanel({
@@ -13,10 +13,8 @@ export function ConnectionPanel({
 }) {
   const [address, setAddress] = useState(server);
   return (
-    <details className={css({ my: '4' })}>
-      <summary className={css({ cursor: 'pointer', color: 'muted', fontSize: 'sm' })}>
-        Library connection
-      </summary>
+    <Disclosure.Root className={css({ my: '4' })}>
+      <Disclosure.Summary>Library connection</Disclosure.Summary>
       <form
         className={css({ display: 'grid', gap: '3', mt: '3', maxW: 'lg' })}
         onSubmit={(event) => {
@@ -40,13 +38,8 @@ export function ConnectionPanel({
         <Button type="submit" disabled={busy}>
           Connect
         </Button>
-        <a
-          href="?demo=1"
-          className={css({ color: 'muted', textDecoration: 'underline', fontSize: 'sm' })}
-        >
-          Open the synthetic demo
-        </a>
+        <TextLink href="?demo=1">Open the synthetic demo</TextLink>
       </form>
-    </details>
+    </Disclosure.Root>
   );
 }

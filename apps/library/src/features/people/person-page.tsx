@@ -1,5 +1,5 @@
 import { useCallback, useState, type ReactNode } from 'react';
-import { Button, EmptyState, Heading, Notice } from '@clipkit/ui';
+import { Button, EmptyState, Heading, Notice, Breadcrumbs } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
 import { ConnectionPanel } from '../../app/connection-panel';
@@ -46,9 +46,11 @@ export function PersonPage({
   const displayName = profile?.info.nickname || profile?.person.nickname || name;
   return (
     <LibraryShell page="people">
-      <nav aria-label="Breadcrumbs" className={css({ mb: '5', color: 'muted', fontSize: 'sm' })}>
-        <a href="/?view=people">People</a> / {displayName}
-      </nav>
+      <Breadcrumbs>
+        <a href="/?view=people">People</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{displayName}</span>
+      </Breadcrumbs>
       {library.error && (
         <Notice
           tone="danger"

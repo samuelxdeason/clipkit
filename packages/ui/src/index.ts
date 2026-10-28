@@ -1,6 +1,7 @@
 export { Button, type ButtonProps } from './components/button';
 export { IconButton, type IconButtonProps } from './components/icon-button';
 export { Input, type InputProps } from './components/input';
+export { Textarea, type TextareaProps } from './components/textarea';
 export { Text, type TextProps } from './components/text';
 export { Heading, type HeadingProps } from './components/heading';
 export { Icon, type IconProps } from './components/icon';
@@ -11,6 +12,24 @@ export { SearchField, type SearchFieldProps } from './components/search-field';
 export * as Tabs from './components/tabs';
 export * as MediaCard from './components/media-card';
 export * as Sidebar from './components/sidebar';
+export {
+  Panel,
+  Rule,
+  Stat,
+  ProgressBar,
+  IconTile,
+  Identity,
+  identityClass,
+  identityTones,
+  Avatar,
+  Breadcrumbs,
+  Disclosure,
+  TextLink,
+  Accent,
+  PreviewImage,
+  type IdentityTone,
+  type IdentityProps,
+} from './components/surfaces';
 export {
   PageHeader,
   SectionHeading,

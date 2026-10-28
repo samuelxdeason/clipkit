@@ -11,6 +11,20 @@ import { tag, statusBadge, notice, emptyState } from './src/recipes/feedback';
 import { mediaCard } from './src/recipes/media-card';
 import { pageHeader, sectionHeading, toolbar, filterRail, filterChip } from './src/recipes/layout';
 import { sidebar } from './src/recipes/sidebar';
+import {
+  panel,
+  rule,
+  stat,
+  progressBar,
+  iconTile,
+  identity,
+  avatar,
+  breadcrumbs,
+  disclosure,
+  textLink,
+  accent,
+  previewImage,
+} from './src/recipes/surfaces';
 
 export default defineConfig({
   // preset-panda still supplies the numeric size/space scale that older
@@ -49,7 +63,24 @@ export default defineConfig({
   theme: {
     extend: {
       ...theme,
-      recipes: { button, input, heading, text, tag, statusBadge, filterChip },
+      recipes: {
+        button,
+        input,
+        heading,
+        text,
+        tag,
+        statusBadge,
+        filterChip,
+        panel,
+        rule,
+        progressBar,
+        iconTile,
+        identity,
+        breadcrumbs,
+        textLink,
+        accent,
+        previewImage,
+      },
       slotRecipes: {
         select,
         popover,
@@ -65,6 +96,9 @@ export default defineConfig({
         toolbar,
         filterRail,
         sidebar,
+        stat,
+        avatar,
+        disclosure,
       },
     },
   },

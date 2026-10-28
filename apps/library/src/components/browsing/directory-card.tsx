@@ -1,10 +1,21 @@
 import { useState } from 'react';
 import { ArrowUpRight, Film, Tags, Users } from 'lucide-react';
-import { Icon, MediaCard, Text } from '@clipkit/ui';
+import { Avatar, Icon, Identity, MediaCard, Text } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { identityIndex, type DirectoryEntry } from './directory-model';
 
-import { IdentityWash, identityTone } from './identity-style';
+import { IdentityWash, identityToneName } from './identity-style';
+
+function initials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .filter((part) => /[\p{L}\p{N}]/u.test(part))
+    .slice(0, 2)
+    .map((part) => Array.from(part)[0])
+    .join('')
+    .toLocaleUpperCase();
+}
 
 export function IdentityMark({
   name,
@@ -20,82 +31,39 @@ export function IdentityMark({
   portrait?: boolean;
 }) {
   const [failed, setFailed] = useState<string>();
+  const letters = kind === 'people' ? initials(name) : '';
   return (
-    <div
-      data-identity-tone={identityIndex(name)}
-      className={`${identityTone(name)} ${css({ position: 'relative', display: 'grid', placeItems: 'center', overflow: 'hidden', aspectRatio: portrait ? '[4 / 5]' : 'square', borderRadius: round ? 'full' : 'panel', w: 'full', isolation: 'isolate', borderWidth: '1px', borderColor: '[color-mix(in srgb, currentColor 30%, transparent)]' })}`}
-    >
-      <span
-        aria-hidden="true"
-        className={css({
-          position: 'absolute',
-          inset: '0',
-          bg: 'currentColor',
-          opacity: '0.12',
-          zIndex: '-1',
-        })}
-      />
-      {src && failed !== src ? (
-        <img
-          src={src}
-          alt=""
-          loading="lazy"
-          onError={() => setFailed(src)}
-          className={css({ w: 'full', h: 'full', objectFit: 'cover' })}
-        />
-      ) : kind === 'people' ? (
-        <span
-          aria-hidden="true"
-          className={css({ fontSize: '[clamp(2rem, 4vw, 3.5rem)]', fontWeight: 'bold' })}
-        >
-          {name
-            .trim()
-            .split(/\s+/)
-            .filter((part) => /[\p{L}\p{N}]/u.test(part))
-            .slice(0, 2)
-            .map((part) => Array.from(part)[0])
-            .join('')
-            .toLocaleUpperCase() || <Icon glyph={Users} />}
-        </span>
-      ) : (
-        <Icon glyph={Tags} />
-      )}
-    </div>
-  );
-}
-/** Profile artwork keeps identity color local to a soft glow, never the panel border. */
-export function IdentityPortrait({ name, src }: { name: string; src?: string }) {
-  return (
-    <div
-      className={`${identityTone(name)} ${css({ position: 'relative', isolation: 'isolate', w: 'full' })}`}
-    >
-      <span
-        aria-hidden="true"
-        className={css({
-          position: 'absolute',
-          inset: '3',
-          bg: 'currentColor',
-          opacity: '0.28',
-          filter: '[blur(28px)]',
-          pointerEvents: 'none',
-          zIndex: '-1',
-        })}
-      />
-      <IdentityMark name={name} src={src} kind="people" portrait />
-    </div>
+    <Identity asChild tone={identityToneName(name)}>
+      <Avatar.Root
+        data-identity-tone={identityIndex(name)}
+        shape={round ? 'round' : portrait ? 'portrait' : 'tile'}
+      >
+        <Avatar.Frame>
+          <Avatar.Wash aria-hidden="true" />
+          {src && failed !== src ? (
+            <Avatar.Image src={src} alt="" loading="lazy" onError={() => setFailed(src)} />
+          ) : letters ? (
+            <Avatar.Initials aria-hidden="true">{letters}</Avatar.Initials>
+          ) : (
+            <Icon glyph={kind === 'people' ? Users : Tags} />
+          )}
+        </Avatar.Frame>
+      </Avatar.Root>
+    </Identity>
   );
 }
 
-// The link is the whole card; MediaCard supplies the shell and silhouette.
-const directoryLink = css({
-  display: 'flex',
-  flexDirection: 'column',
-  flex: '1',
-  minW: '0',
-  color: 'inherit',
-  textDecoration: 'none',
-  _focusVisible: { outline: 'none' },
-});
+/** Profile artwork keeps identity color local to a soft glow, never the panel border. */
+export function IdentityPortrait({ name, src }: { name: string; src?: string }) {
+  return (
+    <Identity asChild tone={identityToneName(name)}>
+      <Avatar.Root>
+        <Avatar.Glow aria-hidden="true" />
+        <IdentityMark name={name} src={src} kind="people" portrait />
+      </Avatar.Root>
+    </Identity>
+  );
+}
 
 export function DirectoryCard({
   entry,
@@ -110,7 +78,7 @@ export function DirectoryCard({
   if (kind === 'people') {
     return (
       <MediaCard.Root kind="person" aria-label={entry.displayName} data-directory-kind={kind}>
-        <a href={href} className={directoryLink}>
+        <MediaCard.Link href={href}>
           <MediaCard.Frame>
             <IdentityWash name={entry.name} placement="card" />
             <div className={css({ position: 'relative', w: '[60%]', maxW: '[180px]' })}>
@@ -136,22 +104,24 @@ export function DirectoryCard({
               </MediaCard.Subtitle>
             )}
             <MediaCard.Footer>
-              <span
-                className={`${identityTone(entry.name)} ${css({ display: 'inline-flex', alignItems: 'center', gap: '2' })}`}
-              >
-                <Icon glyph={Film} size="sm" />
-                <span className={css({ color: 'muted' })}>{count}</span>
+              <span className={css({ display: 'inline-flex', alignItems: 'center', gap: '2' })}>
+                <Identity tone={identityToneName(entry.name)}>
+                  <Icon glyph={Film} size="sm" />
+                </Identity>
+                <Text as="span" size="sm" tone="muted">
+                  {count}
+                </Text>
               </span>
             </MediaCard.Footer>
           </MediaCard.Body>
-        </a>
+        </MediaCard.Link>
       </MediaCard.Root>
     );
   }
   return (
     <MediaCard.Root kind="tag" aria-label={entry.displayName} data-directory-kind={kind}>
       <IdentityWash name={entry.name} placement="tag" />
-      <a href={href} className={directoryLink}>
+      <MediaCard.Link href={href}>
         <MediaCard.Body>
           <div
             className={css({
@@ -161,9 +131,11 @@ export function DirectoryCard({
               gap: '4',
             })}
           >
-            <MediaCard.Symbol aria-hidden="true" className={identityTone(entry.name)}>
-              <Tags />
-            </MediaCard.Symbol>
+            <Identity asChild tone={identityToneName(entry.name)}>
+              <MediaCard.Symbol aria-hidden="true">
+                <Tags />
+              </MediaCard.Symbol>
+            </Identity>
             <MediaCard.Arrow aria-hidden="true">
               <ArrowUpRight />
             </MediaCard.Arrow>
@@ -180,7 +152,7 @@ export function DirectoryCard({
             )}
           </div>
         </MediaCard.Body>
-      </a>
+      </MediaCard.Link>
     </MediaCard.Root>
   );
 }
