@@ -6,6 +6,7 @@ ADRs explain durable choices, not every style adjustment. Existing code may pred
 - [0002: Shared design and behavior ownership](0002-design-ownership.md)
 - [0003: npm workspaces and token package](0003-npm-workspaces-and-tokens.md)
 - [0004: Isolated Park UI foundation](0004-park-ui-foundation.md)
+- [0005: Connected video slice](0005-connected-video-slice.md)
 - [Template](template.md)
 
 When superseding a decision, link the replacement and keep the rationale. Mark unimplemented proposals explicitly.

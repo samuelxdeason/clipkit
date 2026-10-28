@@ -16,6 +16,8 @@ If a control looks wrong only in the app, check the app's generated CSS and impo
 
 ## Commands and evidence
 
+`test:foundation` compares Metadata stories against `scripts/fixtures/ui-visual-contracts.json`: title typography, compact-tag geometry/color and checkbox geometry across states. These are computed-style baselines, not pixel-image comparisons. Metadata and selection screenshots support review. For an intentional change, inspect screenshots, update the owning recipe, then update only affected baseline values with an explanation. Never refresh baselines simply to make a failing test pass.
+
 Run `npm ci` from the root. `npm run dev:foundation` builds tokens/package/app CSS, starts app + Storybook and rebuilds on source/recipe/token edits. Use that command instead of concurrent independent watchers. Stop it before dependency installation on Windows.
 
 `npm run check:foundation` checks generated token drift and the migration contract, builds the new app, then typechecks, lints and checks formatting. `npm run format:foundation` formats new UI source only. ESLint rejects shared UI imports from applications/Wails; typed Panda strictTokens rejects raw values in tokenized styling properties. These checks complement review rather than proving every architectural rule automatically.
@@ -24,8 +26,19 @@ Build `npm run build:storybook`, then run `npm run test:foundation`. Browser pre
 
 `npm run test:ui-consumer` packs UI/tokens and builds an offline temporary consumer. It checks exports, font and CSS delivery independently of workspace aliases. `npm run check` and existing affected UI suites protect the legacy app. No test reads a real vault or queue.
 
+`npm run test:library-demo` tests the production synthetic library: filtering, sorting, density, paging, Manage mutations/recovery, overlay bounds, nested keyboard behavior and accessibility. Build the library first. See [browsing patterns](browsing.md) for ownership and state contracts.
+
+`npm run test:library-connected` tests the production connected view against intercepted HTTP routes, including multi-batch loading, mutations and reconciliation. It never contacts a real backend. See [connected library](connected-library.md) for setup and remaining migration boundaries.
+
+`npm run test:photos-connected` covers connected Photos with intercepted API/media routes. Run it with both video suites when changing shared app browsing controls. [Photos ownership](photos.md) maps components, hooks, HTTP contracts and the basic preview boundary.
+
 The legacy parity fixture is a migration baseline. Future intentional old-app token changes must update it explicitly after review; do not regenerate it automatically to silence failures. Screenshots are review artifacts, not yet an approved golden-image suite.
+
+`npm run test:directories-connected` covers People, profiles/accounts and Tags with intercepted API/media routes. See [directory ownership and contracts](people-tags.md). Run it alongside the three media browsing suites when changing shared controls or routing.
 
 `npm run test:foundation-install` copies source files to a temporary checkout, runs npm ci, and builds the old app, new app and catalogue without generated artifacts. It avoids Windows locks in a running dev checkout. Stop servers before running npm ci directly in the working tree.
 
 Milestone-1 verification also exercised a temporary shared button-radius edit and restoration: both live consumers updated from the same recipe. Package CSS lives in styled-system/styles.css (exported as @clipkit/ui/styles.css), where Vite can watch it; dist remains the Panda manifest location. Do not move watched CSS into an ignored build-output directory without repeating that check.
+
+`npm run test:downloads-connected` covers the connected download queue with fully
+intercepted APIs. See [Downloads](downloads.md) for controls and unsupported daemon actions.

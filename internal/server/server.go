@@ -86,6 +86,7 @@ func (s *Server) routes(ui fs.FS) {
 	// --- events + media ---
 	m.Handle("GET /api/events", s.hub)
 	m.HandleFunc("GET /media", s.core.ServeMedia)
+	m.HandleFunc("GET /api/videos/triptych", s.core.ServeTriptych)
 
 	// Client-side diagnostics beacon: the feed posts its render state here so
 	// devices without a devtools console (phones) can be debugged from the

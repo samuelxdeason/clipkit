@@ -25,7 +25,12 @@ export const heading = defineRecipe({
     size: {
       sm: { fontSize: 'lg' },
       md: { fontSize: '2xl' },
-      lg: { fontSize: { base: '3xl', md: '4xl' } },
+      lg: {
+        fontSize: { base: 'pageTitleCompact', md: 'pageTitle' },
+        fontWeight: 'pageTitle',
+        lineHeight: '1.15',
+        letterSpacing: 'pageTitle',
+      },
     },
   },
   defaultVariants: { size: 'md' },

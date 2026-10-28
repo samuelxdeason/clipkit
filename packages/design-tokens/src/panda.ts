@@ -22,6 +22,11 @@ export const colors = {
   success: { value: values['--ui-success'] },
   info: { value: values['--ui-info'] },
   warning: { value: values['--ui-warning'] },
+  tag: {
+    surface: { value: values['--ui-tag-surface'] },
+    text: { value: values['--ui-tag-text'] },
+    line: { value: values['--ui-tag-line'] },
+  },
   identity: {
     plum: { value: values['--ui-identity-plum'] },
     rose: { value: values['--ui-identity-rose'] },

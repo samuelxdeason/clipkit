@@ -1,0 +1,5 @@
+{
+  "cardTitle": { "fontSize": "16px", "fontWeight": "650", "lineHeight": "22px", "letterSpacing": "-0.2px" },
+  "tag": { "height": 24, "radius": "8px", "color": "rgb(213, 189, 223)" },
+  "checkbox": { "width": 24, "height": 24, "radius": "8px" }
+}

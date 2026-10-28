@@ -35,6 +35,35 @@ export const button = defineRecipe({
   },
   variants: {
     variant: {
+      toolbar: {
+        ...selection,
+        bg: 'transparent',
+        color: 'muted',
+        _hover: { bg: 'raised', color: 'text', _disabled: { bg: 'transparent' } },
+        _expanded: { bg: 'raised', color: 'text' },
+      },
+      manage: {
+        ...selection,
+        bg: 'transparent',
+        color: 'text',
+        _hover: { bg: 'raised', _disabled: { bg: 'transparent' } },
+      },
+      picker: {
+        ...selection,
+        bg: 'transparent',
+        color: 'text',
+        borderColor: 'line',
+        fontWeight: 'normal',
+        _hover: { bg: 'raised', _disabled: { bg: 'transparent' } },
+      },
+      tag: {
+        bg: 'tag.surface',
+        color: 'tag.text',
+        borderColor: 'tag.line',
+        minW: '0',
+        flexShrink: '1',
+        _hover: { bg: 'raised', _disabled: { bg: 'tag.surface' } },
+      },
       solid: {
         ...selection,
         bg: 'action',
@@ -69,6 +98,7 @@ export const button = defineRecipe({
       },
     },
     size: {
+      compact: { minH: '6', minW: '0', px: '2', py: '0.5', fontSize: 'xs' },
       sm: { minH: '9', minW: '9', px: '3', py: '1', fontSize: 'sm' },
       md: { minH: '10', minW: '10', px: '3.5', py: '2', fontSize: 'sm' },
       lg: { minH: '11', minW: '11', px: '4', py: '2', fontSize: 'md' },
@@ -77,6 +107,11 @@ export const button = defineRecipe({
     tone: { danger: { color: 'danger', bg: 'dangerSurface', borderColor: 'danger' } },
   },
   compoundVariants: [
+    {
+      variant: 'plain',
+      size: 'compact',
+      css: { px: '0', py: '1', fontWeight: 'normal', minW: '9' },
+    },
     { iconOnly: true, size: 'sm', css: { width: '9', height: '9', p: '0' } },
     { iconOnly: true, size: 'md', css: { width: '10', height: '10', p: '0' } },
     { iconOnly: true, size: 'lg', css: { width: '11', height: '11', p: '0' } },

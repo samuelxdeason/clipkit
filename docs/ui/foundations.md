@@ -20,7 +20,9 @@ The initial foundation maps Park's component variants directly to these semantic
 
 ## Typography and geometry
 
-Nunito is bundled locally with its license. Heading defaults to h2 and medium visual size; choose `as="h1"` for the page title. Visual size and document hierarchy are separate. Text offers sm/md/lg and default/muted/danger tones. Use labels for inputs, not a visual Text component alone.
+Interface text uses the shared `body` font token: Segoe UI Variable, Segoe UI, then the platform system sans-serif. This matches the working Windows frontend; other platforms use their installed system fallback. The locally bundled, licensed Nunito face is reserved for the `brand` token and ClipKit wordmark. No remote font request is required. Font roles live in `packages/ui/panda.config.ts`; never set a different family per page.
+
+Heading defaults to h2 and medium visual size; choose `as="h1" size="lg"` for the page title. Large headings use shared page-title tokens (36px desktop / 28px narrow, weight 750, -1px tracking, 1.15 line height), matching the working frontend. Visual size and document hierarchy are separate. Text offers sm/md/lg and default/muted/danger tones. Use labels for inputs, not a visual Text component alone.
 
 Standard controls use Park size names: sm 36px, md 40px, lg 44px. Medium is the desktop default; prefer large for touch-focused actions. Inputs and buttons align at a given size. Icon buttons are square at the same dimensions. Buttons use minimum heights so enlarged text can grow. Long content and zoom remain review requirements for future layouts.
 
@@ -28,6 +30,10 @@ Use Panda's shared spacing scale (commonly 2/3/4/6/8 = 8/12/16/24/32px), control
 
 ## States
 
+Named text styles `cardTitle`, `metadata`, and `fieldLabel` own compact browsing typography. Card-title weight, tracking and line height are theme tokens; avoid arbitrary values in consuming cards. `Button variant="tag" size="compact"` renders tag metadata; `variant="plain" size="compact"` renders quiet card actions. Compact size is reserved for secondary metadata, not primary forms or toolbar actions. Checkbox appearance belongs in `recipes/checkbox.ts`, with its component retaining Ark behavior.
+
+The shared Checkbox uses a 24px rounded square with the 8px control radius, inside a minimum 40px hit area. Checked and indeterminate states share the same geometry; disabled and keyboard-focus styles remain visible. Use this component for card selection, select-page controls and filter choices instead of creating page-specific checkbox styles.
+
 Hover uses raised neutral surfaces or primary hover tokens. `aria-pressed` retains selected colors on hover. Focus has its own visible cherry ring. Native disabled/fieldset states prevent activation; loading also disables actions and exposes aria-busy. Reduced-motion CSS removes transitions and animation. Color alone never communicates status.
 
-The theme applies at the document root so future portals can inherit it. Portal/focus behavior is not yet verified for overlays because this milestone adds no overlays. Dark-only is intentional; additional themes require complete role/state contrast checks.
+The theme applies at the document root so portals inherit it. See [browsing patterns](browsing.md) for overlay positioning, nested boundaries and focus checks. Dark-only is intentional; additional themes require complete role/state contrast checks.

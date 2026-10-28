@@ -2,7 +2,9 @@ import { defineConfig } from '@pandacss/dev';
 import { colors, radii } from '@clipkit/design-tokens/panda';
 import { button } from './src/recipes/button';
 import { input } from './src/recipes/input';
+import { checkbox } from './src/recipes/checkbox';
 import { heading, text } from './src/recipes/typography';
+import { select, popover, dialog } from './src/recipes/overlays';
 
 export default defineConfig({
   presets: ['@pandacss/preset-base', '@pandacss/preset-panda'],
@@ -33,11 +35,31 @@ export default defineConfig({
   theme: {
     extend: {
       tokens: {
-        fonts: { body: { value: '"Nunito", system-ui, sans-serif' } },
+        fonts: {
+          body: { value: '"Segoe UI Variable", "Segoe UI", system-ui, sans-serif' },
+          brand: { value: '"Nunito", system-ui, sans-serif' },
+        },
+        fontWeights: { pageTitle: { value: 750 }, cardTitle: { value: 650 } },
+        lineHeights: { cardTitle: { value: '22px' } },
+        fontSizes: { pageTitle: { value: '36px' }, pageTitleCompact: { value: '28px' } },
+        letterSpacings: { pageTitle: { value: '-1px' }, cardTitle: { value: '-0.2px' } },
         radii,
       },
       semanticTokens: { colors },
+      textStyles: {
+        cardTitle: {
+          value: {
+            fontSize: 'md',
+            fontWeight: 'cardTitle',
+            lineHeight: 'cardTitle',
+            letterSpacing: 'cardTitle',
+          },
+        },
+        metadata: { value: { fontSize: 'sm', lineHeight: '1.6', fontWeight: 'normal' } },
+        fieldLabel: { value: { fontSize: 'xs', fontWeight: 'medium', lineHeight: '1.6' } },
+      },
       recipes: { button, input, heading, text },
+      slotRecipes: { select, popover, dialog, checkbox },
     },
   },
 });

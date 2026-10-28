@@ -133,11 +133,15 @@ Done when: clean install builds the old app, new app and package; token parity h
 
 ### 2. First complete visual slice
 
+Implemented as an isolated synthetic library at `apps/library`. See [browsing patterns](ui/browsing.md) for ownership, behavior, overlay contracts and checks. Other navigation destinations remain disabled; no production data or asset-entry cutover is included.
+
 Deliver new shell and video library using synthetic content, cards, search, filters, sorting, preview sizes, active chips, Manage selection and bottom paging. Add Park Select/Menu/Popover/Checkbox/Pagination and Dialog only as used. Keep media cards in the app. Include empty, loading, error, dense-content and narrow-window examples.
 
 Done when: the page is visually reviewed as a coherent design, controls align, long content does not break layout, overlays remain in bounds, keyboard flows work, and organizing is discoverable. Use this review to finalize the initial type/spacing scales before propagating them.
 
 ### 3. Real feature patterns
+
+Connected Videos, Photos, People and Tags are implemented; see [connection and mutation contracts](ui/connected-library.md), [Photos/shared browsing](ui/photos.md), and [People, profiles and Tags](ui/people-tags.md). Collection pages, the full player and broader feature parity remain outstanding. This is not a production-entry cutover.
 
 Connect videos/photos to existing transport, then people, tags and collections. Extract shared browsing patterns from these real consumers. Document cache/event handling, query persistence and mutation feedback. Preserve collection membership, hidden/locked and deletion semantics.
 

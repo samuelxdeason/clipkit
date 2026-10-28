@@ -20,7 +20,7 @@ const uiRequire = createRequire(path.join(root, 'packages/ui/package.json'));
     const page = await browser.newPage({ viewport: { width: 1440, height: 1100 } });
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    await page.goto('http://127.0.0.1:5198');
+    await page.goto('http://127.0.0.1:5198/?view=foundation');
     await page.evaluate(() => document.fonts.ready);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const metrics = locator => locator.evaluate(el => {
@@ -65,6 +65,29 @@ const uiRequire = createRequire(path.join(root, 'packages/ui/package.json'));
     const toggle = page.getByRole('button', { name: 'Favorite', exact: true });
     await toggle.focus(); await page.keyboard.press('Space');
     assert.equal(await toggle.getAttribute('aria-pressed'), 'true');
+    const baseline = require('./fixtures/ui-visual-contracts.json');
+    await page.goto('http://127.0.0.1:6198/iframe.html?id=patterns-metadata--card&viewMode=story');
+    const title = page.getByRole('heading', { name: 'An evening by the water' });
+    await title.waitFor();
+    const titleStyle = await title.evaluate(el => {
+      const style = getComputedStyle(el);
+      return Object.fromEntries(['fontSize', 'fontWeight', 'lineHeight', 'letterSpacing'].map(key => [key, style[key]]));
+    });
+    assert.deepEqual(titleStyle, baseline.cardTitle, 'Card title visual contract');
+    const tag = await metrics(page.getByRole('button', { name: 'Travel', exact: true }));
+    for (const [key, value] of Object.entries(baseline.tag)) assert.equal(tag[key], value, `Tag ${key}`);
+    await page.screenshot({ path: path.join(screenshots, 'metadata.png') });
+    await page.goto('http://127.0.0.1:6198/iframe.html?id=patterns-metadata--selection&viewMode=story');
+    const controls = page.locator('[data-scope="checkbox"][data-part="control"]');
+    await controls.first().waitFor();
+    for (const control of await controls.all()) {
+      const actual = await metrics(control);
+      for (const [key, value] of Object.entries(baseline.checkbox)) assert.equal(actual[key], value, `Checkbox ${key}`);
+    }
+    assert(await page.getByRole('checkbox', { name: 'Unavailable item', exact: true }).isDisabled());
+    await page.getByText('Select item', { exact: true }).click();
+    assert(await page.getByRole('checkbox', { name: 'Select item', exact: true }).isChecked());
+    await page.screenshot({ path: path.join(screenshots, 'selection-states.png') });
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({ passed: true, screenshots, checks: ['production assets', 'app/catalogue theme parity', 'control alignment', 'refs', 'pressed hover', 'loading', 'native form', 'keyboard selection/focus', 'axe WCAG checks', 'narrow layout'] }));
   } finally {

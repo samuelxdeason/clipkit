@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "description": "ClipKit npm workspace and repository commands",
   "scripts": {
+    "test:downloads-connected": "node scripts/test-downloads-connected.cjs",
     "dev": "npm run dev --workspace frontend",
     "build": "npm run build --workspace frontend",
     "check:docs": "node scripts/check-docs.cjs",
@@ -28,7 +29,11 @@
     "test:foundation": "node scripts/test-foundation.cjs",
     "test:ui-consumer": "node scripts/test-ui-consumer.cjs",
     "check:token-parity": "node packages/design-tokens/build.mjs --check && node scripts/check-token-parity.cjs",
-    "test:foundation-install": "node scripts/test-foundation-install.cjs"
+    "test:foundation-install": "node scripts/test-foundation-install.cjs",
+    "test:library-demo": "node --test apps/library/src/features/videos/model.test.mjs && node scripts/test-library-demo.cjs",
+    "test:library-connected": "node --test apps/library/src/services/library-client.test.mjs && node scripts/test-library-connected.cjs",
+    "test:photos-connected": "node --test apps/library/src/features/photos/model.test.mjs && node scripts/test-photos-connected.cjs",
+    "test:directories-connected": "node --test apps/library/src/features/tags/model.test.mjs && node scripts/test-directories-connected.cjs"
   },
   "packageManager": "npm@12.0.2",
   "workspaces": [
@@ -42,7 +47,7 @@
   },
   "devDependencies": {
     "eslint": "10.13.0",
-    "typescript-eslint": "8.72.1",
-    "prettier": "3.9.10"
+    "prettier": "3.9.10",
+    "typescript-eslint": "8.72.1"
   }
 }

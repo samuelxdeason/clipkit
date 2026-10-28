@@ -36,4 +36,4 @@ Builds do not verify behavior by themselves. For positioning changes verify view
 
 ## New UI foundation
 
-The existing commands above still target the working app. Use `npm run dev:foundation` for the separate synthetic app and catalogue. See [new UI checks](ui/contributing.md) for build, type/lint/format, browser and isolated consumer verification. Node >=22.18 supports the typed token generator; verified on 24.19.0. Both esbuild 0.15.18 and 0.28.2 install scripts are allowed for their respective toolchains.
+The existing commands above still target the working app. Use `npm run dev:foundation` for the separate new app and catalogue. The app defaults to connected mode; use `/?demo=1` for the synthetic video library. All new browser suites intercept APIs or use demo mode; never point them at a live vault. See [new UI checks](ui/contributing.md) for build, type/lint/format, browser and isolated consumer verification. Node >=22.18 supports the typed token generator; verified on 24.19.0. Both esbuild 0.15.18 and esbuild 0.28.2 install scripts are allowed for their respective toolchains.

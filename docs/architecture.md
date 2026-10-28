@@ -33,7 +33,7 @@ Frontend filenames without a directory in the table are under frontend/src. Back
 
 ## Dependency rules
 
-The isolated rebuild now lives in `apps/library`, consuming private `packages/ui` through Panda's designSystem manifest. Park/Ark core controls and Storybook are implemented; real library features remain planned. Canonical values live in `packages/design-tokens/src/values.ts`, which generates legacy CSS and feeds the new Panda semantic adapter. Existing Wails/daemon entry points still use `frontend`. See [the new UI guide](ui/README.md) for ownership and commands.
+The isolated rebuild now lives in `apps/library`, consuming private `packages/ui` through Panda's designSystem manifest. Park/Ark controls and Storybook are implemented. Its first connected video-library slice uses an app-owned HTTP/native-discovery adapter, with synthetic mode retained separately; see [connected library](ui/connected-library.md) for contracts and limits. Canonical values live in `packages/design-tokens/src/values.ts`, which generates legacy CSS and feeds the new Panda semantic adapter. Existing Wails/daemon entry points still use `frontend`. See [the new UI guide](ui/README.md) for ownership and commands.
 
 Future UI packages must accept data/callbacks and have no dependency on app routes, api.ts, generated Wails models or vault paths. Apps may depend on packages; packages must not import apps. API contracts must be serializable and independent of React and Wails. Native adapters belong to the desktop host. Core/domain code should not depend on React or the desktop runtime.
 
