@@ -3,7 +3,6 @@ import { Folder, Plus } from 'lucide-react';
 import { Button, EmptyState, Icon, Notice, PageHeader, SearchField, Toolbar } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
-import { ConnectionPanel } from '../../app/connection-panel';
 import { childCollections, countLabel } from '../../components/browsing/collection-model';
 import { CollectionCard } from './collection-card';
 import { CollectionDialogs, type CollectionDialogKind } from './collection-dialogs';
@@ -102,7 +101,6 @@ export function CollectionsPage() {
           actions={!searching && !library.error && newCollection}
         />
       )}
-      <ConnectionPanel server={library.server} onConnect={library.connect} busy={library.busy} />
       <CollectionDialogs
         dialog={dialog}
         collections={collections}

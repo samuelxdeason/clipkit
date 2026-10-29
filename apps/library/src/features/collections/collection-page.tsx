@@ -25,7 +25,6 @@ import {
 } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
-import { ConnectionPanel } from '../../app/connection-panel';
 import {
   BrowseFooter,
   BrowseGrid,
@@ -669,7 +668,6 @@ export function CollectionPage({
           </fieldset>
         </>
       )}
-      <ConnectionPanel server={library.server} onConnect={library.connect} busy={library.busy} />
       <CollectionDialogs
         dialog={dialog}
         collections={collections}

@@ -9,7 +9,7 @@ Open Photos in the new app sidebar, or `/?view=photos`. It shares the connected 
 - `use-photo-library.ts`: cancelled reads, event refresh, mutations, selection and session settings.
 - `model.ts`: pure photo filter/sort rules; tests sit alongside it.
 - `services/library-client.ts`: serializable DTOs and HTTP methods, independent of legacy Wails model classes.
-- `app/connection-panel.tsx`: connection UI used by both features.
+- `app/connection-panel.tsx`: the backend address as a Settings section; pages no longer carry a connection panel.
 - `components/browsing/browse-controls.tsx`: search, toolbar/results count, active filter chips, preview sizes, Manage toggle, grid density and paging footer used by both Videos and Photos.
 - `components/browsing/collection-options.ts`: unlocked collection options with folder paths and hidden-destination labels.
 

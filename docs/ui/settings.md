@@ -17,7 +17,7 @@ Open Settings in the sidebar, or `/?view=settings`; a section is `/?view=setting
 
 ## In the new app
 
-The same, composed from recipes. Three sections remain: Advanced only opened the desktop build's tools window, and the Python daemon has no routes for optimizing streaming or fetching profile pictures, so those rows are not shown rather than shown disabled. Changing the library folder and restarting are the desktop build's; the page says the location is set where the daemon starts. A cookies.txt chosen with the file control is read in the browser and posted to the daemon as text; the app keeps no copy and the page shows only whether each service is connected.
+The same, composed from recipes. Three sections remain: Advanced only opened the desktop build's tools window, and the Python daemon has no routes for optimizing streaming or fetching profile pictures, so those rows are not shown rather than shown disabled. Library ends with the Connection section, the one place the backend address is set: the existing app had no per-page connection panel, and the new app's pages no longer carry one. Changing the library folder and restarting are the desktop build's; the page says the location is set where the daemon starts. A cookies.txt chosen with the file control is read in the browser and posted to the daemon as text; the app keeps no copy and the page shows only whether each service is connected.
 
 ## Contracts
 

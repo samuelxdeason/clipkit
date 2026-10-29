@@ -45,7 +45,7 @@ export function DirectoryBrowser({
   onRefresh: () => void;
   href: (entry: DirectoryEntry) => string;
   actions?: ReactNode;
-  connection: ReactNode;
+  connection?: ReactNode;
 }) {
   const [settings, setSettings] = useState(() => saved(kind));
   const update = (next: Partial<typeof settings>) =>

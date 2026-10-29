@@ -159,7 +159,7 @@ export class LibraryClient {
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') throw error;
       throw new Error(
-        'Could not connect to ClipKit. Check the server address and that the backend is running.',
+        'Could not connect to ClipKit. Check that the backend is running, and its address in Settings.',
       );
     }
     const text = await response.text();
@@ -195,7 +195,10 @@ export class LibraryClient {
     });
   }
 
-  async catalogue(signal: AbortSignal): Promise<Catalogue> {
+  async catalogue(
+    signal: AbortSignal,
+    onPage?: (partial: Catalogue, done: boolean) => void,
+  ): Promise<Catalogue> {
     const [people, collections] = await Promise.all([
       this.request<Person[] | null>('/api/models', { signal }),
       this.request<Collection[] | null>('/api/collections', { signal }),
@@ -210,7 +213,12 @@ export class LibraryClient {
           { signal },
         )) || [];
       for (const video of batch) rows.set(JSON.stringify([video.site, video.id]), video);
-      if (batch.length < 500) break;
+      const done = batch.length < 500;
+      onPage?.(
+        { videos: [...rows.values()], people: people || [], collections: collections || [] },
+        done,
+      );
+      if (done) break;
     }
     return { videos: [...rows.values()], people: people || [], collections: collections || [] };
   }
@@ -236,6 +244,17 @@ export class LibraryClient {
   photosInCollection(id: string, signal: AbortSignal) {
     return this.request<CataloguePhoto[] | null>(
       `/api/albums/photos?id=${encodeURIComponent(id)}`,
+      { signal },
+    );
+  }
+  labelCounts(signal: AbortSignal) {
+    return this.request<{ label: string; count: number }[] | null>('/api/labelcounts', {
+      signal,
+    });
+  }
+  videosByPerson(name: string, signal: AbortSignal) {
+    return this.request<CatalogueVideo[] | null>(
+      `/api/videos/by-model?model=${encodeURIComponent(name)}`,
       { signal },
     );
   }
@@ -440,8 +459,13 @@ export class LibraryClient {
     };
     for (const name of ['library', 'queue', 'avatar', 'import'])
       events.addEventListener(name, schedule);
-    // Refresh after reconnection as events may have been missed while offline.
-    events.addEventListener('open', schedule);
+    // Refresh after a reconnection, as events may have been missed while
+    // offline. The first open is the page's own load, which is already reading.
+    let opened = false;
+    events.addEventListener('open', () => {
+      if (opened) schedule();
+      opened = true;
+    });
     return () => {
       clearTimeout(timer);
       events.close();

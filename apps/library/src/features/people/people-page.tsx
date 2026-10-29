@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button, Dialog, Input, Portal, Text } from '@clipkit/ui';
 import { LibraryShell } from '../../app/library-shell';
-import { ConnectionPanel } from '../../app/connection-panel';
 import { DirectoryBrowser } from '../../components/browsing/directory-browser';
 import { useLibraryResource } from '../../services/use-library-resource';
 import type { LibraryClient } from '../../services/library-client';
@@ -40,13 +39,6 @@ export function PeoplePage() {
             <Button variant="primary" onClick={() => setCreating(true)}>
               New person
             </Button>
-          }
-          connection={
-            <ConnectionPanel
-              server={library.server}
-              onConnect={library.connect}
-              busy={library.busy}
-            />
           }
         />
       </fieldset>

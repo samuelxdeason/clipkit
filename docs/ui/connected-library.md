@@ -10,7 +10,7 @@ This is the first real-data slice of milestone 3. The new video library uses the
 
 ## Run and connect
 
-Run `npm run dev:library`, then open `http://localhost:5174/`. Expand **Library connection** and enter the origin of an already-running ClipKit backend, for example `http://localhost:8899` for a daemon using its default port. The desktop backend uses a random port; use its actual address, not a guessed fixed port. This command starts only the new frontend, never the daemon or a vault.
+Run `npm run dev:library`, then open `http://localhost:5174/`. Open Settings and, under Library, enter the backend server: the origin of an already-running ClipKit backend, for example `http://localhost:8899` for a daemon using its default port. Every page reads the saved address on load; the address is set in one place, as the existing app had no per-page connection panel. The desktop backend uses a random port; use its actual address, not a guessed fixed port. This command starts only the new frontend, never the daemon or a vault.
 
 Leaving the field empty uses same-origin `/api` routes, appropriate when the UI is served alongside the backend. Inside Wails, the adapter calls `window.go.main.App.APIBase()` instead of using the saved address. No Wails-generated modules or legacy styles are imported. A Vite page without a configured backend shows a readable connection error; it does not silently switch to sample data. Addresses must be HTTP(S) origins without credentials, query strings or paths. Browser HTTPS/mixed-content and CORS rules still apply.
 

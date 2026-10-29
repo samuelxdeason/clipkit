@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { tagEntries } from './model.ts';
+import { labelEntries, tagEntries } from './model.ts';
 import { directoryMatches, identityIndex } from '../../components/browsing/directory-model.ts';
 test('tag directory counts user labels once per accessible video, ignoring source tags', () => {
   assert.deepEqual(
@@ -13,6 +13,15 @@ test('tag directory counts user labels once per accessible video, ignoring sourc
       { name: 'Quiet', displayName: 'Quiet', count: 2 },
       { name: 'Travel', displayName: 'Travel', count: 1 },
     ],
+  );
+});
+test('label counts from the daemon become directory entries, skipping blank labels', () => {
+  assert.deepEqual(
+    labelEntries([
+      { label: 'Quiet', count: 2 },
+      { label: ' ', count: 1 },
+    ]),
+    [{ name: 'Quiet', displayName: 'Quiet', count: 2 }],
   );
 });
 test('directory colors follow identity and filtering supports aliases and zero-video people', () => {

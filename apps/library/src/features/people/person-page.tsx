@@ -2,7 +2,6 @@ import { useCallback, useState, type ReactNode } from 'react';
 import { Button, EmptyState, Heading, Notice, Breadcrumbs } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
-import { ConnectionPanel } from '../../app/connection-panel';
 import { ContentTabs } from '../../components/browsing/content-tabs';
 import { ManageToggle } from '../../components/browsing/browse-controls';
 import { PersonProfileHeader } from './person-profile-header';
@@ -22,19 +21,20 @@ export function PersonPage({
   const [tab, setTab] = useState('videos');
   const load = useCallback(
     async (api: LibraryClient, signal: AbortSignal): Promise<ProfileData | null> => {
-      const catalogue = await api.catalogue(signal);
-      const person = catalogue.people.find((person) => person.name === name);
+      const people = (await api.listPeople(signal)) || [];
+      const person = people.find((person) => person.name === name);
       if (!person) return null;
-      const [info, accounts] = await Promise.all([
+      const [info, accounts, videos] = await Promise.all([
         api.personInfo(name, signal),
         api.accounts(signal),
+        api.videosByPerson(name, signal),
       ]);
       return {
         person,
         info: { ...info, name, links: info.links || [] },
         accounts: accounts || [],
-        people: catalogue.people,
-        videos: catalogue.videos.filter((video) => (video.people || []).includes(name)),
+        people,
+        videos: videos || [],
       };
     },
     [name],
@@ -124,7 +124,6 @@ export function PersonPage({
           />
         </>
       )}
-      <ConnectionPanel server={library.server} onConnect={library.connect} busy={library.busy} />
     </LibraryShell>
   );
 }

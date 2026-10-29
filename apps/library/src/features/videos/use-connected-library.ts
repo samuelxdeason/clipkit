@@ -1,3 +1,4 @@
+import type { Catalogue } from '../../services/library-client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   LibraryClient,
@@ -142,18 +143,21 @@ export function useConnectedLibrary(enabled: boolean, person?: string) {
     const current = generation.current;
     setLoading(true);
     try {
-      const data = await client.catalogue(controller.signal);
-      if (controller.signal.aborted || current !== generation.current || !active.current) return;
-      setVideos(
-        data.videos.map((row) => ({
-          ...fromCatalogue(row, data.people, (path) => client.media(path)),
-          triptych:
-            row.width && row.height && row.height > row.width ? client.triptych(row) : undefined,
-        })),
-      );
-      setPeople(data.people);
-      setCollections(data.collections);
-      setError('');
+      const apply = (data: Catalogue) => {
+        if (controller.signal.aborted || current !== generation.current || !active.current) return;
+        setVideos(
+          data.videos.map((row) => ({
+            ...fromCatalogue(row, data.people, (path) => client.media(path)),
+            triptych:
+              row.width && row.height && row.height > row.width ? client.triptych(row) : undefined,
+          })),
+        );
+        setPeople(data.people);
+        setCollections(data.collections);
+        setError('');
+      };
+      // Each page of 500 lands on screen as it arrives; the count settles when the last one does.
+      await client.catalogue(controller.signal, apply);
     } catch (error) {
       if (!controller.signal.aborted && active.current)
         setError(error instanceof Error ? error.message : String(error));

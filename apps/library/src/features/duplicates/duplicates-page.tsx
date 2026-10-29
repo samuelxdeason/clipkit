@@ -20,7 +20,6 @@ import {
 } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
-import { ConnectionPanel } from '../../app/connection-panel';
 import { useLibraryResource } from '../../services/use-library-resource';
 import type { CatalogueVideo, LibraryClient } from '../../services/library-client';
 import { comparisonRows, formatBytes, videoKey, type DuplicateGroup } from './model';
@@ -258,7 +257,6 @@ export function DuplicatesPage({
           />
         )
       )}
-      <ConnectionPanel server={library.server} onConnect={library.connect} busy={library.busy} />
       {playing &&
         library.client &&
         renderPlayer(playing, library.client, {

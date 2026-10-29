@@ -21,7 +21,6 @@ import { VideoPlayer } from './video-player';
 import { VideoCard } from './video-card';
 import { useVideoLibrary } from './use-video-library';
 import { useConnectedLibrary } from './use-connected-library';
-import { ConnectionPanel } from '../../app/connection-panel';
 import { people as demoPeople, tags as demoTags } from './fixtures';
 import { emptyFilters, pageSize, type Video } from './model';
 
@@ -235,9 +234,6 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
               />
             </div>
           </Disclosure.Root>
-        )}
-        {!demo && !person && (
-          <ConnectionPanel server={connected.server} onConnect={connected.connect} busy={busy} />
         )}
         {library.manage && (
           <ManageBar noun="videos" onClose={library.toggleManage}>

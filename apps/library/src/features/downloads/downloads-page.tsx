@@ -13,7 +13,6 @@ import {
 } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
-import { ConnectionPanel } from '../../app/connection-panel';
 import {
   ActiveFilters,
   BrowseFooter,
@@ -302,7 +301,6 @@ export function DownloadsPage() {
             />
           )}
         </div>
-        <ConnectionPanel server={library.server} onConnect={library.connect} busy={library.busy} />
       </div>
     </LibraryShell>
   );

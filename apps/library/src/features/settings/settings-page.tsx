@@ -16,7 +16,7 @@ import {
 } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
-import { ConnectionPanel } from '../../app/connection-panel';
+import { ConnectionSection } from '../../app/connection-panel';
 import { useLibraryResource } from '../../services/use-library-resource';
 import type { LibraryClient } from '../../services/library-client';
 import { bytes, sections, type SettingsSection } from './model';
@@ -153,68 +153,75 @@ export function SettingsPage() {
           {library.loading && !data ? (
             <EmptyState state="loading" title="Opening settings…" />
           ) : !data ? null : section === 'general' ? (
-            <section aria-labelledby="settings-storage">
-              <Heading id="settings-storage" size="sm" className={css({ mb: '4' })}>
-                Library &amp; storage
-              </Heading>
-              <SettingsCard.Root>
-                <SettingsCard.Row>
-                  <SettingsCard.Icon aria-hidden="true">
-                    <Folder />
-                  </SettingsCard.Icon>
-                  <SettingsCard.Copy>
-                    <SettingsCard.Title>Library location</SettingsCard.Title>
-                    <SettingsCard.Detail>
-                      Your media and catalogue are stored here. Change it where the daemon is
-                      started.
-                    </SettingsCard.Detail>
-                  </SettingsCard.Copy>
-                  <SettingsCard.Control />
-                </SettingsCard.Row>
-                <SettingsCard.Path>{data.root || 'Loading library location…'}</SettingsCard.Path>
-                <Storage.Root>
-                  <Storage.Tiles aria-label="Library storage summary">
-                    <Storage.Tile>
-                      <Storage.Value>{stats ? bytes(stats.totalBytes) : '—'}</Storage.Value>
-                      <Storage.Label>Library storage</Storage.Label>
-                    </Storage.Tile>
-                    <Storage.Tile>
-                      <Storage.Value>{stats?.videoCount.toLocaleString() ?? '—'}</Storage.Value>
-                      <Storage.Label>Videos</Storage.Label>
-                    </Storage.Tile>
-                    <Storage.Tile>
-                      <Storage.Value>{stats?.modelCount.toLocaleString() ?? '—'}</Storage.Value>
-                      <Storage.Label>People</Storage.Label>
-                    </Storage.Tile>
-                  </Storage.Tiles>
-                  {!!stats?.sites?.length && (
-                    <Storage.Breakdown>
-                      <Storage.Heading>Storage by source</Storage.Heading>
-                      <Storage.Track aria-hidden="true">
-                        {stats.sites.map((site, index) => (
-                          <Storage.Segment
-                            key={site.site}
-                            bg={`chart.${chartTones[index % chartTones.length]}`}
-                            style={{ width: `${total ? (site.bytes / total) * 100 : 0}%` }}
-                          />
-                        ))}
-                      </Storage.Track>
-                      <Storage.Legend>
-                        {stats.sites.map((site, index) => (
-                          <Storage.Item key={site.site}>
-                            <Storage.Dot
-                              aria-hidden="true"
+            <div className={css({ display: 'grid', gap: '[30px]' })}>
+              <section aria-labelledby="settings-storage">
+                <Heading id="settings-storage" size="sm" className={css({ mb: '4' })}>
+                  Library &amp; storage
+                </Heading>
+                <SettingsCard.Root>
+                  <SettingsCard.Row>
+                    <SettingsCard.Icon aria-hidden="true">
+                      <Folder />
+                    </SettingsCard.Icon>
+                    <SettingsCard.Copy>
+                      <SettingsCard.Title>Library location</SettingsCard.Title>
+                      <SettingsCard.Detail>
+                        Your media and catalogue are stored here. Change it where the daemon is
+                        started.
+                      </SettingsCard.Detail>
+                    </SettingsCard.Copy>
+                    <SettingsCard.Control />
+                  </SettingsCard.Row>
+                  <SettingsCard.Path>{data.root || 'Loading library location…'}</SettingsCard.Path>
+                  <Storage.Root>
+                    <Storage.Tiles aria-label="Library storage summary">
+                      <Storage.Tile>
+                        <Storage.Value>{stats ? bytes(stats.totalBytes) : '—'}</Storage.Value>
+                        <Storage.Label>Library storage</Storage.Label>
+                      </Storage.Tile>
+                      <Storage.Tile>
+                        <Storage.Value>{stats?.videoCount.toLocaleString() ?? '—'}</Storage.Value>
+                        <Storage.Label>Videos</Storage.Label>
+                      </Storage.Tile>
+                      <Storage.Tile>
+                        <Storage.Value>{stats?.modelCount.toLocaleString() ?? '—'}</Storage.Value>
+                        <Storage.Label>People</Storage.Label>
+                      </Storage.Tile>
+                    </Storage.Tiles>
+                    {!!stats?.sites?.length && (
+                      <Storage.Breakdown>
+                        <Storage.Heading>Storage by source</Storage.Heading>
+                        <Storage.Track aria-hidden="true">
+                          {stats.sites.map((site, index) => (
+                            <Storage.Segment
+                              key={site.site}
                               bg={`chart.${chartTones[index % chartTones.length]}`}
+                              style={{ width: `${total ? (site.bytes / total) * 100 : 0}%` }}
                             />
-                            {site.site} <b>{bytes(site.bytes)}</b>
-                          </Storage.Item>
-                        ))}
-                      </Storage.Legend>
-                    </Storage.Breakdown>
-                  )}
-                </Storage.Root>
-              </SettingsCard.Root>
-            </section>
+                          ))}
+                        </Storage.Track>
+                        <Storage.Legend>
+                          {stats.sites.map((site, index) => (
+                            <Storage.Item key={site.site}>
+                              <Storage.Dot
+                                aria-hidden="true"
+                                bg={`chart.${chartTones[index % chartTones.length]}`}
+                              />
+                              {site.site} <b>{bytes(site.bytes)}</b>
+                            </Storage.Item>
+                          ))}
+                        </Storage.Legend>
+                      </Storage.Breakdown>
+                    )}
+                  </Storage.Root>
+                </SettingsCard.Root>
+              </section>
+              <ConnectionSection
+                server={library.server}
+                onConnect={library.connect}
+                busy={library.busy}
+              />
+            </div>
           ) : section === 'connections' ? (
             <section
               aria-labelledby="settings-connections"
@@ -350,7 +357,6 @@ export function SettingsPage() {
           </div>
         </div>
       </div>
-      <ConnectionPanel server={library.server} onConnect={library.connect} busy={library.busy} />
     </LibraryShell>
   );
 }

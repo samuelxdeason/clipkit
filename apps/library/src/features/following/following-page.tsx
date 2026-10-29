@@ -25,7 +25,6 @@ import {
 } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
-import { ConnectionPanel } from '../../app/connection-panel';
 import { identityToneName, IdentityWash } from '../../components/browsing/identity-style';
 import { useLibraryResource } from '../../services/use-library-resource';
 import type {
@@ -834,7 +833,6 @@ export function FollowingPage({
           )}
         </>
       )}
-      <ConnectionPanel server={library.server} onConnect={library.connect} busy={library.busy} />
       {playingIndex >= 0 &&
         library.client &&
         renderPlayer(playable[playingIndex], library.client, {

@@ -4,7 +4,6 @@ import { Image } from 'lucide-react';
 import { Button, Checkbox, EmptyState, Notice, PageHeader, Text } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
-import { ConnectionPanel } from '../../app/connection-panel';
 import { BrowseFooter, BrowseGrid } from '../../components/browsing/browse-controls';
 import { PhotoToolbar } from './photo-toolbar';
 import { PhotoCard } from './photo-card';
@@ -122,13 +121,6 @@ export function PhotoLibrary({ person }: { person?: string }) {
             pageSize={photoPageSize}
             count={library.matches.length}
             onPage={changePage}
-          />
-        )}
-        {!person && (
-          <ConnectionPanel
-            server={library.server}
-            onConnect={library.connect}
-            busy={library.busy}
           />
         )}
         {library.manage && (
