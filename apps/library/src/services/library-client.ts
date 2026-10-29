@@ -62,6 +62,15 @@ export interface Collection {
   locked: boolean;
   inheritedHidden: boolean;
   inheritedLocked: boolean;
+  count?: number;
+  photoCount?: number;
+  videoCount?: number;
+  albumCount?: number;
+  covers?: string[];
+}
+export interface MediaKeys {
+  videos: VideoKey[];
+  photos: string[];
 }
 export interface VideoKey {
   site: string;
@@ -280,6 +289,42 @@ export class LibraryClient {
   }
   createCollection(name: string) {
     return this.post<{ id: number }>('/api/collections/create', { name });
+  }
+  // Collections: the existing browser's calls, with their field names.
+  videosByCollection(id: number, signal: AbortSignal) {
+    return this.request<CatalogueVideo[] | null>(`/api/videos/by-collection?id=${id}`, {
+      signal,
+    });
+  }
+  createAlbum(name: string, parentId: number) {
+    return this.post<{ id: number }>('/api/albums/create', { name, parentId });
+  }
+  moveAlbum(id64: number, parentId: number) {
+    return this.post('/api/albums/move', { id64, parentId });
+  }
+  renameCollection(id64: number, name: string) {
+    return this.post('/api/collections/rename', { id64, name });
+  }
+  deleteCollection(id64: number) {
+    return this.post('/api/collections/delete', { id64 });
+  }
+  addAlbumItems(id64: number, items: MediaKeys) {
+    return this.post('/api/albums/add', { id64, videos: items.videos, photos: items.photos });
+  }
+  removeAlbumItems(id64: number, items: MediaKeys) {
+    return this.post('/api/albums/remove', { id64, videos: items.videos, photos: items.photos });
+  }
+  transferCollectionItems(sourceId: number, id64: number, items: MediaKeys, copy = false) {
+    return this.post('/api/collections/transfer', {
+      sourceId,
+      id64,
+      videos: items.videos,
+      photos: items.photos,
+      copy,
+    });
+  }
+  trashMedia(items: MediaKeys) {
+    return this.post('/api/media/trash', { videos: items.videos, photos: items.photos });
   }
   trash(videos: VideoKey[]) {
     return this.post('/api/media/trash', {

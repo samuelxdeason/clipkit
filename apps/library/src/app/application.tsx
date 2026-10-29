@@ -5,6 +5,10 @@ import { PhotoLibrary } from '../features/photos/photo-library';
 import { PeoplePage } from '../features/people/people-page';
 import { PersonPage } from '../features/people/person-page';
 import { TagsPage } from '../features/tags/tags-page';
+import { CollectionsPage } from '../features/collections/collections-page';
+import { CollectionPage } from '../features/collections/collection-page';
+import { VideoPlayer } from '../features/videos/video-player';
+import { fromCatalogue } from '../features/videos/model';
 
 /** Feature composition belongs to the app; feature internals never import each other. */
 export function Application() {
@@ -35,6 +39,23 @@ export function Application() {
       );
     case 'tags':
       return <TagsPage />;
+    case 'collections':
+      return <CollectionsPage />;
+    case 'collection':
+      return (
+        <CollectionPage
+          key={route.get('id')}
+          id={Number(route.get('id')) || 0}
+          renderPlayer={(video, client, controls) => (
+            <VideoPlayer
+              key={`${video.site}:${video.id}`}
+              video={fromCatalogue(video, [], (path) => client.media(path))}
+              client={client}
+              {...controls}
+            />
+          )}
+        />
+      );
     default:
       return <VideoLibrary demo={route.get('demo') === '1'} />;
   }

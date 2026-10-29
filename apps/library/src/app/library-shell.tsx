@@ -14,15 +14,19 @@ import {
 } from 'lucide-react';
 import { Button, Heading, Icon, IconButton, Sidebar, Text, Accent, Rule } from '@clipkit/ui';
 import { css } from '@clipkit/ui/css';
+import { CollectionTree } from '../components/browsing/collection-tree';
 
 export function LibraryShell({
   children,
   demo = false,
   page = 'videos',
+  collectionId = 0,
 }: {
   children: ReactNode;
   demo?: boolean;
-  page?: 'videos' | 'photos' | 'people' | 'tags' | 'downloads';
+  page?: 'videos' | 'photos' | 'people' | 'tags' | 'collections' | 'downloads';
+  /** The open collection, so the sidebar's folder tree can mark and expand it. */
+  collectionId?: number;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -95,7 +99,12 @@ export function LibraryShell({
           </Sidebar.Group>
           <Sidebar.Group>
             <Sidebar.Label>Organize</Sidebar.Label>
-            <NavigationItem label="Collections" glyph={Folder} />
+            <NavigationItem
+              label="Collections"
+              glyph={Folder}
+              href={demo ? undefined : '/?view=collections'}
+              active={page === 'collections'}
+            />
             <NavigationItem
               label="People"
               glyph={Users}
@@ -109,6 +118,7 @@ export function LibraryShell({
               active={page === 'tags'}
             />
           </Sidebar.Group>
+          {!demo && <CollectionTree currentId={collectionId} />}
           <Sidebar.Footer>
             <details open={page === 'downloads' ? true : undefined}>
               <Sidebar.Summary>

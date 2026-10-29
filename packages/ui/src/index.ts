@@ -14,6 +14,13 @@ export * as MediaCard from './components/media-card';
 export * as Sidebar from './components/sidebar';
 export * as Viewer from './components/viewer';
 export {
+  CoverMosaic,
+  Hero,
+  FolderCard,
+  FolderTree,
+  type CoverMosaicProps,
+} from './components/collections';
+export {
   Panel,
   Rule,
   Stat,

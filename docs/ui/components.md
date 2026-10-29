@@ -39,6 +39,12 @@ Compact card controls use Tag for labels and Button `quiet/compact` for File inf
 | MediaCard | Compound; kind video (default) / photo / person / tag | Root is an article with aria-label; Media is the one clickable surface and needs a name; data-selected shows selection; identity colour and domain content stay in the app |
 | Viewer | Compound on Ark Dialog; kind video (default) / photo | The full-viewport window around a playing video or a photo: Header with Eyebrow and Title, Stage with one Video or Image, Bar, Footer with Controls, Error, Inspector; see [Player and viewer](player.md) |
 | Viewer.Organizer | Compound: Root, Heading, Tray, TrayItem, Feedback, Intro, Create, Options, Option, Symbol, Copy, Name, Detail, Check, Empty, File, Facts | The organize inspector's parts; TrayItem and Option are buttons with aria-pressed; Create wraps a full-width Button |
+| MediaCard kind="collection" | Featured collection card; Action slot | A 260px cover stage for a CoverMosaic or glyph, counts in the body and a stats Footer; Action is the corner control outside the Link |
+| CoverMosaic | count one / two / three; even | Up to three covers in one tile; the first spans both rows at three |
+| Hero | Compound: Root, Cover, Copy, Eyebrow, Caption | The top of a collection; see [Collections](collections.md) |
+| FolderCard | Compound: Root, Open, Icon, Copy, Name, Detail, Action | A subfolder row; Action shows on hover, focus or without a pointer |
+| FolderTree | Compound: Root, Heading, Tools, Scroll, Row, Expand, Open, Path, Empty | The sidebar folder outline; Row takes data-active |
+| Popover variant="menu" | Menu surface | A short list of quiet Buttons as actions; each wrapped in CloseTrigger |
 
 Use one primary action for the current local task. Neutral is the supporting action; quiet is toolbar utility; danger names a destructive action. These are the existing app's four variants, written as one recipe; Storybook's Reference/Legacy buttons story renders both side by side. Destructive actions must be named accurately and preserve the app's confirmation/recovery behavior. A red button is not a confirmation flow.
 

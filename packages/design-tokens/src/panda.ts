@@ -163,6 +163,7 @@ export const sizes = {
   11: { value: '44px' },
   12: { value: '48px' },
   16: { value: '64px' },
+  20: { value: '80px' },
   24: { value: '96px' },
   32: { value: '128px' },
   40: { value: '160px' },

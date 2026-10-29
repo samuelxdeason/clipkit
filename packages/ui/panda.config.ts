@@ -12,6 +12,7 @@ import { mediaCard } from './src/recipes/media-card';
 import { pageHeader, sectionHeading, toolbar, filterRail, filterChip } from './src/recipes/layout';
 import { sidebar } from './src/recipes/sidebar';
 import { organizer, viewer } from './src/recipes/viewer';
+import { collectionHero, coverMosaic, folderCard, folderTree } from './src/recipes/collections';
 import {
   panel,
   rule,
@@ -69,6 +70,7 @@ export default defineConfig({
         textLink,
         accent,
         previewImage,
+        coverMosaic,
       },
       slotRecipes: {
         select,
@@ -90,6 +92,9 @@ export default defineConfig({
         disclosure,
         viewer,
         organizer,
+        collectionHero,
+        folderCard,
+        folderTree,
       },
     },
   },

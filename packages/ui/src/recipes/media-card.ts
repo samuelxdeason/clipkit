@@ -29,6 +29,7 @@ export const mediaCard = defineSlotRecipe({
     'symbol',
     'arrow',
     'link',
+    'action',
   ],
   base: {
     root: {
@@ -135,6 +136,27 @@ export const mediaCard = defineSlotRecipe({
       color: 'rose',
       pointerEvents: 'none',
       '& svg': { w: '3.5', h: '3.5' },
+    },
+    // `.folder-card-new` on a featured collection: the new-subfolder control.
+    action: {
+      position: 'absolute',
+      top: '3.5',
+      right: '3.5',
+      zIndex: '2',
+      display: 'grid',
+      placeItems: 'center',
+      w: 'controlCompact',
+      h: 'controlCompact',
+      bg: 'overlay',
+      color: 'text',
+      borderWidth: '1px',
+      borderColor: 'overlayLine',
+      borderRadius: 'control',
+      cursor: 'pointer',
+      _hover: { bg: 'hover' },
+      _focusVisible: { outline: '2px solid', outlineColor: 'focus', outlineOffset: '2px' },
+      _disabled: { display: 'none' },
+      '& svg': { w: 'iconSmall', h: 'iconSmall' },
     },
     progress: {
       position: 'absolute',
@@ -265,6 +287,19 @@ export const mediaCard = defineSlotRecipe({
           '& img': { objectFit: 'cover' },
         },
         body: { p: '4' },
+      },
+      // `.featured-collection`: a 260px cover stage, the name and counts, and a stats footer.
+      collection: {
+        frame: {
+          display: 'grid',
+          placeItems: 'center',
+          aspectRatio: 'auto',
+          h: '[260px]',
+          '& > svg': { w: '[42px]', h: '[42px]', opacity: '0.6', color: 'muted' },
+          '& img': { objectFit: 'cover' },
+        },
+        body: { p: 'card', gap: '2' },
+        footer: { mt: '0', px: 'card', py: '3', gap: '5', justifyContent: 'flex-start' },
       },
       tag: {
         root: { minH: '[200px]' },

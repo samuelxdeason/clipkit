@@ -244,6 +244,16 @@ export const popover = defineSlotRecipe({
         content: { width: 'min(320px, calc(100vw - 24px))' },
         positioner: { zIndex: 80 },
       },
+      // `.album-menu > div`: a short list of actions on the menu surface.
+      menu: {
+        content: {
+          width: 'auto',
+          minW: '[165px]',
+          p: 'menu',
+          gridTemplateRows: 'none',
+          gap: '0.5',
+        },
+      },
     },
   },
   defaultVariants: { variant: 'standard' },

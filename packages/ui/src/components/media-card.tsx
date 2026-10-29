@@ -19,6 +19,7 @@ export const Root = withProvider(ark.article, 'root');
 export const Frame = withContext(ark.div, 'frame');
 export const Media = withContext(ark.button, 'media');
 export const Backdrop = withContext(ark.span, 'backdrop');
+export const Action = withContext(ark.button, 'action');
 export const Fallback = withContext(ark.div, 'fallback');
 export const Badge = withContext(ark.span, 'badge');
 export const Favorite = withContext(ark.span, 'favorite');
