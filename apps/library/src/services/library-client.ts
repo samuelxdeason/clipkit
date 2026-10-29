@@ -78,6 +78,21 @@ export interface VideoKey {
   site: string;
   id: string;
 }
+export interface SiteStat {
+  site: string;
+  count: number;
+  bytes: number;
+}
+export interface Stats {
+  totalBytes: number;
+  videoCount: number;
+  modelCount: number;
+  sites: SiteStat[];
+}
+export interface CookieStatus {
+  x: boolean;
+  pornhub: boolean;
+}
 export interface RemoteItem {
   site?: string;
   url: string;
@@ -363,6 +378,26 @@ export class LibraryClient {
   }
   queue(signal: AbortSignal) {
     return this.request<DownloadJob[] | null>('/api/queue', { signal });
+  }
+  // Settings: the existing screen's reads and maintenance actions.
+  mediaRoot(signal: AbortSignal) {
+    return this.request<string>('/api/mediaroot', { signal });
+  }
+  stats(signal: AbortSignal) {
+    return this.request<Stats>('/api/stats', { signal });
+  }
+  cookieStatus(signal: AbortSignal) {
+    return this.request<CookieStatus>('/api/cookiestatus', { signal });
+  }
+  /** The daemon merges a cookies.txt into its own file; the text never stays in the app. */
+  uploadCookies(text: string) {
+    return this.request<CookieStatus>('/api/cookies/upload', { method: 'POST', body: text });
+  }
+  backup() {
+    return this.post<{ path: string }>('/api/backup', {});
+  }
+  rebuild() {
+    return this.post<{ count: number }>('/api/rebuild', {});
   }
   trash(videos: VideoKey[]) {
     return this.post('/api/media/trash', {

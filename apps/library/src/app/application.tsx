@@ -8,6 +8,7 @@ import { TagsPage } from '../features/tags/tags-page';
 import { CollectionsPage } from '../features/collections/collections-page';
 import { CollectionPage } from '../features/collections/collection-page';
 import { FollowingPage } from '../features/following/following-page';
+import { SettingsPage } from '../features/settings/settings-page';
 import { VideoPlayer } from '../features/videos/video-player';
 import { fromCatalogue } from '../features/videos/model';
 
@@ -42,6 +43,8 @@ export function Application() {
       return <TagsPage />;
     case 'collections':
       return <CollectionsPage />;
+    case 'settings':
+      return <SettingsPage />;
     case 'following':
       return (
         <FollowingPage

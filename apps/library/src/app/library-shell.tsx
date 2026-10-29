@@ -24,7 +24,15 @@ export function LibraryShell({
 }: {
   children: ReactNode;
   demo?: boolean;
-  page?: 'videos' | 'photos' | 'people' | 'tags' | 'collections' | 'following' | 'downloads';
+  page?:
+    | 'videos'
+    | 'photos'
+    | 'people'
+    | 'tags'
+    | 'collections'
+    | 'following'
+    | 'downloads'
+    | 'settings';
   /** The open collection, so the sidebar's folder tree can mark and expand it. */
   collectionId?: number;
 }) {
@@ -143,7 +151,12 @@ export function LibraryShell({
                 </Button>
               </Sidebar.Group>
             </details>
-            <NavigationItem label="Settings" glyph={Settings} />
+            <NavigationItem
+              label="Settings"
+              glyph={Settings}
+              href={demo ? undefined : '/?view=settings'}
+              active={page === 'settings'}
+            />
             {demo && (
               <Text size="sm" tone="muted">
                 Synthetic demo · session only

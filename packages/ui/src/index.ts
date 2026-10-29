@@ -21,6 +21,7 @@ export {
   type CoverMosaicProps,
 } from './components/collections';
 export { SourceCard, RemoteItem } from './components/following';
+export { SettingsNav, SettingsCard, Storage } from './components/settings';
 export {
   Panel,
   Rule,

@@ -48,6 +48,9 @@ Compact card controls use Tag for labels and Button `quiet/compact` for File inf
 | Hero cover="portrait"; Hero.Note | Portrait cover; a quiet line | The followed-source hero; see [Following](following.md) |
 | SourceCard | Compound: Root, Art, Copy, Name, Meta, Stats, Stat, Checked, Actions | A followed source; Name is the opening button |
 | RemoteItem | Compound: Root, Mark, Preview, Play, Copy, Title, Line, Original, Actions | One item of a source; Mark is a checkbox or a state glyph |
+| SettingsNav | Compound: Root, Item, Copy, Title, Detail | The Settings section column; Items are buttons with aria-pressed; see [Settings](settings.md) |
+| SettingsCard | Compound: Root, Row, Icon, Copy, Title, Detail, Control, Path | A card of setting rows; Path is the code line under a row |
+| Storage | Compound: Root, Tile, Value, Label, Breakdown, Heading, Track, Segment, Legend, Item, Dot | The storage summary; Segment and Dot take a chart colour through `bg` |
 
 Use one primary action for the current local task. Neutral is the supporting action; quiet is toolbar utility; danger names a destructive action. These are the existing app's four variants, written as one recipe; Storybook's Reference/Legacy buttons story renders both side by side. Destructive actions must be named accurately and preserve the app's confirmation/recovery behavior. A red button is not a confirmation flow.
 

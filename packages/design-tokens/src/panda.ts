@@ -119,6 +119,7 @@ export const spacing = {
   4: v('--ui-space-4'),
   4.5: { value: '18px' },
   5: v('--ui-space-5'),
+  5.5: { value: '22px' },
   6: v('--ui-space-6'),
   7: { value: '28px' },
   8: v('--ui-space-8'),
