@@ -31,6 +31,7 @@ export const Hero = {
   Copy: hero.withContext(ark.div, 'copy'),
   Eyebrow: hero.withContext(ark.p, 'eyebrow'),
   Caption: hero.withContext(ark.p, 'caption'),
+  Note: hero.withContext(ark.p, 'note'),
 };
 
 /**

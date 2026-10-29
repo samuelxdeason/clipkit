@@ -39,7 +39,7 @@ export const coverMosaic = defineRecipe({
 /** `.collection-hero`: the cover, eyebrow, title, caption and facts at the top of a collection. */
 export const collectionHero = defineSlotRecipe({
   className: 'ck-hero',
-  slots: ['root', 'cover', 'copy', 'eyebrow', 'caption'],
+  slots: ['root', 'cover', 'copy', 'eyebrow', 'caption', 'note'],
   base: {
     root: {
       position: 'relative',
@@ -98,7 +98,30 @@ export const collectionHero = defineSlotRecipe({
       '& svg': { w: 'iconSmall', h: 'iconSmall' },
     },
     caption: { m: '0', color: 'muted', fontSize: 'body', lineHeight: 'body' },
+    // `.following-hero-url`, `.following-hero-checked`: a quiet line under the caption.
+    note: { m: '0', mt: '2', color: 'subtle', textStyle: 'metadata', overflowWrap: 'anywhere' },
   },
+  variants: {
+    // `.following-source-hero` keeps a portrait of the person at 200 by 250.
+    cover: {
+      square: {},
+      portrait: {
+        root: {
+          gridTemplateColumns: {
+            base: 'minmax(0, 1fr)',
+            md: '160px minmax(0, 1fr)',
+            lg: '200px minmax(0, 1fr)',
+          },
+        },
+        cover: {
+          aspectRatio: { base: 'video', md: 'portrait' },
+          boxShadow: '0 0 40px color-mix(in srgb, currentColor 20%, transparent)',
+        },
+        caption: { mt: '3' },
+      },
+    },
+  },
+  defaultVariants: { cover: 'square' },
 });
 
 /** `.compact-folder`: a subfolder as one row with its icon, name, counts and a new-folder control. */

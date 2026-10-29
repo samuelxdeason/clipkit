@@ -20,6 +20,7 @@ export {
   FolderTree,
   type CoverMosaicProps,
 } from './components/collections';
+export { SourceCard, RemoteItem } from './components/following';
 export {
   Panel,
   Rule,

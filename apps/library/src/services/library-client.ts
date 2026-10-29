@@ -1,3 +1,5 @@
+import type { DownloadJob } from './download-client';
+
 /** HTTP DTOs deliberately stay independent of generated Wails models and shared UI. */
 export interface CatalogueVideo {
   site: string;
@@ -75,6 +77,22 @@ export interface MediaKeys {
 export interface VideoKey {
   site: string;
   id: string;
+}
+export interface RemoteItem {
+  site?: string;
+  url: string;
+  title: string;
+  id: string;
+  owned: boolean;
+}
+export interface SyncSummary {
+  url: string;
+  title: string;
+  kind: string;
+  fetchedAt: string;
+  count: number;
+  owned: number;
+  new: number;
 }
 export interface Catalogue {
   videos: CatalogueVideo[];
@@ -325,6 +343,26 @@ export class LibraryClient {
   }
   trashMedia(items: MediaKeys) {
     return this.post('/api/media/trash', { videos: items.videos, photos: items.photos });
+  }
+  // Following: the existing screen's calls. Enumerating a source may reach
+  // the network through the daemon; refresh asks it to re-list the source.
+  syncedLists(signal: AbortSignal) {
+    return this.request<SyncSummary[] | null>('/api/synced/lists', { signal });
+  }
+  removeSync(url: string) {
+    return this.post('/api/synced/remove', { url });
+  }
+  enumerate(url: string, refresh: boolean, signal?: AbortSignal) {
+    return this.request<RemoteItem[] | null>(
+      `/api/enumerate?url=${encodeURIComponent(url)}&refresh=${refresh ? '1' : ''}`,
+      { signal },
+    );
+  }
+  enqueueMany(urls: string[]) {
+    return this.post<{ added: number }>('/api/enqueue/many', { urls });
+  }
+  queue(signal: AbortSignal) {
+    return this.request<DownloadJob[] | null>('/api/queue', { signal });
   }
   trash(videos: VideoKey[]) {
     return this.post('/api/media/trash', {

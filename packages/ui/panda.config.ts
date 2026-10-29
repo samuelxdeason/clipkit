@@ -13,6 +13,7 @@ import { pageHeader, sectionHeading, toolbar, filterRail, filterChip } from './s
 import { sidebar } from './src/recipes/sidebar';
 import { organizer, viewer } from './src/recipes/viewer';
 import { collectionHero, coverMosaic, folderCard, folderTree } from './src/recipes/collections';
+import { mediaItem, sourceCard } from './src/recipes/following';
 import {
   panel,
   rule,
@@ -95,6 +96,8 @@ export default defineConfig({
         collectionHero,
         folderCard,
         folderTree,
+        sourceCard,
+        mediaItem,
       },
     },
   },

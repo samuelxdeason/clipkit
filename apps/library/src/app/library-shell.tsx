@@ -24,7 +24,7 @@ export function LibraryShell({
 }: {
   children: ReactNode;
   demo?: boolean;
-  page?: 'videos' | 'photos' | 'people' | 'tags' | 'collections' | 'downloads';
+  page?: 'videos' | 'photos' | 'people' | 'tags' | 'collections' | 'following' | 'downloads';
   /** The open collection, so the sidebar's folder tree can mark and expand it. */
   collectionId?: number;
 }) {
@@ -120,13 +120,18 @@ export function LibraryShell({
           </Sidebar.Group>
           {!demo && <CollectionTree currentId={collectionId} />}
           <Sidebar.Footer>
-            <details open={page === 'downloads' ? true : undefined}>
+            <details open={page === 'downloads' || page === 'following' ? true : undefined}>
               <Sidebar.Summary>
                 <SlidersHorizontal aria-hidden="true" />
                 Manage library
               </Sidebar.Summary>
               <Sidebar.Group className={css({ mt: '1' })}>
-                <NavigationItem label="Following" glyph={Heart} />
+                <NavigationItem
+                  label="Following"
+                  glyph={Heart}
+                  href={demo ? undefined : '/?view=following'}
+                  active={page === 'following'}
+                />
                 <NavigationItem
                   label="Downloads"
                   glyph={Download}

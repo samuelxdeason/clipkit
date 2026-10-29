@@ -7,6 +7,7 @@ import { PersonPage } from '../features/people/person-page';
 import { TagsPage } from '../features/tags/tags-page';
 import { CollectionsPage } from '../features/collections/collections-page';
 import { CollectionPage } from '../features/collections/collection-page';
+import { FollowingPage } from '../features/following/following-page';
 import { VideoPlayer } from '../features/videos/video-player';
 import { fromCatalogue } from '../features/videos/model';
 
@@ -41,6 +42,19 @@ export function Application() {
       return <TagsPage />;
     case 'collections':
       return <CollectionsPage />;
+    case 'following':
+      return (
+        <FollowingPage
+          renderPlayer={(video, client, controls) => (
+            <VideoPlayer
+              key={`${video.site}:${video.id}`}
+              video={fromCatalogue(video, [], (path) => client.media(path))}
+              client={client}
+              {...controls}
+            />
+          )}
+        />
+      );
     case 'collection':
       return (
         <CollectionPage
