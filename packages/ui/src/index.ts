@@ -12,6 +12,7 @@ export { SearchField, type SearchFieldProps } from './components/search-field';
 export * as Tabs from './components/tabs';
 export * as MediaCard from './components/media-card';
 export * as Sidebar from './components/sidebar';
+export * as Viewer from './components/viewer';
 export {
   Panel,
   Rule,

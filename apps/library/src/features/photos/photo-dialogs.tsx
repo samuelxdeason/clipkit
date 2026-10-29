@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Button, ChoiceSelect, Dialog, Portal, Text, PreviewImage } from '@clipkit/ui';
+import { X } from 'lucide-react';
+import { Button, ChoiceSelect, Dialog, Icon, IconButton, Portal, Text, Viewer } from '@clipkit/ui';
 import { collectionOptions } from '../../components/browsing/collection-options';
 import type { usePhotoLibrary } from './use-photo-library';
 
@@ -38,16 +39,17 @@ export function PhotoDialogs({
   }
   return (
     <>
-      <Dialog.Root
+      <Viewer.Root
+        kind="photo"
         open={!!active}
         onOpenChange={(event) => {
           if (!event.open) onPreview(null);
         }}
       >
         <Portal>
-          <Dialog.Backdrop />
-          <Dialog.Positioner>
-            <Dialog.Content
+          <Viewer.Backdrop />
+          <Viewer.Positioner>
+            <Viewer.Window
               onKeyDown={(event) => {
                 if (event.key === 'ArrowLeft' && index > 0) {
                   event.preventDefault();
@@ -59,36 +61,49 @@ export function PhotoDialogs({
                 }
               }}
             >
-              <Dialog.Title>{active?.filename || 'Photo preview'}</Dialog.Title>
-              <Dialog.Description>{active?.model || 'No person assigned'}</Dialog.Description>
-              {active && (
-                <PreviewImage
-                  src={library.client?.media(active.filepath)}
-                  alt={active.filename}
-                  maxH="[65dvh]"
-                />
-              )}
-              <Dialog.Footer>
+              <Viewer.Header>
+                <Viewer.Heading>
+                  <Viewer.Eyebrow>Photo viewer</Viewer.Eyebrow>
+                  <Viewer.Title title={active?.filename}>
+                    {active?.filename || 'Photo preview'}
+                  </Viewer.Title>
+                </Viewer.Heading>
+                <Viewer.CloseTrigger asChild>
+                  <IconButton aria-label="Close photo">
+                    <Icon glyph={X} />
+                  </IconButton>
+                </Viewer.CloseTrigger>
+              </Viewer.Header>
+              <Viewer.Stage>
+                {active && (
+                  <Viewer.Image
+                    src={library.client?.media(active.filepath)}
+                    alt={active.filename}
+                  />
+                )}
+              </Viewer.Stage>
+              <Viewer.Footer>
                 <Button
                   disabled={index <= 0}
                   onClick={() => onPreview(library.matches[index - 1].id)}
                 >
-                  Previous photo
+                  ← Previous
                 </Button>
+                <Viewer.Caption>
+                  {index + 1} / {library.matches.length} ·{' '}
+                  {active?.album || active?.model || 'Photos'}
+                </Viewer.Caption>
                 <Button
                   disabled={index < 0 || index >= library.matches.length - 1}
                   onClick={() => onPreview(library.matches[index + 1].id)}
                 >
-                  Next photo
+                  Next →
                 </Button>
-                <Dialog.CloseTrigger asChild aria-label="Close preview">
-                  <Button>Close preview</Button>
-                </Dialog.CloseTrigger>
-              </Dialog.Footer>
-            </Dialog.Content>
-          </Dialog.Positioner>
+              </Viewer.Footer>
+            </Viewer.Window>
+          </Viewer.Positioner>
         </Portal>
-      </Dialog.Root>
+      </Viewer.Root>
       <Dialog.Root
         open={kind !== null}
         closeOnEscape={!library.busy}

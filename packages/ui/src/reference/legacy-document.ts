@@ -22,6 +22,8 @@ import iconSystem from '../../../../frontend/src/icon-system.css?raw';
 import surfaceSystem from '../../../../frontend/src/surface-system.css?raw';
 import browseLayout from '../../../../frontend/src/browse-layout.css?raw';
 import interactionSystem from '../../../../frontend/src/interaction-system.css?raw';
+// The player loads its organizer sheet from its own module, after the rest.
+import watchOrganizer from '../../../../frontend/src/watch-organizer.css?raw';
 
 const sheets = [
   tokens,
@@ -42,6 +44,7 @@ const sheets = [
   surfaceSystem,
   browseLayout,
   interactionSystem,
+  watchOrganizer,
 ];
 
 // style.css starts with @tailwind directives the frame cannot process; this is

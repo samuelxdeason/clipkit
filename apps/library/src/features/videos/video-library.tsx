@@ -17,6 +17,7 @@ import { css } from '@clipkit/ui/css';
 import { LibraryShell } from '../../app/library-shell';
 import { LibraryToolbar } from './library-toolbar';
 import { VideoDialogs, type VideoDialogKind } from './video-dialogs';
+import { VideoPlayer } from './video-player';
 import { VideoCard } from './video-card';
 import { useVideoLibrary } from './use-video-library';
 import { useConnectedLibrary } from './use-connected-library';
@@ -47,6 +48,12 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
     }
   }
   const [preview, setPreview] = useState<Video | null>(null);
+  const previewIndex = preview ? library.matches.findIndex((item) => item.id === preview.id) : -1;
+  const previousVideo = previewIndex > 0 ? library.matches[previewIndex - 1] : undefined;
+  const nextVideo =
+    previewIndex >= 0 && previewIndex < library.matches.length - 1
+      ? library.matches[previewIndex + 1]
+      : undefined;
   const [dialog, setDialog] = useState<VideoDialogKind>(null);
   const [demoState, setState] = useState('ready');
   const state = demo
@@ -301,14 +308,23 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
         )}
       </fieldset>
 
+      {preview && (
+        <VideoPlayer
+          key={preview.id}
+          video={preview}
+          client={demo ? null : connected.client}
+          onClose={() => setPreview(null)}
+          onPrevious={previousVideo && (() => setPreview(previousVideo))}
+          onNext={nextVideo && (() => setPreview(nextVideo))}
+          onChanged={demo ? undefined : () => void connected.refresh()}
+        />
+      )}
       <VideoDialogs
         demo={demo}
         library={library}
         connected={connected}
         dialog={dialog}
         setDialog={setDialog}
-        preview={preview}
-        setPreview={setPreview}
       />
     </>
   );

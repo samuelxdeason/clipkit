@@ -43,6 +43,30 @@ test('request errors remain readable and aborts are preserved', async () => {
   }
 });
 
+test('playback and organizing calls send the existing API bodies', async () => {
+  const client = new LibraryClient('http://localhost:8899');
+  const calls = [];
+  client.request = async (path, options = {}) => {
+    calls.push([path, options.body ? JSON.parse(options.body) : undefined]);
+    return null;
+  };
+  const key = { site: 'demo', id: 'a 1' };
+  await client.markWatched(key);
+  await client.position(key, 42.5, 300);
+  await client.setTitle(key, 'Renamed');
+  await client.collectionsForVideo(key, new AbortController().signal);
+  await client.uncollect(7, key);
+  await client.createCollection('Trips');
+  assert.deepEqual(calls, [
+    ['/api/markwatched', { site: 'demo', id: 'a 1' }],
+    ['/api/position', { site: 'demo', id: 'a 1', position: 42.5, duration: 300 }],
+    ['/api/settitle', { site: 'demo', id: 'a 1', title: 'Renamed' }],
+    ['/api/collections-for-video?site=demo&id=a%201', undefined],
+    ['/api/collections/remove', { id64: 7, site: 'demo', videoId: 'a 1' }],
+    ['/api/collections/create', { name: 'Trips' }],
+  ]);
+});
+
 test('nullable catalogue lists normalize and media URLs encode server paths', async () => {
   const client = new LibraryClient('http://localhost:8899');
   client.request = async () => null;

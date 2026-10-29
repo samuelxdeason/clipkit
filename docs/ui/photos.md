@@ -13,7 +13,7 @@ Open Photos in the new app sidebar, or `/?view=photos`. It shares the connected 
 - `components/browsing/browse-controls.tsx`: search, toolbar/results count, active filter chips, preview sizes, Manage toggle, grid density and paging footer used by both Videos and Photos.
 - `components/browsing/collection-options.ts`: unlocked collection options with folder paths and hidden-destination labels.
 
-These browsing components remain app-owned because they describe this application's browsing patterns. They compose `@clipkit/ui`; they do not introduce a competing theme or import feature state. Shared UI remains generic. Feature components do not import another feature's internals. Video preview/organizing dialogs now live in `features/videos/video-dialogs.tsx` rather than the page; the page keeps composition, while its hooks retain demo/connected state.
+These browsing components remain app-owned because they describe this application's browsing patterns. They compose `@clipkit/ui`; they do not introduce a competing theme or import feature state. Shared UI remains generic. Feature components do not import another feature's internals. Video organizing dialogs live in `features/videos/video-dialogs.tsx` and the watch window in `video-player.tsx`; the photo viewer in `photo-dialogs.tsx` is the same `Viewer` with `kind="photo"` (see [Player and viewer](player.md)). The page keeps composition, while its hooks retain demo/connected state.
 
 ## Data and privacy contracts
 

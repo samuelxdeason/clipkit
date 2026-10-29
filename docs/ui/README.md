@@ -14,7 +14,8 @@ This guide describes the shared foundation, synthetic library and first connecte
 | Photos and shared browsing ownership | [Connected Photos](photos.md) |
 | Queue controls, progress and download testing | [Downloads](downloads.md) |
 | Directories, profiles, accounts and scoped media links | [People and Tags](people-tags.md) |
+| Watch window, organize inspector and photo viewer | [Player and viewer](player.md) |
 
-Working inventory: Button, IconButton, Input, Text, Heading, Icon, Checkbox, Select/ChoiceSelect, Popover, Dialog and Paging. Storybook includes state examples and nested overlays. The new app has connected and synthetic video-library modes; Storybook and demo mode remain independent of real media.
+Working inventory: Button, IconButton, Input, Textarea, Text, Heading, Icon, Checkbox, Select/ChoiceSelect, Popover, Dialog, Paging, Tabs, SearchField, Tag, StatusBadge, Notice, EmptyState, MediaCard, PageHeader, SectionHeading, Toolbar, FilterRail, Sidebar, Panel and the other surfaces, and Viewer with its Organizer. Storybook includes state examples and nested overlays. The new app has connected and synthetic video-library modes; Storybook and demo mode remain independent of real media.
 
-Connected Videos, Photos, People and Tags use shared app-owned browsing components. People includes profiles and account connections; directory links open the existing media organizing flows. Not implemented yet: collection pages, full player/viewer tooling, action menus, full form-field composition and toasts. Their guides and examples will be added with working consumers, not speculative abstractions.
+Connected Videos, Photos, People and Tags use shared app-owned browsing components. People includes profiles and account connections; directory links open the existing media organizing flows. Videos open in the watch window with its organize inspector, and photos in the photo viewer. Not implemented yet: collection pages, action menus, full form-field composition and toasts. Their guides and examples will be added with working consumers, not speculative abstractions.

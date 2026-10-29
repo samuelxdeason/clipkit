@@ -1,21 +1,10 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import {
-  Button,
-  ChoiceSelect,
-  Dialog,
-  Icon,
-  IconButton,
-  Input,
-  Portal,
-  Text,
-  PreviewImage,
-} from '@clipkit/ui';
+import { Button, ChoiceSelect, Dialog, Icon, IconButton, Input, Portal, Text } from '@clipkit/ui';
 import { collectionOptions } from '../../components/browsing/collection-options';
 import { css } from '@clipkit/ui/css';
 import { useVideoLibrary } from './use-video-library';
 import { useConnectedLibrary } from './use-connected-library';
-import { formatDuration, type Video } from './model';
 export type VideoDialogKind = 'collection' | 'remove' | 'tags' | 'person' | null;
 const row = css({ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '3' });
 export function VideoDialogs({
@@ -24,16 +13,12 @@ export function VideoDialogs({
   connected,
   dialog,
   setDialog,
-  preview,
-  setPreview,
 }: {
   demo: boolean;
   library: ReturnType<typeof useVideoLibrary> | ReturnType<typeof useConnectedLibrary>;
   connected: ReturnType<typeof useConnectedLibrary>;
   dialog: VideoDialogKind;
   setDialog: (value: VideoDialogKind) => void;
-  preview: Video | null;
-  setPreview: (value: Video | null) => void;
 }) {
   const busy = !demo && connected.busy;
   const [collection, setCollection] = useState('');
@@ -76,66 +61,6 @@ export function VideoDialogs({
   }
   return (
     <>
-      <Dialog.Root
-        open={preview !== null}
-        onOpenChange={(event) => {
-          if (!event.open) setPreview(null);
-        }}
-      >
-        <Portal>
-          <Dialog.Backdrop />
-          <Dialog.Positioner>
-            <Dialog.Content>
-              <Dialog.Title>{preview?.title}</Dialog.Title>
-              <Dialog.Description>
-                {demo
-                  ? 'Synthetic preview · no video file is loaded.'
-                  : 'Video details · saved in your library.'}
-              </Dialog.Description>
-              {preview?.artwork && (
-                <PreviewImage
-                  src={preview.artwork}
-                  alt={demo ? 'Geometric landscape demo artwork' : preview.title}
-                />
-              )}
-              <Text tone="muted">
-                {preview
-                  ? `${preview.person || 'No people linked'} · ${formatDuration(preview.duration)} · ${preview.resolution}`
-                  : ''}
-              </Text>
-              {preview?.collection && (
-                <Text size="sm" tone="muted">
-                  In {preview.collection}
-                </Text>
-              )}
-              {demo && preview && (
-                <Text size="sm" tone="muted">
-                  {preview.tags.join(' · ') || 'No tags linked'}
-                </Text>
-              )}
-              {!demo && preview?.source && (
-                <>
-                  <Text size="sm">
-                    {preview.tags.length ? `Tags: ${preview.tags.join(', ')}` : 'No tags linked'}
-                  </Text>
-                  <Text size="sm" tone="muted">
-                    {preview.source.filename}
-                  </Text>
-                  <Text size="sm" tone="muted">
-                    The full player is a later rebuild milestone. You can watch this video in the
-                    existing app.
-                  </Text>
-                </>
-              )}
-              <Dialog.Footer>
-                <Dialog.CloseTrigger asChild>
-                  <Button>Close preview</Button>
-                </Dialog.CloseTrigger>
-              </Dialog.Footer>
-            </Dialog.Content>
-          </Dialog.Positioner>
-        </Portal>
-      </Dialog.Root>
       <Dialog.Root
         open={dialog !== null}
         closeOnEscape={!busy}

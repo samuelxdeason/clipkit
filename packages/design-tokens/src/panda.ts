@@ -62,6 +62,9 @@ export const colors = {
   info: v('--ui-info'),
   infoSurface: v('--ui-info-surface'),
   infoLine: v('--ui-info-line'),
+  // The viewer stage. The existing app wrote this one colour inline in its
+  // viewer sheets rather than as a variable, so it has no entry in values.ts.
+  stage: { value: '#050506' },
   brandGlow: v('--ui-brand-glow'),
   brandBorder: v('--ui-brand-border'),
   rose: v('--ui-rose'),

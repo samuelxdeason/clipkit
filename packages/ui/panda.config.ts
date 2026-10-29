@@ -11,6 +11,7 @@ import { tag, statusBadge, notice, emptyState } from './src/recipes/feedback';
 import { mediaCard } from './src/recipes/media-card';
 import { pageHeader, sectionHeading, toolbar, filterRail, filterChip } from './src/recipes/layout';
 import { sidebar } from './src/recipes/sidebar';
+import { organizer, viewer } from './src/recipes/viewer';
 import {
   panel,
   rule,
@@ -87,6 +88,8 @@ export default defineConfig({
         stat,
         avatar,
         disclosure,
+        viewer,
+        organizer,
       },
     },
   },

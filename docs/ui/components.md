@@ -37,6 +37,8 @@ Compact card controls use Tag for labels and Button `quiet/compact` for File inf
 | Breadcrumbs / Disclosure / TextLink / Accent | nav; details with quiet summary and danger tone; inline link; accent span | Copy-level patterns |
 | Text | size; tone; variant body / eyebrow / metadata / label | Named roles from the theme's text styles override size |
 | MediaCard | Compound; kind video (default) / photo / person / tag | Root is an article with aria-label; Media is the one clickable surface and needs a name; data-selected shows selection; identity colour and domain content stay in the app |
+| Viewer | Compound on Ark Dialog; kind video (default) / photo | The full-viewport window around a playing video or a photo: Header with Eyebrow and Title, Stage with one Video or Image, Bar, Footer with Controls, Error, Inspector; see [Player and viewer](player.md) |
+| Viewer.Organizer | Compound: Root, Heading, Tray, TrayItem, Feedback, Intro, Create, Options, Option, Symbol, Copy, Name, Detail, Check, Empty, File, Facts | The organize inspector's parts; TrayItem and Option are buttons with aria-pressed; Create wraps a full-width Button |
 
 Use one primary action for the current local task. Neutral is the supporting action; quiet is toolbar utility; danger names a destructive action. These are the existing app's four variants, written as one recipe; Storybook's Reference/Legacy buttons story renders both side by side. Destructive actions must be named accurately and preserve the app's confirmation/recovery behavior. A red button is not a confirmation flow.
 

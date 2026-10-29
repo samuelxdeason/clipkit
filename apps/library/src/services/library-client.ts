@@ -17,6 +17,7 @@ export interface CatalogueVideo {
   height?: number | null;
   width?: number | null;
   filesize?: number | null;
+  webpage_url?: string;
   added: string;
   favorite: boolean;
 }
@@ -138,8 +139,8 @@ export class LibraryClient {
     return data as T;
   }
 
-  post(path: string, body: unknown) {
-    return this.request(path, {
+  post<T = unknown>(path: string, body: unknown) {
+    return this.request<T>(path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -250,6 +251,35 @@ export class LibraryClient {
       videos: videos.map(({ site, id }) => ({ site, id })),
       photos: [],
     });
+  }
+  // Playback: the existing player's calls, in order. Position is in seconds;
+  // the server clears it when duration says the video finished.
+  markWatched(key: VideoKey) {
+    return this.post('/api/markwatched', { site: key.site, id: key.id });
+  }
+  position(key: VideoKey, position: number, duration: number) {
+    return this.post('/api/position', { site: key.site, id: key.id, position, duration });
+  }
+  setTitle(key: VideoKey, title: string) {
+    return this.post('/api/settitle', { site: key.site, id: key.id, title });
+  }
+  allLabels(signal: AbortSignal) {
+    return this.request<string[] | null>('/api/labels', { signal });
+  }
+  listCollections(signal: AbortSignal) {
+    return this.request<Collection[] | null>('/api/collections', { signal });
+  }
+  collectionsForVideo(key: VideoKey, signal: AbortSignal) {
+    return this.request<number[] | null>(
+      `/api/collections-for-video?site=${encodeURIComponent(key.site)}&id=${encodeURIComponent(key.id)}`,
+      { signal },
+    );
+  }
+  uncollect(id64: number, key: VideoKey) {
+    return this.post('/api/collections/remove', { id64, site: key.site, videoId: key.id });
+  }
+  createCollection(name: string) {
+    return this.post<{ id: number }>('/api/collections/create', { name });
   }
   trash(videos: VideoKey[]) {
     return this.post('/api/media/trash', {
