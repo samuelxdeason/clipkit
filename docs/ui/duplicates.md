@@ -2,7 +2,7 @@
 
 Open Potential duplicates under Manage library, or `/?view=duplicates`. Ported on 2026-10-28 from the existing app's `DuplicateQueue` and `duplicateComparison`, with their rules in `design-system.css`, `after-hours.css` and `library-browsing.css`. Storybook's Patterns/Duplicates stories show the surfaces and Reference/Legacy duplicates renders the old versions beside them.
 
-**The Python daemon does not serve these routes yet.** The page targets the Go backend's contract (`GET /api/duplicates`, `GET /api/duplicates/recycle-folder`, `POST /api/duplicates/create`, `POST /api/duplicates/resolve`), which the Python rebuild's schema already carries a `duplicate_groups` table for. Against trove-py the page shows the request error with Refresh queue; against the Go backend it works as the old screen did. Adding the routes is backend parity work in trove-py's consolidation plan.
+The page targets the Go backend's contract (`GET /api/duplicates`, `GET /api/duplicates/recycle-folder`, `POST /api/duplicates/create`, `POST /api/duplicates/resolve`). The Python daemon serves the same four routes since its commit 3bae5f1 on 2026-10-29, with the recycle move in `library/trash.py`; the trash route itself is still unported there.
 
 ## Ownership
 
@@ -36,4 +36,4 @@ The same, composed from recipes. Previews side by side pause other players when 
 
 ## Checks
 
-`node --test apps/library/src/features/duplicates/model.test.mjs` covers the formats and the comparison notes. The page cannot be exercised against the Python daemon, which lacks the routes; it was not run against the Go backend, which only serves the real vault.
+`node --test apps/library/src/features/duplicates/model.test.mjs` covers the formats and the comparison notes. Against a Python daemon on a scratch vault with no groups, the page loads its empty state and the recycle folder note; resolving a group was not exercised by hand. The Go backend only serves the real vault and was not used.
