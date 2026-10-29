@@ -75,6 +75,12 @@ export function useVideoLibrary() {
     setRemoved([]);
     setNotice('Demo items restored.');
   }
+  function markDuplicates() {
+    setNotice(
+      `${selected.length} demo videos marked as potential duplicates. The review queue is connected-only.`,
+    );
+    setSelected([]);
+  }
   function reset() {
     setVideos(initialVideos);
     setFilters(emptyFilters);
@@ -105,6 +111,7 @@ export function useVideoLibrary() {
     favoriteSelected,
     collect,
     removeSelected,
+    markDuplicates,
     removed,
     undo,
     reset,

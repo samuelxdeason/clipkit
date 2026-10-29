@@ -1,6 +1,6 @@
 import { ManageBar } from '../../components/browsing/manage-bar';
 import { useRef, useState } from 'react';
-import { Film, FolderPlus, Heart, RotateCcw, Trash2 } from 'lucide-react';
+import { Copy, Film, FolderPlus, Heart, RotateCcw, Trash2 } from 'lucide-react';
 import {
   Button,
   Checkbox,
@@ -288,6 +288,15 @@ export function VideoLibrary({ demo = false, person }: { demo?: boolean; person?
             >
               <Icon glyph={Heart} size="sm" />
               Favorite selected
+            </Button>
+            <Button
+              variant="quiet"
+              disabled={library.selected.length < 2}
+              title="Select at least two videos"
+              onClick={() => void library.markDuplicates()}
+            >
+              <Icon glyph={Copy} size="sm" />
+              Mark as potential duplicates
             </Button>
             <Button
               variant="danger"

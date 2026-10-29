@@ -22,6 +22,7 @@ export {
 } from './components/collections';
 export { SourceCard, RemoteItem } from './components/following';
 export { SettingsNav, SettingsCard, Storage } from './components/settings';
+export { ReviewNav, Comparison, DecisionBar } from './components/duplicates';
 export {
   Panel,
   Rule,

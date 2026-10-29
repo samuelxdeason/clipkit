@@ -378,6 +378,12 @@ export function useConnectedLibrary(enabled: boolean, person?: string) {
         'Moved to the vault’s recoverable trash. No in-app Undo is available.',
       );
     },
+    markDuplicates() {
+      return mutate(
+        (api) => api.createDuplicateGroup(picked.map((video) => video.source!)),
+        'Added to Potential duplicates. Open the queue under Manage library to review.',
+      );
+    },
     removed: [] as Video[],
     undo() {},
     reset: refresh,

@@ -1,0 +1,268 @@
+import { defineSlotRecipe } from '@pandacss/dev';
+
+/**
+ * The existing app's duplicate review surfaces: the queue navigation with
+ * its progress and pager (`.dq-navigation`), the comparison table
+ * (`.dq-table-scroll`, `.dq-table` and its cells, previews and choices)
+ * and the sticky decision bar (`.dq-decision-bar`). The intro is a
+ * SectionHeading surface and the messages are Notices. Sources:
+ * frontend/src/design-system.css, after-hours.css and library-browsing.css.
+ */
+
+/** `.dq-navigation`: how many groups are left, and the pager through them. */
+export const reviewNav = defineSlotRecipe({
+  className: 'ck-review-nav',
+  slots: ['root', 'progress', 'count', 'caption', 'pager'],
+  base: {
+    root: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      flexWrap: 'wrap',
+      gap: { base: '2', md: '4' },
+      px: { base: '4', md: '6' },
+      py: { base: '5', md: '5' },
+      bg: 'toolbar',
+      color: 'text',
+      borderWidth: '1px',
+      borderColor: 'line',
+      borderRadius: 'panel',
+    },
+    progress: { display: 'grid', gap: '1', minW: '0' },
+    count: {
+      fontSize: 'section',
+      fontWeight: 'heading',
+      lineHeight: 'heading',
+      letterSpacing: 'section',
+    },
+    caption: { color: 'muted', textStyle: 'metadata' },
+    pager: { display: 'flex', alignItems: 'center', gap: '2', ml: { base: 'auto', md: '0' } },
+  },
+});
+
+/** `.dq-table`: one column per copy, a sticky row label, previews up top and the facts below. */
+export const comparison = defineSlotRecipe({
+  className: 'ck-compare',
+  slots: [
+    'root',
+    'scroll',
+    'table',
+    'rowLabel',
+    'copyHeading',
+    'preview',
+    'play',
+    'title',
+    'choice',
+    'choiceCopy',
+    'value',
+    'note',
+    'path',
+    'caption',
+  ],
+  base: {
+    root: { minW: '0' },
+    scroll: {
+      overflowX: 'auto',
+      bg: 'toolbar',
+      borderWidth: '1px',
+      borderColor: 'line',
+      borderRadius: 'panel',
+      _focusVisible: { outline: '2px solid', outlineColor: 'focus', outlineOffset: '2px' },
+    },
+    table: {
+      w: 'full',
+      minW: '[calc(116px + var(--copies) * 360px)]',
+      borderCollapse: 'separate',
+      borderSpacing: '0',
+      tableLayout: 'fixed',
+      bg: 'toolbar',
+      '& th, & td': {
+        px: { base: '3.5', md: '5' },
+        py: { base: '3.5', md: '4' },
+        textAlign: 'left',
+        verticalAlign: 'top',
+        borderRightWidth: '1px',
+        borderColor: 'line',
+      },
+      '& th:last-child, & td:last-child': { borderRightWidth: '0' },
+      '& thead th': { py: { base: '3.5', md: '5' } },
+      '& thead th:not(.ck-compare__rowLabel)': { fontWeight: 'body' },
+      '& tbody th, & tbody td': { borderTopWidth: '1px' },
+      '& tbody td': { fontSize: 'body', lineHeight: 'body', overflowWrap: 'anywhere' },
+      '& tbody tr:hover td': { boxShadow: 'inset 0 0 0 999px #ffffff03' },
+      // A column marked for recycling sits a shade darker.
+      '& [data-recycle]': { bg: '[#00000013]' },
+    },
+    // The first column names each row and stays put while the copies scroll.
+    rowLabel: {
+      position: 'sticky',
+      left: '0',
+      zIndex: '2',
+      w: '[116px]',
+      bg: 'surface',
+      color: 'muted',
+      fontSize: 'meta',
+      fontWeight: 'label',
+      boxShadow: '5px 0 12px #0002',
+      '& small': {
+        display: 'block',
+        mt: '3',
+        color: 'subtle',
+        fontWeight: 'body',
+        lineHeight: 'body',
+      },
+    },
+    copyHeading: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: '2',
+      mb: '4',
+      color: 'muted',
+      fontSize: 'body',
+      fontWeight: 'label',
+    },
+    // `.dq-preview`: a poster or a player, on the stage colour.
+    preview: {
+      position: 'relative',
+      w: 'full',
+      h: { base: '[270px]', md: '[clamp(280px, 36dvh, 440px)]' },
+      overflow: 'hidden',
+      bg: 'stage',
+      borderRadius: 'inset',
+      '& img, & video': {
+        position: 'absolute',
+        inset: '0',
+        display: 'block',
+        w: 'full',
+        h: 'full',
+        objectFit: 'contain',
+      },
+      '& > button': {
+        position: 'absolute',
+        inset: '0',
+        display: 'grid',
+        placeItems: 'center',
+        w: 'full',
+        h: 'full',
+        p: '0',
+        bg: 'transparent',
+        color: 'muted',
+        cursor: 'pointer',
+        _focusVisible: { outline: '2px solid', outlineColor: 'focus', outlineOffset: '-2px' },
+      },
+      '& svg': { w: '8', h: '8' },
+    },
+    play: {
+      position: 'absolute',
+      bottom: '3.5',
+      left: '3.5',
+      px: '3.5',
+      py: '2.5',
+      bg: 'overlay',
+      color: 'text',
+      borderWidth: '1px',
+      borderColor: 'overlayLine',
+      borderRadius: 'control',
+      fontSize: 'meta',
+      boxShadow: '0 4px 20px #0005',
+      '& svg': { w: 'iconSmall', h: 'iconSmall' },
+      'button:hover > &': { bg: 'accent', color: 'accentInk' },
+    },
+    title: {
+      display: 'block',
+      h: '12',
+      mt: '4.5',
+      fontSize: 'subsection',
+      fontWeight: 'label',
+      lineHeight: '[24px]',
+      lineClamp: 2,
+      overflowWrap: 'anywhere',
+    },
+    // `.dq-choice label`: the keep-or-recycle choice as a bordered tile with its checkbox.
+    choice: {
+      display: 'flex',
+      flex: '1 1 180px',
+      alignItems: 'center',
+      gap: '3',
+      minH: '[72px]',
+      p: '3.5',
+      bg: 'field',
+      borderWidth: '1px',
+      borderColor: 'line',
+      borderRadius: 'inset',
+      cursor: 'pointer',
+      '&[data-choice="keep"]': {
+        borderColor: 'color-mix(in srgb, token(colors.success) 35%, transparent)',
+        bg: 'successSurface',
+      },
+      '&[data-choice="recycle"]': {
+        borderColor: 'color-mix(in srgb, token(colors.warning) 30%, transparent)',
+        bg: 'warningSurface',
+      },
+      _focusWithin: { outline: '2px solid', outlineColor: 'focus', outlineOffset: '3px' },
+    },
+    choiceCopy: {
+      display: 'grid',
+      gap: '1',
+      '& strong': { fontSize: 'body', fontWeight: 'label', color: 'text' },
+      '& small': { color: 'muted', textStyle: 'metadata', lineHeight: '[1.4]' },
+    },
+    value: {
+      display: 'block',
+      fontSize: 'subsection',
+      fontWeight: 'label',
+      fontVariantNumeric: 'tabular-nums',
+    },
+    note: {
+      display: 'block',
+      mt: '1.5',
+      color: 'subtle',
+      fontSize: 'meta',
+      '&[data-highlight]': { color: 'accent' },
+    },
+    path: { color: 'muted', fontSize: 'eyebrow', lineHeight: 'body', overflowWrap: 'anywhere' },
+    caption: { m: '0', my: '3', color: 'subtle', textStyle: 'metadata', lineHeight: 'body' },
+  },
+});
+
+/** `.dq-decision-bar`: what the choices add up to, and the actions, kept in view at the bottom. */
+export const decisionBar = defineSlotRecipe({
+  className: 'ck-decision',
+  slots: ['root', 'summary', 'count', 'note', 'actions'],
+  base: {
+    root: {
+      position: 'sticky',
+      bottom: '0',
+      zIndex: '3',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      flexWrap: 'wrap',
+      gap: { base: '3', md: '4' },
+      px: { base: '4', md: '6' },
+      py: { base: '4', md: '5' },
+      bg: 'surface',
+      color: 'text',
+      borderWidth: '1px',
+      borderColor: 'dialogLine',
+      borderRadius: 'panel',
+      boxShadow: '0 -12px 32px #0006',
+    },
+    summary: { display: 'grid', gap: '1', minW: '0' },
+    count: {
+      fontSize: { base: 'subsection', md: '[18px]' },
+      fontWeight: 'label',
+      lineHeight: 'compact',
+      '& span': { color: 'subtle', px: '1' },
+    },
+    note: { maxW: '[600px]', color: 'muted', textStyle: 'metadata', lineHeight: 'compact' },
+    actions: {
+      display: 'flex',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: '2',
+      w: { base: 'full', md: 'auto' },
+    },
+  },
+});

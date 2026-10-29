@@ -19,6 +19,7 @@ export interface CatalogueVideo {
   height?: number | null;
   width?: number | null;
   filesize?: number | null;
+  ext?: string;
   webpage_url?: string;
   added: string;
   favorite: boolean;
@@ -77,6 +78,11 @@ export interface MediaKeys {
 export interface VideoKey {
   site: string;
   id: string;
+}
+export interface DuplicateGroup {
+  id: number;
+  created: string;
+  videos: CatalogueVideo[];
 }
 export interface SiteStat {
   site: string;
@@ -398,6 +404,25 @@ export class LibraryClient {
   }
   rebuild() {
     return this.post<{ count: number }>('/api/rebuild', {});
+  }
+  // Duplicates: the Go backend's routes. Resolving moves the discarded copies
+  // to the vault's recycle folder before the decision is committed.
+  duplicateGroups(signal: AbortSignal) {
+    return this.request<DuplicateGroup[] | null>('/api/duplicates', { signal });
+  }
+  duplicateRecycleFolder(signal: AbortSignal) {
+    return this.request<string>('/api/duplicates/recycle-folder', { signal });
+  }
+  createDuplicateGroup(videos: VideoKey[]) {
+    return this.post<number>('/api/duplicates/create', {
+      videos: videos.map(({ site, id }) => ({ site, id })),
+    });
+  }
+  resolveDuplicateGroup(id64: number, keep: VideoKey[]) {
+    return this.post('/api/duplicates/resolve', {
+      id64,
+      keep: keep.map(({ site, id }) => ({ site, id })),
+    });
   }
   trash(videos: VideoKey[]) {
     return this.post('/api/media/trash', {

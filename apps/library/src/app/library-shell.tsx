@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import {
+  Copy,
   Film,
   SquarePlay,
   Folder,
@@ -32,6 +33,7 @@ export function LibraryShell({
     | 'collections'
     | 'following'
     | 'downloads'
+    | 'duplicates'
     | 'settings';
   /** The open collection, so the sidebar's folder tree can mark and expand it. */
   collectionId?: number;
@@ -128,7 +130,9 @@ export function LibraryShell({
           </Sidebar.Group>
           {!demo && <CollectionTree currentId={collectionId} />}
           <Sidebar.Footer>
-            <details open={page === 'downloads' || page === 'following' ? true : undefined}>
+            <details
+              open={['downloads', 'following', 'duplicates'].includes(page) ? true : undefined}
+            >
               <Sidebar.Summary>
                 <SlidersHorizontal aria-hidden="true" />
                 Manage library
@@ -145,6 +149,12 @@ export function LibraryShell({
                   glyph={Download}
                   href={demo ? undefined : '/?view=downloads'}
                   active={page === 'downloads'}
+                />
+                <NavigationItem
+                  label="Potential duplicates"
+                  glyph={Copy}
+                  href={demo ? undefined : '/?view=duplicates'}
+                  active={page === 'duplicates'}
                 />
                 <Button asChild variant="quiet" justifyContent="flex-start">
                   <a href="?view=foundation">Design foundation</a>

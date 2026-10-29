@@ -15,6 +15,7 @@ import { organizer, viewer } from './src/recipes/viewer';
 import { collectionHero, coverMosaic, folderCard, folderTree } from './src/recipes/collections';
 import { mediaItem, sourceCard } from './src/recipes/following';
 import { settingsCard, settingsNav, storageSummary } from './src/recipes/settings';
+import { comparison, decisionBar, reviewNav } from './src/recipes/duplicates';
 import {
   panel,
   rule,
@@ -102,6 +103,9 @@ export default defineConfig({
         settingsNav,
         settingsCard,
         storageSummary,
+        reviewNav,
+        comparison,
+        decisionBar,
       },
     },
   },
